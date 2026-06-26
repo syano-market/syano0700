@@ -48,13 +48,13 @@ waitForPort = 8000
 name = "artifacts/api-server: API Server"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @workspace/api-server run dev"
-waitForPort = 8080
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd artifacts/api-server && ([ -f dist/index.mjs ] || node ./build.mjs) && NODE_ENV=development PORT=${API_PORT:-8080} node --enable-source-maps ./dist/index.mjs"
+waitForPort = 8080
 
 [[workflows.workflow]]
 name = "artifacts/marketplace: web"
