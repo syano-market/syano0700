@@ -1,0 +1,21 @@
+You are an elite UI/UX Architect and Senior Frontend Engineer. Now that our Hero fold and Navbar are pixel-perfect, we need to restore ALL the subsequent sections of the original homepage that were positioned below the hero fold (such as the product showcase grids, marketplace categories, factory/vendor highlights, stats, or promotional banners).
+
+⚠️ ABSOLUTE MANDATE: You must bring back every single missing section from the previous homepage version, but they must be 100% RE-SKINNED, RE-STYLED, and ADAPTED to our new minimal luxury design language. Absolutely NO legacy white backgrounds, default gray borders, or mismatched template styling are allowed.
+
+Execute this comprehensive reconstruction according to these strict luxury tokens:
+
+### 1. PERMANENT THEME ADAPTATION (The Luxury DNA)
+- **Background Integrity**: Every single restored section wrapper must maintain the strict matte charcoal black background (`#0B0B0C`). Ensure there are zero harsh visual breaks or accidental light-mode containers as the user scrolls down.
+- **Card Aesthetics**: Transform all product cards, category blocks, or vendor profiles into elegant floating elements. Apply deep rounded corners (`rounded-2xl` or `rounded-3xl`), ultra-subtle dark borders (`border-neutral-800` or low-opacity dividers), and optional soft ambient glassmorphism (`bg-white/[0.02]`).
+- **Typography & Hierarchy**: Section headings must use the elegant `Noto Naskh Arabic` in crisp white (`#FFFFFF`) with balanced tracking. All sub-texts, prices, descriptions, and labels must use `Noto Sans Arabic` in clean muted silver-grey for perfect luxury contrast.
+- **Buttons & Badges**: Any interaction points, "View More" links, item tags, or price badges within these lower sections must be rendered as high-contrast white capsule shapes (`rounded-full`) or minimal, wireframe-sharp pills.
+
+### 2. SPATIAL LAYOUT & BREATHING ROOM
+- Maintain strict grid alignments. Use a unified horizontal padding of `px-8` (32px) for all section wrappers so they perfectly align with the Navbar and Hero bounds.
+- Apply generous, luxurious vertical spacing between sections (e.g., `py-16` or `space-y-20`) so the content feels curated and editorial, never cramped or crowded.
+
+### 3. RTL & FUNCTIONAL PARITY
+- Ensure all product grids, lists, carousels, and directional arrows strictly flow in the proper Arabic RTL alignment using Tailwind logical spacing (`ms-`, `pe-`, `space-x-reverse`).
+- Retain 100% of the previous business logic, data fetching, translation keys, and click actions for all restored elements. Do not break any underlying functionality.
+
+Compile the project cleanly with 0 TypeScript errors and reveal the full, continuous luxury scrolling experience on the live preview!
