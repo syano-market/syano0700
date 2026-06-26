@@ -1,10 +1,10 @@
 import "@/i18n";
 import { lazy, Suspense, useEffect } from "react";
 import { useSettingsSync } from "@/hooks/useSettingsSync";
-// Home is imported EAGERLY — it is the primary landing page and lazy-loading it
-// creates an extra async chunk waterfall that directly delays LCP. All other
-// pages remain lazy since they are not in the critical first-render path.
-import Home from "@/pages/home";
+// LuxuryLandingPage is imported EAGERLY — it is the primary landing page and
+// lazy-loading it creates an extra async chunk waterfall that directly delays LCP.
+// All other pages remain lazy since they are not in the critical first-render path.
+import LuxuryLandingPageEager from "@/pages/luxury-landing";
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -97,7 +97,8 @@ const CourierWallet                  = lazy(() => import("@/pages/courier/wallet
 const AdminCourierPayouts            = lazy(() => import("@/pages/admin/courier-payouts"));
 const WishlistPage                   = lazy(() => import("@/pages/wishlist"));
 const NewLandingPage                 = lazy(() => import("@/pages/new-landing"));
-const LuxuryLandingPage              = lazy(() => import("@/pages/luxury-landing"));
+const Home                           = lazy(() => import("@/pages/home"));
+const LuxuryLandingPage              = LuxuryLandingPageEager;
 /* ── Footer / Info pages ─────────────────────────────────────── */
 const AboutPage           = lazy(() => import("@/pages/about/index"));
 const StoryPage           = lazy(() => import("@/pages/about/story"));
@@ -256,7 +257,7 @@ function Router() {
       <Suspense fallback={<PageLoader />}>
         <PageTransition>
           <Switch>
-            <Route path="/" component={Home} />
+            <Route path="/" component={LuxuryLandingPage} />
             <Route path="/account-suspended" component={AccountSuspended} />
             <Route path="/login" component={Login} />
             <Route path="/register" component={Register} />
