@@ -52,9 +52,8 @@ interface StackItem {
   label:     string;
   sublabel:  string;
   badge:     string;
-  gradient:  string;
+  imageUrl:  string;
   accent:    string;
-  glyph:     string;
 }
 
 const LEFT_STACK: StackItem[] = [
@@ -63,27 +62,27 @@ const LEFT_STACK: StackItem[] = [
     label:    "lux.left.l0.label",
     sublabel: "lux.left.l0.sublabel",
     badge:    "lux.left.l0.badge",
-    gradient: "linear-gradient(158deg, #2E1065 0%, #18103A 52%, #080610 100%)",
+    // Luxury dark editorial fashion — deep tones, elegant pose
+    imageUrl: "https://images.pexels.com/photos/2220329/pexels-photo-2220329.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
     accent:   "#A78BFA",
-    glyph:    "◈",
   },
   {
     id:       "l1",
     label:    "lux.left.l1.label",
     sublabel: "lux.left.l1.sublabel",
     badge:    "lux.left.l1.badge",
-    gradient: "linear-gradient(158deg, #291F06 0%, #1C1504 52%, #080600 100%)",
+    // High-end leather shoes on dark neutral background
+    imageUrl: "https://images.pexels.com/photos/267320/pexels-photo-267320.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
     accent:   "#FBBF24",
-    glyph:    "◇",
   },
   {
     id:       "l2",
     label:    "lux.left.l2.label",
     sublabel: "lux.left.l2.sublabel",
     badge:    "lux.left.l2.badge",
-    gradient: "linear-gradient(158deg, #0F1729 0%, #1E1B4B 52%, #060610 100%)",
+    // Perfume bottles — dark moody studio shot
+    imageUrl: "https://images.pexels.com/photos/755992/pexels-photo-755992.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
     accent:   "#818CF8",
-    glyph:    "◉",
   },
 ];
 
@@ -93,27 +92,27 @@ const RIGHT_STACK: StackItem[] = [
     label:    "lux.right.r0.label",
     sublabel: "lux.right.r0.sublabel",
     badge:    "lux.right.r0.badge",
-    gradient: "linear-gradient(158deg, #041F0F 0%, #07250E 52%, #020C07 100%)",
+    // Luxurious fabric / silk textures — deep, jewel-toned
+    imageUrl: "https://images.pexels.com/photos/4210342/pexels-photo-4210342.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
     accent:   "#34D399",
-    glyph:    "✦",
   },
   {
     id:       "r1",
     label:    "lux.right.r1.label",
     sublabel: "lux.right.r1.sublabel",
     badge:    "lux.right.r1.badge",
-    gradient: "linear-gradient(158deg, #1F0C02 0%, #2A1104 52%, #0A0500 100%)",
+    // Artisan pottery / ceramics — earthy dark background
+    imageUrl: "https://images.pexels.com/photos/2162938/pexels-photo-2162938.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
     accent:   "#FB923C",
-    glyph:    "◆",
   },
   {
     id:       "r2",
     label:    "lux.right.r2.label",
     sublabel: "lux.right.r2.sublabel",
     badge:    "lux.right.r2.badge",
-    gradient: "linear-gradient(158deg, #04141F 0%, #071D2D 52%, #02090E 100%)",
+    // Brass metalwork / decorative crafts — dark dramatic lighting
+    imageUrl: "https://images.pexels.com/photos/4226879/pexels-photo-4226879.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
     accent:   "#38BDF8",
-    glyph:    "❖",
   },
 ];
 
@@ -126,32 +125,9 @@ const visible    = { opacity: 1, scale: 1,    y: 0   };
 const toTop      = { opacity: 0, scale: 0.87, y: -54 };
 const toBottom   = { opacity: 0, scale: 0.87, y: 54  };
 
-/* ─── Decorative SVG geometry for card visual ─────────────────────────────────*/
-function CardGlyph({
-  glyph, accent, reduced,
-}: {
-  glyph: string; accent: string; reduced: boolean;
-}) {
-  return (
-    <motion.div
-      animate={reduced ? {} : { scale: [1, 1.07, 1], opacity: [0.65, 1, 0.65] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-      style={{
-        fontSize: "clamp(3.5rem, 7vw, 6rem)",
-        color: accent,
-        textShadow: `0 0 80px ${accent}70, 0 0 160px ${accent}30`,
-        lineHeight: 1,
-        userSelect: "none",
-      }}
-    >
-      {glyph}
-    </motion.div>
-  );
-}
-
 /* ─── Product card (fills its container absolutely) ──────────────────────────*/
 function ProductCard({
-  item, reduced,
+  item,
 }: {
   item: StackItem; reduced: boolean;
 }) {
@@ -162,27 +138,65 @@ function ProductCard({
       style={{
         position: "absolute",
         inset: 0,
-        background: item.gradient,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        padding: "clamp(1rem, 2.5vw, 1.75rem)",
         borderRadius: "inherit",
+        overflow: "hidden",
       }}
     >
-      {/* Subtle inner glow */}
+      {/* Full-bleed product photo — darkened + desaturated for luxury editorial feel */}
+      <img
+        src={item.imageUrl}
+        alt=""
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          objectPosition: "center",
+          filter: "brightness(0.75) saturate(0.82)",
+        }}
+      />
+
+      {/* Top gradient scrim — keeps badge readable */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(ellipse 80% 60% at 50% 20%, ${item.accent}18 0%, transparent 70%)`,
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 38%)",
+          borderRadius: "inherit",
+        }}
+      />
+
+      {/* Bottom gradient scrim — keeps text readable */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 42%, transparent 72%)",
+          borderRadius: "inherit",
+        }}
+      />
+
+      {/* Subtle accent halo at top-center */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(ellipse 70% 40% at 50% 0%, ${item.accent}22 0%, transparent 65%)`,
           pointerEvents: "none",
           borderRadius: "inherit",
         }}
       />
 
-      {/* Badge */}
-      <div style={{ position: "relative", display: "flex", justifyContent: "flex-start" }}>
+      {/* Badge — top */}
+      <div
+        style={{
+          position: "absolute",
+          top: "clamp(0.75rem, 2vw, 1.25rem)",
+          insetInlineStart: "clamp(0.75rem, 2vw, 1.25rem)",
+        }}
+      >
         <span
           style={{
             fontFamily: F.sans,
@@ -190,39 +204,38 @@ function ProductCard({
             fontWeight: 500,
             padding: "0.3rem 0.85rem",
             borderRadius: "9999px",
-            background: `${item.accent}18`,
-            color: item.accent,
-            border: `1px solid ${item.accent}35`,
+            background: "rgba(255,255,255,0.15)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            color: C.white,
+            border: "1px solid rgba(255,255,255,0.25)",
             letterSpacing: "0.04em",
+            whiteSpace: "nowrap",
           }}
         >
           {t(item.badge)}
         </span>
       </div>
 
-      {/* Center glyph */}
+      {/* Label row — bottom */}
       <div
         style={{
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: 1,
+          position: "absolute",
+          bottom: "clamp(0.75rem, 2vw, 1.25rem)",
+          insetInlineStart: "clamp(0.75rem, 2vw, 1.25rem)",
+          insetInlineEnd: "clamp(0.75rem, 2vw, 1.25rem)",
         }}
       >
-        <CardGlyph glyph={item.glyph} accent={item.accent} reduced={reduced} />
-      </div>
-
-      {/* Label row */}
-      <div style={{ position: "relative" }}>
         <p
           style={{
             fontFamily: F.naskh,
             fontSize: "clamp(0.9rem, 1.6vw, 1.15rem)",
-            fontWeight: 600,
+            fontWeight: 700,
             color: C.white,
             lineHeight: 1.4,
-            marginBottom: "0.2rem",
+            marginBottom: "0.25rem",
+            margin: 0,
+            textShadow: "0 1px 8px rgba(0,0,0,0.6)",
           }}
         >
           {t(item.label)}
@@ -231,8 +244,10 @@ function ProductCard({
           style={{
             fontFamily: F.sans,
             fontSize: "clamp(0.62rem, 1vw, 0.78rem)",
-            color: C.muted,
+            color: "rgba(255,255,255,0.72)",
             lineHeight: 1.5,
+            margin: 0,
+            marginTop: "0.2rem",
           }}
         >
           {t(item.sublabel)}

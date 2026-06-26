@@ -1,0 +1,33 @@
+Build a completely new, high-end, production-ready Main Landing Page for "SYANO" (The Syrian Multi-Vendor Marketplace). The design and layout must be a strict, visual duplicate of the clean, capsule-based minimalist editorial layout shown in `image_2.png`.
+
+⚠️ CRITICAL INSTRUCTION: Build this as a BRAND-NEW DESIGN FROM SCRATCH in an isolated, separate file (e.g., `LuxurySyanoPage.jsx`). Do not modify or overwrite any existing design files. Preserve the layout structure, capsule shapes, and high contrast from `image_2.png` exactly, but change all branding and content to match SYANO's identity and Arabic language.
+
+Strictly follow these execution constraints to replicate the `image_2.png` experience for "SYANO Syrian Marketplace Arabic RTL":
+
+### 🎨 VISUAL REPLICATION & KEY STYLING (Inspired by `image_2.png`):
+- **Background**: Deep, matte charcoal black (`#0B0B0C`). Avoid pure black. Elements must float against this deep matte.
+- **Interactive Capsules**: Strictly replicate all capsule shapes (for branding, search, cart, and buttons). They must be white capsule shapes, just like the header and bottom-right button in `image_2.png`.
+- **Primary Color Accents**: Apply our Purple-based trust palette as a subtle *halo/radial glow* effect behind cards, and Green for successful interactions on new buttons. Specifically, use Purple `#7C3AED` as the central radial highlight and Green `#16A34A` subtly within active button elements.
+- **Typography (Strictly Arabic)**:
+  - Header Titles/Branding: Explicitly set font to a premium Arabic Serif font (like `Noto Naskh Arabic`) for a heritage feel.
+  - Body Text/Labels/Buttons: Explicitly set font to `Noto Sans Arabic` for clean UI readability.
+
+### 🏛️ REPLICATING THE PAGE STRUCTURE (Section by Section):
+
+1. **Header**: Replicate the exact horizontal layout.
+   - **Left branding**: A large white capsule shape containing "منصة سِيانو" in a bold, elegant Serif-style Arabic font, replacing the "MIRA" capsule.
+   - **Right icon group**: Maintain the set of pill-shaped elements (search icon, cart icon). Add a third pill that is a split-capsule design (just like the original 'Contact') in white, but change the text to "تواصل معنا" (Contact Us) and the arrow icon to a message bubble.
+
+2. **Core Component (The 3-Card Animated Grid)**: Replicate the 3 elongated, vertical cards with rounded-3xl corners.
+   - **Content Change**: Inside these three cards, replace the jewelry with high-end photographs of Syrian products.
+     - **Left Card**: Premium Halabi Apparel placeholder (ورشة ألبسة حلبية فاخرة).
+     - **Center Card**: Handcrafted Damascus Leather Shoes placeholder (أحذية جلدية دمشقية يدوية الصنع).
+     - **Right Card**: Fine Textiles placeholder (أقمشة نسيجية سورية).
+   - **Animation (Framer Motion Staggered Loop)**: Implement an automated infinite motion loop where the left and right cards scale slightly and alternate positions (one goes up, one goes down) every 2-3 seconds, mimicking the complex motion of the original design. Guarantee 60fps and zero layout shifts by animating only `transform/opacity`.
+
+3. **Footer**: Replicate the footer bar layout.
+   - **Left**: A small "منصة سِيانو" wordmark in white text.
+   - **Center (Body Text)**: Replace the full English text with premium local phrasing in white text: "منصة سِيانو — الفخامة الصناعية السورية من المصنع إليك مباشرة، مصنوعة بشغف وحرفية عالمية، تصلك يومياً."
+   - **Right (CTA Button)**: Replicate the split-capsule design in white. Change the text to "ابدأ التجربة" (Start the Experience) and keep the arrow circle. Add a second smaller, 'ghost' (transparent) capsule button to the side, containing "انضم كصاحب مصنع" (Join as a Factory Owner).
+
+Do your absolute best work to match this exact aesthetic masterpiece in the new file. Once fully coded, compiled, and running flawlessly, present the preview!
