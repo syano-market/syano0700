@@ -1,12 +1,9 @@
 /*
- * luxury-landing.tsx  (route: /luxury)
+ * luxury-landing.tsx  (route: / and /luxury)
  * ─────────────────────────────────────────────────────────────────────────────
  * SYANO — Editorial-grade luxury dark landing page.
- * Inspired by MIRA Jewels: matte charcoal bg, white capsule navbar,
- * 3-column animated product grid, infinite staggered reveal loop.
- *
- * ISOLATION GUARANTEE: Zero imports from existing app components.
- * Only external deps: framer-motion, react-i18next, wouter.
+ * Matte charcoal bg (#0B0B0C), full-featured luxury navbar, 3-column
+ * animated product grid, infinite staggered reveal loop.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -14,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
+import { LuxuryNavbar } from "@/components/LuxuryNavbar";
 
 /* ─── Font injection ─────────────────────────────────────────────────────────*/
 const FONT_CSS = `
@@ -417,143 +415,6 @@ function CenterCard({ reduced, onShop, onSell }: {
   );
 }
 
-/* ─── Capsule Navbar ──────────────────────────────────────────────────────────*/
-function LuxuryNav({ onContact }: { onContact: () => void }) {
-  const { t } = useTranslation();
-  const [, navigate] = useLocation();
-
-  return (
-    <nav
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0.65rem 0.9rem",
-        flexShrink: 0,
-      }}
-    >
-      {/* Start: brand pill */}
-      <motion.button
-        onClick={() => navigate("/")}
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        style={{
-          fontFamily: F.naskh,
-          fontSize: "1.05rem",
-          fontWeight: 700,
-          color: C.bg,
-          padding: "0.55rem 1.25rem",
-          borderRadius: "9999px",
-          background: C.white,
-        }}
-      >
-        {t("lux.nav.brand")}
-      </motion.button>
-
-      {/* End: icon capsules + contact split capsule */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        {/* Search */}
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.93 }}
-          aria-label={t("lux.nav.search")}
-          onClick={() => navigate("/search")}
-          style={{
-            width: 40, height: 40,
-            borderRadius: "9999px",
-            background: C.white,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-            stroke={C.bg} strokeWidth="2.5" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.35-4.35" />
-          </svg>
-        </motion.button>
-
-        {/* Cart */}
-        <motion.button
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.93 }}
-          aria-label={t("lux.nav.cart")}
-          onClick={() => navigate("/cart")}
-          style={{
-            width: 40, height: 40,
-            borderRadius: "9999px",
-            background: C.white,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-            stroke={C.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-          </svg>
-        </motion.button>
-
-        {/* Contact — split capsule: [green circle icon] + [text pill]
-            In RTL flex the DOM order is reversed visually:
-            DOM=[icon][text] → displayed as [text (start/right)] [icon (end/left)]
-            We use dir="ltr" on this element so CSS border-radius is predictable */}
-        <motion.button
-          onClick={onContact}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 0,
-            borderRadius: "9999px",
-            overflow: "hidden",
-            /* keep internal LTR so the two pills join correctly */
-            direction: "ltr",
-          }}
-        >
-          {/* Green icon half */}
-          <div
-            style={{
-              width: 40, height: 40,
-              borderRadius: "9999px 0 0 9999px",
-              background: C.green,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke={C.white} strokeWidth="2.5" strokeLinecap="round">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.37a2 2 0 0 1 1.99-2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.07a16 16 0 0 0 5.94 5.94l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 15.35z" />
-            </svg>
-          </div>
-          {/* White text half */}
-          <div
-            style={{
-              height: 40,
-              padding: "0 1rem 0 0.75rem",
-              borderRadius: "0 9999px 9999px 0",
-              background: C.white,
-              display: "flex", alignItems: "center",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: F.sans,
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                color: C.bg,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {t("lux.nav.contact")}
-            </span>
-          </div>
-        </motion.button>
-      </div>
-    </nav>
-  );
-}
-
 /* ─── Bottom branding strip ────────────────────────────────────────────────────*/
 function BottomStrip({ onExplore }: { onExplore: () => void }) {
   const { t } = useTranslation();
@@ -710,7 +571,7 @@ export default function LuxuryLandingPage() {
         }}
       >
         {/* ── Navbar ─────────────────────────────────────────────────────── */}
-        <LuxuryNav onContact={() => navigate("/contact")} />
+        <LuxuryNavbar />
 
         {/* ── 3-Column animated card grid ────────────────────────────────── */}
         <div

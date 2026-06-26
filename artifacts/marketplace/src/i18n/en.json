@@ -10,6 +10,7 @@
     "search_for": "Search for \"{{query}}\"",
     "login": "Log in",
     "signup": "Sign up",
+    "register": "Register",
     "logout": "Log out",
     "cart": "Cart",
     "home": "Home",
