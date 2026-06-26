@@ -1,0 +1,25 @@
+You have successfully analyzed the "ui-ux-pro-max-skill" and the visual breakdown of the luxury minimal style from "Screenshot (561).jpg". Now, execute your internalized knowledge to build a COMPLETELY NEW, world-class, editorial-grade Landing Page for "SYANO" (The Syrian Multi-Vendor Marketplace).
+
+⚠️ CRITICAL INSTRUCTION: DO NOT MODIFY, OVERWRITE, OR ALTER THE EXISTING DESIGN OR ANY CURRENT UI FILES IN THE CODEBASE. Build this as a BRAND-NEW DESIGN FROM SCRATCH in a separate isolated file (e.g., `NewLuxuryLandingPage.jsx`).
+
+### 🎨 VISUAL THEME & LAYOUT (Inspired by Screenshot (561).jpg):
+- **Background**: Deep, matte charcoal black (`#0B0B0C` or `#121214`) to provide high visual weight and zero distractions.
+- **Header**: High-contrast white capsule shapes (`rounded-full`) for branding/buttons. The logo says "منصة سِيانو" in a premium Serif-style Arabic font. Buttons (like "Contact" or "Search") must be split capsule designs: an isolated circular icon container touching a text capsule.
+- **The Core Component (The 3-Column Luxury Animated Grid)**: 
+  Display 3 prominent, vertically elongated cards with smooth, wide rounded corners (`rounded-3xl` or `32px`). Inside them, place high-end Syrian industrial product placeholders (e.g., Card 1: Premium Halabi Apparel, Card 2: Handcrafted Damascus Leather Shoes, Card 3: Fine Textiles).
+
+### 🎬 THE ADVANCED FRAMER MOTION ANIMATION (Strict Timeline):
+Implement an automated, infinite staggered motion loop using Framer Motion that triggers every 2-3 seconds:
+1. **Right Card Action**: After 2 seconds, the right card smoothly scales down and shrinks vertically, while a completely *new* hidden product card smoothly transitions into view from the top/bottom into its stack.
+2. **Left Card Action**: Alternating with the right card, the left card triggers the exact same shrink-and-reveal sequence but in the *opposite direction* (e.g., if right slides up, left slides down or shrinks from a different origin).
+3. **Smoothness Constraint**: Use Framer Motion variants with `ease-out`. You MUST animate ONLY `scale`, `opacity`, and `translateY` (`transform`) properties to guarantee fluid 60fps performance without causing layout shifts in the surrounding DOM.
+
+---
+
+### 🛡️ STRICT TECHNICAL & UX CONSTRAINTS:
+- **RTL & Logical Classes**: The layout is strictly Arabic RTL. You MUST use Tailwind logical classes (`ms-`, `pe-`, `start-`, `end-`, etc.) instead of directional ones (`ml-`, `pr-`, `left-`, `right-`) to ensure perfect RTL-safe rendering.
+- **Color Accents**: Keep the luxurious dark aesthetic, but inject our Purple (`#7C3AED`) as a soft background glow/mesh highlight behind the Hero area, and Green (`#16A34A`) subtly inside active capsule states.
+- **Typography**: Explicitly set font families to `Noto Naskh Arabic` for premium titles and headings, and `Noto Sans Arabic` for micro-copy and capsule text.
+- **Copywriting (Arabic)**: Use elite local phrasing: "منصة سِيانو — الفخامة الصناعية السورية من المصنع إليك مباشرة" with CTA buttons like "ابدأ التجربة" and "انضم كصاحب مصنع".
+
+Do your absolute best engineering work to match this visual motion masterpiece cleanly in the new file. Once compiled and running flawlessly, present the preview!

@@ -1,0 +1,36 @@
+You have successfully completed the analysis of the "ui-ux-pro-max-skill" intelligence system. Now, execute your internalized knowledge to build a completely new, high-end, production-ready Main Landing Page for "SYANO" (The Syrian Multi-Vendor Marketplace).
+
+⚠️ CRITICAL INSTRUCTION: DO NOT MODIFY, OVERWRITE, OR ALTER THE EXISTING DESIGN OR ANY CURRENT UI FILES IN THE CODEBASE. Leave the current design completely untouched. Instead, build this as a BRAND-NEW DESIGN FROM SCRATCH in a brand-new, separate file or component (e.g., create a new file like `NewLandingPage.jsx` or a separate isolated route). We want to preserve the current codebase state entirely while launching this fresh design iteration.
+
+Strictly follow the generated specification for "e-commerce marketplace Syria Arabic RTL" and implement the 5-section layout inside this new isolated file using React/Next.js and Tailwind CSS:
+
+1. **Header & Hero Section**: 
+   - Design a premium header with a clean navbar.
+   - The Hero section must feature a bold, impactful title: "منصة سِيانو".
+   - Include a prominent, smart search bar as the primary CTA (styled elegantly, referencing local Syrian marketplace logic).
+   - Add two explicit action buttons: "ابدأ التسوق" (Primary) and "انضم كبائع (بصفر رأس مال)" (Secondary).
+
+2. **Categories Bento Grid**: 
+   - Construct a modern, visually stunning Bento Grid displaying marketplace categories relevant to Syria (e.g., ورشات الملابس, مصانع الأحذية, صناعات غذائية, الورشات الحرفية).
+
+3. **Featured Products & Factories Grid**: 
+   - A vibrant, block-based showcase component with product cards pulling directly from factories.
+
+4. **Value Proposition Section**: 
+   - Highlight SYANO's core values cleanly: "من المصنع إلى المستهلك مباشرة" (From Factory to Consumer) and "بدون رأس مال للورشات والشباب" (Zero Capital for Vendors).
+
+5. **Footer**: 
+   - A clean, cohesive footer containing navigation, localized copyright, and placeholder links.
+
+---
+
+### 🛡️ STRICT TECHNICAL & UX CONSTRAINTS:
+
+- **Isolation**: Ensure all imports and styles for this new design are self-contained and do not break or affect the old pages.
+- **RTL & Logical Classes**: The layout is strictly Arabic RTL. You MUST use Tailwind logical classes (`ms-`, `pe-`, `start-`, `end-`, etc.) instead of directional ones (`ml-`, `pr-`, `left-`, `right-`) to ensure perfect RTL-safe rendering.
+- **Color Palette & WCAG**: Apply the Purple-based trust palette. Use `#7C3AED` as the primary brand color/gradient and `#16A34A` for successful CTA button interactions. Ensure all text passes WCAG 3:1+ contrast criteria against card/page backgrounds.
+- **Typography**: Explicitly set font families to `Noto Naskh Arabic` for headings/titles and `Noto Sans Arabic` for regular body text, labels, and buttons.
+- **Framer Motion Animations**: Every entrance and micro-interaction must be smooth. Implement an `ease-out` transition capped strictly between 150ms and 300ms. Animate ONLY `opacity` and `transform` properties to prevent DOM content jumping.
+- **UX Anti-Pattern Protection**: Apply the 99 UX rules you analyzed. Ensure touch targets are at least 44x44px, prevent layout shifts by reserving spaces for dynamic content, and ensure zero z-index conflicts.
+
+Do your absolute best work on this new, independent layout. Once fully coded and running, show me the preview.
