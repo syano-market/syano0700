@@ -1,0 +1,27 @@
+You are an elite Senior Frontend Engineer and UI/UX Expert. We need to refactor the main Navbar shown in `image_f5de5b.jpg` to clean up the layout and fix the current color styling issues, making it 100% compliant with our premium minimal luxury design system.
+
+Execute the following exact modifications in the code right now:
+
+### 1. AUTHENTICATION REFACTOR (Pruning & Polishing)
+- **Remove Registration**: Completely delete the "Register" button and its container from the DOM.
+- **Elevate Login**: Retain ONLY the "Log in" button. Restyle it into a sleek, high-contrast capsule shape (`rounded-full`) that matches the white capsule DNA from our luxury theme, or design it as a razor-sharp minimalist text/border interaction.
+
+### 2. NAVIGATION LINKS STRIPPING
+- Completely wipe out, unmount, and remove the following text links from the navbar hierarchy: `Home`, `Shop`, `Categories`, `Stores`, and `Deals`. No traces or placeholders of these links should remain in the UI.
+
+### 3. THE AMAZON-STYLE MEGA SEARCH BAR EXPANSION
+- **Layout Expansion**: Now that the navigation links are removed, apply `flex-grow` or dynamically expand the central Search Bar container to fill the entire newly available space in the middle of the navbar.
+- **Sleek Styling**: The search bar must look exceptionally premium. Style its container with an ultra-subtle, sharp dark border or low-opacity glassmorphic background that perfectly blends into our matte charcoal black (`#0B0B0C`) theme. Ensure the placeholder text inside matches this luxury feel.
+
+### 4. CRITICAL COLOR CORRECTION & UI CLEANUP (Fixing `image_f5de5b.jpg` Discrepancies)
+- The current visual state in `image_f5de5b.jpg` has broken color harmony. Correct it immediately:
+  - **Background**: Ensure the navbar background is a solid matte charcoal black (`#0B0B0C`) or transparently integrated over the hero section with zero generic gray/white bars.
+  - **Logo & Location**: The Logo capsule and the "Deliver to... Choose location" component must perfectly match the crisp white typography and muted silver accents of the luxury theme.
+  - **Utility Icons**: The right-side interaction group (Heart, Cart, Settings) must be stripped of any generic template sizing or coloring. Text labels and active icon strokes must be clean, high-contrast white (`#FFFFFF`).
+  - **RTL Safety**: Ensure all component alignments, padding, margins, and icon positions strictly adapt to the Arabic RTL layout using Tailwind logical classes (`ms-`, `pe-`, `space-x-reverse`).
+
+### 5. PERFORMANCE & COMPILATION GUARDRAILS
+- Ensure 0 TypeScript or linting errors.
+- Do not introduce layout shifts (CLS) during the search bar expansion. Keep all Framer Motion micro-interactions under 300ms.
+
+Trigger a clean production rebuild and update the live preview once this refined, ultra-clean luxury header is live!

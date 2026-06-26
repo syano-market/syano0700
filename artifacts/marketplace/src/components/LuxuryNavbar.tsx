@@ -137,7 +137,7 @@ const IconCapsule = React.forwardRef<
 export function LuxuryNavbar() {
   const [location, navigate] = useLocation();
   const { user, logout, isAuthenticated, isCustomer, isSeller, isAdmin, isCourier } = useAuth();
-  const { openLogin, openRegister } = useAuthModal();
+  const { openLogin } = useAuthModal();
   const { count: wishlistCount } = useWishlist();
   const { setTheme, theme } = useTheme();
   const { currency, setCurrency } = useCurrency();
@@ -322,22 +322,6 @@ export function LuxuryNavbar() {
     { href: "/orders",             icon: ClipboardList,   label: t("nav.orders")    },
   ], [t]);
 
-  const navLinks = isRtl
-    ? [
-        { href: "/",                      label: "الرئيسية" },
-        { href: "/shop",                  label: "تسوق"      },
-        { href: "/categories",            label: "الفئات"    },
-        { href: "/sellers/directory",     label: "المتاجر"   },
-        { href: "/shop?hasDiscount=true", label: "العروض"    },
-      ]
-    : [
-        { href: "/",                      label: "Home"       },
-        { href: "/shop",                  label: "Shop"       },
-        { href: "/categories",            label: "Categories" },
-        { href: "/sellers/directory",     label: "Stores"     },
-        { href: "/shop?hasDiscount=true", label: "Deals"      },
-      ];
-
   /* ── Shared dropdown token ── */
   const dropStyle: React.CSSProperties = {
     background: DROP_BG,
@@ -346,13 +330,14 @@ export function LuxuryNavbar() {
 
   return (
     <>
-      {/* Floating header */}
+      {/* Floating header — solid matte charcoal black */}
       <header
         style={{
           position: "relative",
           zIndex: 10,
           fontFamily: F_SANS,
           flexShrink: 0,
+          background: BG,
         }}
       >
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -497,55 +482,28 @@ export function LuxuryNavbar() {
               </button>
             </div>
 
-            {/* ── COL 2: Nav links + Search ────────────────────────────────── */}
-            <div className="flex items-center justify-center gap-1" ref={searchRef}>
-              {/* Nav links */}
-              <nav className="hidden lg:flex items-center gap-0.5 me-2">
-                {navLinks.map(link => {
-                  const active = link.href === "/" ? location === "/" : location.startsWith(link.href.split("?")[0]);
-                  return (
-                    <Link key={link.href} href={link.href}>
-                      <span
-                        style={{
-                          fontFamily: F_SANS,
-                          fontSize: "0.8125rem",
-                          fontWeight: active ? 700 : 500,
-                          color: active ? WHITE : MUTED,
-                          padding: "0.35rem 0.75rem",
-                          borderRadius: "9999px",
-                          display: "block",
-                          transition: "color 0.15s, background 0.15s",
-                          background: active ? "rgba(255,255,255,0.09)" : "transparent",
-                          whiteSpace: "nowrap",
-                        }}
-                        onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.color = WHITE; (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"; }}}
-                        onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.color = MUTED; (e.currentTarget as HTMLElement).style.background = "transparent"; }}}
-                      >
-                        {link.label}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </nav>
+            {/* ── COL 2: Amazon-style mega search bar ──────────────────────── */}
+            <div className="flex items-center flex-1 min-w-0 px-3" ref={searchRef}>
 
-              {/* Search bar */}
-              <div className="relative">
+              {/* Search bar — fills entire center column */}
+              <div className="relative flex-1 w-full">
                 <form onSubmit={handleSearchSubmit}>
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
-                      height: "2.25rem",
-                      padding: "0 0.875rem",
+                      height: "2.375rem",
+                      padding: "0 1rem",
                       borderRadius: "9999px",
-                      background: "rgba(255,255,255,0.10)",
-                      border: `1px solid ${searchOpen ? BORDER_H : BORDER}`,
-                      transition: "background 0.2s, border-color 0.2s",
-                      minWidth: "clamp(180px, 20vw, 280px)",
+                      background: "rgba(255,255,255,0.07)",
+                      border: `1px solid ${searchOpen ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.12)"}`,
+                      transition: "background 0.2s, border-color 0.2s, box-shadow 0.2s",
+                      width: "100%",
+                      boxShadow: searchOpen ? "0 0 0 2px rgba(255,255,255,0.06)" : "none",
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.13)"; }}
-                    onMouseLeave={e => { if (!searchOpen) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.10)"; }}
+                    onMouseEnter={e => { if (!searchOpen) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.10)"; }}
+                    onMouseLeave={e => { if (!searchOpen) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
                   >
                     <Search style={{ height: 14, width: 14, color: searchOpen ? WHITE : MUTED, flexShrink: 0, transition: "color 0.2s" }} />
                     <input
@@ -584,19 +542,20 @@ export function LuxuryNavbar() {
                   </div>
                 </form>
 
-                {/* Search dropdown */}
+                {/* Search dropdown — full-width under the mega bar */}
                 {searchOpen && (debouncedQ.length >= 2 || recentSearches.length > 0 || trending.length > 0) && (
                   <div
                     id="lnav-search-listbox"
                     role="listbox"
                     style={{
                       position: "absolute",
-                      top: "calc(100% + 8px)",
+                      top: "calc(100% + 6px)",
                       insetInlineStart: 0,
-                      width: "min(360px, 90vw)",
+                      width: "100%",
+                      minWidth: "340px",
                       ...dropStyle,
                       borderRadius: "1rem",
-                      boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
+                      boxShadow: "0 24px 64px rgba(0,0,0,0.75)",
                       overflow: "hidden",
                       zIndex: 60,
                     }}
@@ -765,18 +724,17 @@ export function LuxuryNavbar() {
 
               {/* Notifications */}
               {isAuthenticated && (
-                <NotificationCenter btnClassName="h-9 w-9 flex items-center justify-center rounded-full bg-white/[0.09] hover:bg-white/[0.15] transition-colors text-white" />
+                <NotificationCenter btnClassName="h-9 w-9 flex items-center justify-center rounded-full text-white hover:bg-white/[0.10] transition-colors" />
               )}
 
               {/* Messages */}
               {isAuthenticated && !isCourier && (
                 <Link
                   href={isAdmin ? "/admin/messages" : isSeller ? "/seller/messages" : "/messages"}
-                  className="relative h-9 w-9 flex items-center justify-center rounded-full bg-white/[0.09] hover:bg-white/[0.15] transition-colors"
+                  className="relative h-9 w-9 flex items-center justify-center rounded-full text-white hover:bg-white/[0.10] transition-colors"
                   aria-label={t("nav.messages")}
-                  style={{ color: WHITE }}
                 >
-                  <MessageCircle style={{ height: 16, width: 16 }} />
+                  <MessageCircle style={{ height: 16, width: 16, color: WHITE }} />
                   {unreadMsgs > 0 && (
                     <span style={{ position: "absolute", top: -2, insetInlineEnd: -2, minWidth: "1rem", height: "1rem", borderRadius: 9999, background: GREEN, color: WHITE, fontSize: "8px", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       {unreadMsgs > 9 ? "9+" : unreadMsgs}
@@ -788,7 +746,7 @@ export function LuxuryNavbar() {
               {/* Wishlist */}
               {!isSeller && !isAdmin && !isCourier && (
                 <Link href="/wishlist" aria-label={t("a11y.wishlist")} style={{ display: "block" }}>
-                  <IconCapsule badge={wishlistCount} style={{ background: "rgba(255,255,255,0.09)" }} className="!bg-white/[0.09] hover:!bg-white !text-white hover:!text-[#0B0B0C]">
+                  <IconCapsule badge={wishlistCount} style={{ background: "transparent" }} className="hover:!bg-white/[0.10] !text-white">
                     <Heart style={{ height: 15, width: 15 }} />
                   </IconCapsule>
                 </Link>
@@ -797,7 +755,7 @@ export function LuxuryNavbar() {
               {/* Cart */}
               {!isSeller && !isAdmin && !isCourier && (
                 <Link href="/cart" aria-label={t("a11y.openCart")} style={{ display: "block" }}>
-                  <IconCapsule badge={visibleCart} style={{ background: "rgba(255,255,255,0.09)" }} className="!bg-white/[0.09] hover:!bg-white !text-white hover:!text-[#0B0B0C]">
+                  <IconCapsule badge={visibleCart} style={{ background: "transparent" }} className="hover:!bg-white/[0.10] !text-white">
                     <ShoppingCart style={{ height: 15, width: 15 }} />
                   </IconCapsule>
                 </Link>
@@ -808,7 +766,7 @@ export function LuxuryNavbar() {
                 <DropdownMenuTrigger asChild>
                   <button
                     aria-label={t("nav.settings")}
-                    className="h-9 w-9 flex items-center justify-center rounded-full bg-white/[0.09] hover:bg-white/[0.15] transition-colors"
+                    className="h-9 w-9 flex items-center justify-center rounded-full text-white hover:bg-white/[0.10] transition-colors"
                     style={{ color: WHITE }}
                   >
                     <Settings style={{ height: 15, width: 15 }} />
@@ -982,35 +940,20 @@ export function LuxuryNavbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                  <motion.button
-                    onClick={openLogin}
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    style={{
-                      fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 600,
-                      padding: "0.45rem 1.1rem", borderRadius: 9999,
-                      background: "rgba(255,255,255,0.10)", border: `1px solid ${BORDER}`,
-                      color: WHITE, cursor: "pointer", whiteSpace: "nowrap",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.16)"; (e.currentTarget as HTMLElement).style.borderColor = BORDER_H; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.10)"; (e.currentTarget as HTMLElement).style.borderColor = BORDER; }}
-                  >
-                    {t("nav.login")}
-                  </motion.button>
-                  <motion.button
-                    onClick={openRegister}
-                    whileHover={{ scale: 1.04 }}
-                    whileTap={{ scale: 0.96 }}
-                    style={{
-                      fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 700,
-                      padding: "0.45rem 1.1rem", borderRadius: 9999,
-                      background: WHITE, color: BG, cursor: "pointer", whiteSpace: "nowrap",
-                    }}
-                  >
-                    {t("nav.register")}
-                  </motion.button>
-                </div>
+                <motion.button
+                  onClick={openLogin}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  style={{
+                    fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 700,
+                    padding: "0.45rem 1.25rem", borderRadius: 9999,
+                    background: WHITE, color: BG,
+                    cursor: "pointer", whiteSpace: "nowrap",
+                    border: "none", letterSpacing: "0.01em",
+                  }}
+                >
+                  {t("nav.login")}
+                </motion.button>
               )}
             </div>
           </div>
