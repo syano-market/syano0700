@@ -97,7 +97,7 @@ const IconCapsule = React.forwardRef<
     <button
       ref={ref}
       className={cn(
-        "relative h-9 w-9 flex items-center justify-center rounded-full",
+        "relative h-10 w-10 flex items-center justify-center rounded-full",
         "bg-white text-[#0B0B0C]",
         "hover:scale-105 active:scale-95 transition-transform duration-150",
         className,
@@ -419,7 +419,7 @@ export function LuxuryNavbar() {
 
           {/* ══ DESKTOP NAV (≥ md) ════════════════════════════════════════════ */}
           <div
-            className="hidden md:grid h-[3.75rem] items-center gap-3 px-4"
+            className="hidden md:grid h-[3.75rem] items-center gap-3 px-8"
             style={{ gridTemplateColumns: "auto 1fr auto" }}
             dir={isRtl ? "rtl" : "ltr"}
           >
@@ -461,7 +461,7 @@ export function LuxuryNavbar() {
               <button
                 type="button"
                 onClick={() => setLocationModalOpen(true)}
-                className="hidden lg:flex items-center gap-1.5 h-9 ps-2.5 pe-3 rounded-full transition-all duration-150"
+                className="hidden lg:flex items-center gap-1.5 h-11 ps-2.5 pe-3 rounded-full transition-all duration-150"
                 style={{
                   background: "rgba(255,255,255,0.08)",
                   border: `1px solid ${BORDER}`,
@@ -493,7 +493,7 @@ export function LuxuryNavbar() {
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
-                      height: "2.375rem",
+                      height: "2.75rem",
                       padding: "0 1rem",
                       borderRadius: "9999px",
                       background: "rgba(255,255,255,0.07)",

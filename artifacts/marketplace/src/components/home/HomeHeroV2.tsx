@@ -151,10 +151,10 @@ export default function HomeHeroV2() {
       ══════════════════════════════════════════════════════════ */}
       <div
         style={{ direction: "ltr", position: "relative", zIndex: 1 }}
-        className="w-full max-w-[1280px] mx-auto px-6 max-lg:px-4 pt-14 pb-10"
+        className="w-full max-w-[1280px] mx-auto px-8 max-lg:px-4 pt-6 pb-8 mt-6 mb-8"
       >
         {/* Fix #8 — 3fr 1fr → closer to 73/27 split */}
-        <div className="grid gap-4 grid-cols-[3fr_1fr] max-lg:grid-cols-1">
+        <div className="grid gap-6 grid-cols-[3fr_1fr] max-lg:grid-cols-1">
 
           {/* ════════════════════════════════════════════════════
               FEATURED CARD
@@ -313,7 +313,7 @@ export default function HomeHeroV2() {
                 Bottom-left caption (arrow circle + Arabic + English)
             ──────────────────────────────────────────────── */}
             <div style={{
-              position: "absolute", bottom: "28px", left: "28px",
+              position: "absolute", bottom: "24px", left: "24px",
               display: "flex", alignItems: "center", gap: "14px",
             }}>
               <Link
@@ -361,7 +361,7 @@ export default function HomeHeroV2() {
           {/* ════════════════════════════════════════════════════
               RIGHT COLUMN
           ════════════════════════════════════════════════════ */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
 
             {/* ── Fix #3, #15 — Electronics Card ── */}
             <article
@@ -395,7 +395,7 @@ export default function HomeHeroV2() {
 
               {/* Arabic + description — top-RIGHT */}
               <div style={{
-                position: "absolute", top: "16px", right: "18px",
+                position: "absolute", top: "20px", right: "20px",
                 textAlign: "right",
                 direction: "rtl",
               }}>
@@ -417,7 +417,7 @@ export default function HomeHeroV2() {
 
               {/* Main title — bottom-LEFT */}
               <div style={{
-                position: "absolute", bottom: "16px", left: "18px",
+                position: "absolute", bottom: "20px", left: "20px",
               }}>
                 <h2 style={{
                   fontSize: "1.15rem", fontWeight: 700,
@@ -470,7 +470,7 @@ export default function HomeHeroV2() {
 
               {/* Title + description — top-left */}
               <div style={{
-                position: "absolute", top: "16px", left: "18px",
+                position: "absolute", top: "20px", left: "20px",
               }}>
                 <h2 style={{
                   fontSize: "1.15rem", fontWeight: 700,

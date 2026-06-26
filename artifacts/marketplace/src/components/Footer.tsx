@@ -229,7 +229,7 @@ export function Footer() {
           ZONE 1 — Brand + tagline + contact pills
       ════════════════════════════════════════════════════════════ */}
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}` }}>
-        <div className="container px-4 py-10 md:py-12">
+        <div className="container px-8 py-10 md:py-12">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
 
             <div className="space-y-3">
@@ -313,7 +313,7 @@ export function Footer() {
       {/* ════════════════════════════════════════════════════════════
           ZONE 2 — 4-column links grid
       ════════════════════════════════════════════════════════════ */}
-      <div className="container px-4 py-12 md:py-16">
+      <div className="container px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 gap-0 md:grid-cols-2 md:gap-x-12 md:gap-y-14 lg:grid-cols-4 lg:gap-x-16">
           {columns.map((col) => (
             <FooterColumn key={col.heading} {...col} C={C} />
@@ -327,7 +327,7 @@ export function Footer() {
           Desktop : label+icons left | tagline right, single row
       ════════════════════════════════════════════════════════════ */}
       <div style={{ borderTop: `1px solid ${C.border}` }}>
-        <div className="container px-4 py-8 sm:py-6">
+        <div className="container px-8 py-8 sm:py-6">
 
           {/* ── Desktop layout (sm+): two-column spread ── */}
           <div className="hidden sm:flex sm:items-center sm:justify-between sm:gap-6">
@@ -455,7 +455,7 @@ export function Footer() {
           ZONE 4 — Copyright bar (darkest)
       ════════════════════════════════════════════════════════════ */}
       <div style={{ background: C.base, borderTop: `1px solid ${C.borderSubtle}` }}>
-        <div className="container px-4 pb-safe-5 pt-5">
+        <div className="container px-8 pb-safe-5 pt-5">
           <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
 
             <div

@@ -1,0 +1,21 @@
+You are an expert Frontend QA and Pixel-Perfect UI Engineer. We need to meticulously calibrate the heights, paddings, margins, and layout gaps of the current live viewport shown in `image_28a4c5.jpg` to match a high-end luxury editorial spec down to the exact pixel/rem token.
+
+Please apply the following exact spacing and layout sizing constraints across the codebase immediately:
+
+### 1. NAVBAR HEIGHT NORMALIZATION & PADDING
+- **Outer Padding**: Ensure the top navbar wrapper has a strict outer padding of `px-8` (32px) and `py-5` (20px) so it breathes perfectly and doesn't hug the browser edges.
+- **Unified Component Height**: Normalize the height of all interactive container elements in the navbar. The Brand Logo capsule, the "Deliver to..." location selector, the central Expanded Search Bar, and the "Log in" capsule button must all share an identical absolute height token: `h-11` (44px) or `h-12` (48px) to lock a unified baseline.
+- **Vertical Centering**: Ensure the right-side utility icons (Heart, Cart, Settings) are perfectly centered vertically (`items-center`) relative to the absolute center-line of the navbar layout.
+
+### 2. THE 3-COLUMN HERO GRID CALIBRATION
+- **Grid Gaps**: Fix the horizontal spacing between the three massive columns. Set a strict, crisp gap of exactly `gap-6` (24px) or `gap-8` (32px). 
+- **Vertical Breathing Room**: The main grid container must have clear, balanced vertical separation from the navbar and footer. Apply a top margin of `mt-6` (24px) and a bottom margin of `mb-8` (32px) so the main interface cards don't feel choked.
+
+### 3. CARD CONTENT INTERNAL SPACING
+- **Left & Right Cards**: The bottom overlay text (`Damascus Textiles` and `Halabi Apparel`) must have a unified internal padding anchor from the card edges. Apply exactly `p-6` (24px) or `p-8` (32px) from the bottom and side borders.
+- **Center Hero Card**: Fix the stacked elements inside the center purple card. The main title ("SYANO Platform"), the sub-headline text, the dot indicator bar, and the CTA button stack must be tightly and elegantly bound. Apply a strict `space-y-5` (20px) or `space-y-6` (24px) to layout the hierarchy uniformly without excessive blank vertical voids.
+
+### 4. FOOTER ADJUSTMENTS
+- Sync the footer's horizontal layout padding to exactly match the navbar (`px-8`), ensuring the brand wordmark on the right and the utility elements on the left align perfectly to the grid bounds.
+
+Maintain 0 TypeScript errors, preserve all Framer Motion hardware-accelerated animations (`transform/opacity`), and update the live preview to reflect this clean, high-fidelity spatial masterpiece!

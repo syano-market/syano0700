@@ -419,7 +419,7 @@ export function Navbar() {
 
         {/* ══ DESKTOP NAV (≥ md) ═════════════════════════════════════════════ */}
         <div
-          className="container ps-0 hidden md:grid h-[3.75rem] items-center gap-3"
+          className="container px-8 hidden md:grid h-[3.75rem] items-center gap-3"
           style={{ gridTemplateColumns: "auto 1fr auto" }}
           dir={isRtl ? "rtl" : "ltr"}
         >
@@ -442,7 +442,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setLocationModalOpen(true)}
-                className="hidden lg:flex items-center gap-1.5 h-10 ps-2.5 pe-3 rounded-xl border ms-1 transition-all duration-150 bg-white/[0.08] border-white/[0.12] hover:bg-white/[0.13] hover:border-white/[0.22] group"
+                className="hidden lg:flex items-center gap-1.5 h-11 ps-2.5 pe-3 rounded-xl border ms-1 transition-all duration-150 bg-white/[0.08] border-white/[0.12] hover:bg-white/[0.13] hover:border-white/[0.22] group"
                 aria-label={isRtl ? "تحديد موقع التوصيل" : "Set delivery location"}
               >
                 <MapPin className="h-3.5 w-3.5 text-emerald-300 shrink-0 group-hover:scale-110 transition-transform" />
@@ -466,7 +466,7 @@ export function Navbar() {
               <div className="relative w-full">
                 <form onSubmit={handleSearchSubmit}>
                   <div
-                    className="flex items-center gap-3 rounded-xl h-[2.625rem] px-4 transition-all duration-200"
+                    className="flex items-center gap-3 rounded-xl h-11 px-4 transition-all duration-200"
                     style={{
                       background: "white",
                       boxShadow: "0 2px 12px rgba(0,0,0,0.12), inset 0 1px 2px rgba(0,0,0,0.04)",
@@ -682,7 +682,7 @@ export function Navbar() {
             {isAuthenticated && !isCourier && (
               <Link
                 href={isAdmin ? "/admin/messages" : isSeller ? "/seller/messages" : "/messages"}
-                className="relative h-9 w-9 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
+                className="relative h-10 w-10 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
                 aria-label={t("nav.messages")}
               >
                 <MessageCircle className="h-[1.125rem] w-[1.125rem]" />
@@ -697,7 +697,7 @@ export function Navbar() {
             {/* Wishlist — customers and guests */}
             {!isSeller && !isAdmin && !isCourier && (
               <Link href="/wishlist"
-                className="relative h-9 w-9 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
+                className="relative h-10 w-10 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
                 aria-label={t("a11y.wishlist")}>
                 <Heart className="h-[1.125rem] w-[1.125rem]" />
                 {wishlistCount > 0 && (
@@ -711,7 +711,7 @@ export function Navbar() {
             {/* Cart — customers and guests */}
             {!isSeller && !isAdmin && !isCourier && (
               <Link href="/cart"
-                className="relative h-9 w-9 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
+                className="relative h-10 w-10 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
                 aria-label={t("a11y.openCart")}>
                 <ShoppingCart className="h-[1.125rem] w-[1.125rem]" />
                 {visibleCartCount > 0 && (
@@ -726,7 +726,7 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
+                  className="h-10 w-10 flex items-center justify-center rounded-lg bg-white/[0.92] hover:bg-white text-[#111111] transition-all duration-200"
                   aria-label={t("nav.settings")}
                 >
                   <Settings className="h-[1.125rem] w-[1.125rem]" />
@@ -820,7 +820,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2.5 h-10 ps-2.5 pe-3.5 rounded-full bg-white/[0.12] hover:bg-white/[0.2] border border-white/[0.2] hover:border-white/[0.35] transition-all duration-200">
+                  <button className="flex items-center gap-2.5 h-11 ps-2.5 pe-3.5 rounded-full bg-white/[0.12] hover:bg-white/[0.2] border border-white/[0.2] hover:border-white/[0.35] transition-all duration-200">
                     <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
                       <span style={{ fontSize: "12px", fontWeight: 800, color: "white" }}>
                         {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
@@ -865,7 +865,7 @@ export function Navbar() {
               <button
                 onClick={openLogin}
                 style={{ fontSize: "0.875rem", fontWeight: 700, letterSpacing: "0.02em" }}
-                className="h-9 px-5 flex items-center rounded-xl bg-black/80 hover:bg-black active:scale-95 text-white transition-all duration-200 ease-in-out whitespace-nowrap shadow-md shadow-black/30 hover:shadow-lg">
+                className="h-11 px-5 flex items-center rounded-xl bg-black/80 hover:bg-black active:scale-95 text-white transition-all duration-200 ease-in-out whitespace-nowrap shadow-md shadow-black/30 hover:shadow-lg">
                 {t("nav.login")}
               </button>
             )}

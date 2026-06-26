@@ -425,7 +425,7 @@ function BottomStrip({ onExplore }: { onExplore: () => void }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "0.9rem 1.25rem",
+        padding: "0.9rem 2rem",
         flexShrink: 0,
         borderTop: `1px solid ${C.border}`,
         background: C.bg,
@@ -579,8 +579,8 @@ export default function LuxuryLandingPage() {
             flex: 1,
             display: "grid",
             gridTemplateColumns: "1fr 1.48fr 1fr",
-            gap: "10px",
-            padding: "0 10px",
+            gap: "16px",
+            padding: "0 20px",
             minHeight: 0,
           }}
         >
