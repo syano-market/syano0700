@@ -1,0 +1,58 @@
+TASK: Install, deeply understand, and document 6 external agent skills for the SYANO project.
+
+You must complete this in three phases, in order. Do not skip ahead to Phase 2 for any skill until Phase 1 is fully done for that skill. Do not move to Phase 3 until all 6 skills are installed and understood.
+
+═══════════════════════════════════════
+PHASE 1 — INSTALLATION
+═══════════════════════════════════════
+
+Run these 6 commands one at a time, in this exact order. After each command, confirm the install succeeded (check exit code and look for the installed skill's directory/files on disk) before running the next one. If any single install fails, stop, report the exact error, and wait for instructions rather than skipping it or continuing to the next one.
+
+1. npx skills add https://github.com/softaworks/agent-toolkit --skill writing-clearly-and-concisely
+2. npx skills add https://github.com/obra/superpowers --skill brainstorming
+3. npx skills add https://github.com/benjitaylor/agentation --skill agentation
+4. npx skills add https://github.com/wshobson/agents --skill tailwind-design-system
+5. npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+6. npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
+
+═══════════════════════════════════════
+PHASE 2 — DEEP COMPREHENSION
+═══════════════════════════════════════
+
+For EACH of the 6 installed skills, locate and fully read every file the skill ships with — not just SKILL.md, but any accompanying docs, example files, templates, or config it includes. For each skill, extract and write down (for your own use in Phase 3):
+
+- Exact name and source repo
+- One-sentence purpose (what problem it solves)
+- Concrete triggers: what kind of task/request should make a future agent reach for this skill
+- Any commands, CLI flags, or workflows the skill exposes
+- Any dependencies, prerequisites, or environment assumptions it requires
+- Any conflicts or overlaps it has with the other 5 skills, or with SYANO's existing stack (React 19, Vite 7, Tailwind v4, Expo 54) — flag explicitly if a skill assumes a different version/tool than what SYANO actually uses
+- Any part of the skill that does NOT apply to SYANO and should be ignored
+
+Do not guess or summarize from the skill's name alone — actually open and read the files. If a skill's documentation is thin, vague, or missing, note that explicitly rather than inventing detail.
+
+═══════════════════════════════════════
+PHASE 3 — DOCUMENTATION IN SYANO_MASTER_RECOVERY.md
+═══════════════════════════════════════
+
+Open SYANO_MASTER_RECOVERY.md. This file is the single source of truth for the project (per its own "Future Agent Rules" section) — follow its existing conventions exactly: same table formatting style, same heading level style, same terse factual tone used elsewhere in the file. Do not introduce a new formatting style.
+
+Insert ONE new top-level section titled "INSTALLED SKILLS", placed after the "MOBILE" section and before the "REQUIRED SECRETS" section.
+
+This section must contain, in this order:
+
+1. A summary table with columns: Skill Name | Source Repo | Purpose | When To Use
+   — one row per skill, 6 rows total.
+
+2. A subsection "Reinstall Commands" containing the exact 6 npx commands above, in a single code block, in original order — so a future agent recovering this project from scratch can restore all 6 skills in one pass.
+
+3. A subsection "Usage Notes — SYANO Context" with one short paragraph per skill, explaining specifically how/when that skill should be applied within THIS project. Ground every note in SYANO's actual stack and actual files — reference real things from elsewhere in this document (e.g. "applies when editing components in artifacts/marketplace/src/components/", "relevant to the SyanoHero.jsx-style hero work", "use when writing/reviewing React code in artifacts/marketplace or artifacts/mobile", "applies to Arabic/English copy across i18n keys"). Do not write generic boilerplate that could apply to any project — every sentence must be specific to SYANO.
+
+4. A subsection "Known Conflicts / Caveats" listing, for each skill, any version mismatch, overlap with another installed skill, or any part of the skill that should be ignored because it doesn't apply to SYANO. If a skill has none, state "No conflicts identified" rather than omitting it.
+
+CONSTRAINTS (same rules already enforced elsewhere in this file):
+- Do not create any new file. All of this goes into SYANO_MASTER_RECOVERY.md only.
+- Do not duplicate this content into AGENT_BOOTSTRAP.md, RECOVERY_GUIDE.md, PROJECT_STATE.md, replit.md, or anywhere else.
+- Do not modify, reorder, delete, or rephrase any existing section of SYANO_MASTER_RECOVERY.md outside the one new section you are adding.
+
+When finished, output a short final report listing: which of the 6 skills installed cleanly, which (if any) had issues, and a 1-line confirmation that the new section was added to SYANO_MASTER_RECOVERY.md at the correct location.
