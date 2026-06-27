@@ -1,0 +1,15 @@
+TASK: Identify the actual active homepage file and clean up unused/dead homepage components before implementing any animation work.
+
+CONTEXT:
+The project has multiple Hero-related files that look similar but are NOT all in use: HeroSection.tsx, HeroBanner.tsx, HeroShowcase.tsx, HomeHeroV2.tsx, and luxury-landing.tsx. This is causing confusion about which file is actually rendered on the live homepage. The user has confirmed the real, currently-live homepage is luxury-landing.tsx.
+
+REQUIREMENTS:
+1. Open artifacts/marketplace/src/ and trace the actual routing: find which component is mounted on the "/" route (check the router setup, likely in App.tsx or a routes file using Wouter, per the project's stack).
+2. Confirm that luxury-landing.tsx is indeed the file rendered for "/". Show me the exact import chain (route → page file → which Hero component it imports and renders) as proof before changing anything.
+3. List every other Hero-related component (HeroSection.tsx, HeroBanner.tsx, HeroShowcase.tsx, HomeHeroV2.tsx, and any others found) and for each one, check across the entire codebase (grep all imports) whether it is actually imported/used anywhere.
+4. For any Hero component that is confirmed to have ZERO imports/usages anywhere in the codebase (web or mobile), delete that file entirely. Do not just comment it out — remove it.
+5. If any of these unused files happen to be imported somewhere unexpected, do NOT delete it — flag it to me instead and explain where it's used before taking any action.
+6. After cleanup, run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json to confirm 0 TypeScript errors (deleting files must not leave broken imports elsewhere).
+7. Give me a short summary at the end: which file is the real homepage (luxury-landing.tsx), which files were deleted, and which files (if any) were kept and why.
+
+Do NOT implement the framer-motion banner animation yet — that comes in a separate follow-up task after this cleanup is confirmed clean. Do NOT create any new documentation file for this cleanup; this is a code-only change.
