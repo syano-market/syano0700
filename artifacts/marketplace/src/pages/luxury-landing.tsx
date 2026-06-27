@@ -1303,40 +1303,44 @@ export default function LuxuryLandingPage() {
             overflow: "hidden",
           }}
         >
-            {/* LEFT — phase 1: slides down; phase 2: splits into top (existing) + bottom (new) */}
-            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
-              {!splitTriggered ? (
-                /* Phase 1 — full-height carousel */
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.div key={leftItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
-                    initial={reduced ? false : fromBottom} animate={visible} exit={reduced ? {} : toTop}
-                    transition={{ duration: 0.55, ease: SPRING }}>
+            {/* LEFT — phase 1: slides down; phase 2: real flex split into two independent cards */}
+            <motion.div variants={bannerVariant} style={{ display: "flex", flexDirection: "column", gap: "16px", transform: "translateZ(0)" }}>
+              {/* Top card — always present; layout prop animates real height change when sibling is added */}
+              <motion.div
+                layout
+                transition={{ layout: { duration: 0.45, ease: "easeOut" } }}
+                style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
+              >
+                {!splitTriggered ? (
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.div key={leftItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
+                      initial={reduced ? false : fromBottom} animate={visible} exit={reduced ? {} : toTop}
+                      transition={{ duration: 0.55, ease: SPRING }}>
+                      <ProductCard item={leftItem} />
+                    </motion.div>
+                  </AnimatePresence>
+                ) : (
+                  <div style={{ position: "absolute", inset: 0 }}>
                     <ProductCard item={leftItem} />
-                  </motion.div>
-                </AnimatePresence>
-              ) : (
-                /* Phase 2 — top half: existing (clip bottom away); bottom half: new banner slides up */
-                <>
-                  {/* Existing banner clipped to top half via clipPath — content stays full-size, no squish */}
+                  </div>
+                )}
+              </motion.div>
+              {/* Bottom new card — independent card, slides up from below into freed space */}
+              <AnimatePresence>
+                {splitTriggered && (
                   <motion.div
-                    initial={{ clipPath: "inset(0 0 0% 0)" }}
-                    animate={{ clipPath: "inset(0 0 50% 0)" }}
-                    transition={{ duration: 0.45, ease: "easeOut" }}
-                    style={{ position: "absolute", inset: 0 }}
-                  >
-                    <ProductCard item={leftItem} />
-                  </motion.div>
-                  {/* New banner — slides up from below into bottom half */}
-                  <motion.div
+                    layout
                     initial={{ y: "100%", opacity: 0, filter: "blur(8px)" }}
                     animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    style={{ position: "absolute", top: "50%", bottom: 0, left: 0, right: 0, overflow: "hidden" }}
+                    style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
                   >
-                    <ProductCard item={nextLeftItem} />
+                    <div style={{ position: "absolute", inset: 0 }}>
+                      <ProductCard item={nextLeftItem} />
+                    </div>
                   </motion.div>
-                </>
-              )}
+                )}
+              </AnimatePresence>
             </motion.div>
 
             {/* CENTER — entrance: slides down; unchanged in phase 2 */}
@@ -1344,40 +1348,44 @@ export default function LuxuryLandingPage() {
               <CenterCard reduced={reduced} onShop={onShop} onSell={onSell} />
             </motion.div>
 
-            {/* RIGHT — phase 1: slides down; phase 2: splits into top (new) + bottom (existing) */}
-            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
-              {!splitTriggered ? (
-                /* Phase 1 — full-height carousel */
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.div key={rightItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
-                    initial={reduced ? false : fromTop} animate={visible} exit={reduced ? {} : toBottom}
-                    transition={{ duration: 0.55, ease: SPRING }}>
-                    <ProductCard item={rightItem} />
-                  </motion.div>
-                </AnimatePresence>
-              ) : (
-                /* Phase 2 — bottom half: existing (clip top away); top half: new banner slides down */
-                <>
-                  {/* Existing banner clipped to bottom half via clipPath — content stays full-size, no squish */}
+            {/* RIGHT — phase 1: slides down; phase 2: real flex split into two independent cards */}
+            <motion.div variants={bannerVariant} style={{ display: "flex", flexDirection: "column", gap: "16px", transform: "translateZ(0)" }}>
+              {/* Top new card — independent card, slides down from above into freed space */}
+              <AnimatePresence>
+                {splitTriggered && (
                   <motion.div
-                    initial={{ clipPath: "inset(0% 0 0 0)" }}
-                    animate={{ clipPath: "inset(50% 0 0 0)" }}
-                    transition={{ duration: 0.45, ease: "easeOut" }}
-                    style={{ position: "absolute", inset: 0 }}
-                  >
-                    <ProductCard item={rightItem} />
-                  </motion.div>
-                  {/* New banner — slides down from above into top half */}
-                  <motion.div
+                    layout
                     initial={{ y: "-100%", opacity: 0, filter: "blur(8px)" }}
                     animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    style={{ position: "absolute", top: 0, left: 0, right: 0, height: "50%", overflow: "hidden" }}
+                    style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
                   >
-                    <ProductCard item={nextRightItem} />
+                    <div style={{ position: "absolute", inset: 0 }}>
+                      <ProductCard item={nextRightItem} />
+                    </div>
                   </motion.div>
-                </>
-              )}
+                )}
+              </AnimatePresence>
+              {/* Bottom card — always present; layout prop animates real height change when sibling is added */}
+              <motion.div
+                layout
+                transition={{ layout: { duration: 0.45, ease: "easeOut" } }}
+                style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
+              >
+                {!splitTriggered ? (
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.div key={rightItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
+                      initial={reduced ? false : fromTop} animate={visible} exit={reduced ? {} : toBottom}
+                      transition={{ duration: 0.55, ease: SPRING }}>
+                      <ProductCard item={rightItem} />
+                    </motion.div>
+                  </AnimatePresence>
+                ) : (
+                  <div style={{ position: "absolute", inset: 0 }}>
+                    <ProductCard item={rightItem} />
+                  </div>
+                )}
+              </motion.div>
             </motion.div>
         </motion.section>
 

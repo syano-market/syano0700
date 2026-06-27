@@ -1,0 +1,47 @@
+TASK: Fix the left/right column split animation in luxury-landing.tsx. There are two related problems to solve together.
+
+CONTEXT:
+A previous task added a second-phase animation: ~1 second after the initial 3-banner drop-in completes, the LEFT column's original banner should shrink to the TOP half while a NEW banner enters from below into the bottom half; the RIGHT column's original banner should shrink to the BOTTOM half while a NEW banner enters from above into the top half. The CENTER column stays unchanged.
+
+This is currently broken in two ways:
+
+PROBLEM 1 — The original banner does not actually shrink:
+The new banner's entrance animation works, but the original/existing banner in each column is not really resizing — it still occupies its original full height, and the new banner just overlaps or appears over/inside it instead of the original banner first freeing up real layout space.
+
+PROBLEM 2 — The two banners look fused into one, not two separate boxes:
+Even where content has changed, the top and bottom banners in each column render as one continuous merged image/banner with no visible gap, no independent rounded corners, and no clear visual boundary between them — instead of two distinct cards like the rest of the site's product cards.
+
+ROOT CAUSE TO INVESTIGATE:
+1. Check whether the shrink animation is only animating a cosmetic transform (e.g. `scale`) without changing actual occupied layout space (height/flex-basis/grid-row) — `scale` alone will not free up real space for a sibling to fill.
+2. Check whether the parent container for each column uses flex/grid in a way that requires animating height/flex-basis directly (or using framer-motion's `layout` prop) rather than just transform/scale.
+3. Check for a fixed height/min-height Tailwind class on the original banner that overrides/blocks the shrink.
+4. Check whether the two banners share a single image/background container (causing the "fused" look) instead of being two fully independent card elements.
+
+REQUIRED FIX:
+
+A) Real shrink mechanism:
+- Restructure each column (left, right) as a flex-column (or grid-rows) container holding 2 independent banner elements.
+- Animate the original banner's actual height/flex-basis from 100% to 50% of the column (using framer-motion's animate on height/flexBasis, or the `layout` prop for automatic layout animation) — this must be a real layout change, not just a visual scale transform.
+- Simultaneously, animate the new banner in from the correct direction (from below for the left column, from above for the right column) to fill the freed 50% of space, with the same blur/opacity/y-translation style already used for the first-phase entrance animation.
+- Keep the existing 1-second trigger delay after the initial drop-in completes, and similar duration/easing (~0.4-0.5s, ease: "easeOut") for this shrink+enter transition.
+
+B) Visual separation between the two stacked banners:
+- Add a visible gap/margin between the top and bottom banner in each column — reuse whatever gap value is already used between the left/center/right columns themselves, applied vertically here.
+- Each banner must keep its own border-radius on all corners (top banner: rounded bottom corners too; bottom banner: rounded top corners too) — they must not look flush/fused where they meet.
+- Each banner must be its own independent container/element with its own background image — not a single shared image cropped to look like two.
+- End result per column: 2 clearly distinct rounded cards with a gap between them, matching the visual style of the other product cards on the page (e.g. "Damascus Brassware" / "Syrian Ceramics" style separation).
+
+CONSTRAINTS:
+- Center column must remain completely unaffected — single full-height banner, no changes.
+- Do not change the entrance direction, stagger order, or timing of the FIRST-phase 3-banner drop-in animation — only fix this second-phase split/shrink behavior.
+- Maintain existing Tailwind conventions and overall page structure as much as possible.
+- Per vercel-react-best-practices: avoid unnecessary re-renders elsewhere on the page from this layout/state change.
+
+VALIDATION:
+1. After implementation, run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json and confirm 0 TypeScript errors.
+2. Visually confirm: ~1 second after the initial drop-in finishes —
+   - LEFT column: original banner visibly shrinks (real height reduction) to occupy only the top half, new banner slides up from below to fill the bottom half, both end up as 2 separate rounded boxes with a clear gap between them.
+   - RIGHT column: original banner visibly shrinks to occupy only the bottom half, new banner drops in from above to fill the top half, both end up as 2 separate rounded boxes with a clear gap between them.
+   - CENTER column: unchanged, still one full-height banner.
+
+Do not create any documentation file for this. Give a short confirmation summary at the end covering both fixes.
