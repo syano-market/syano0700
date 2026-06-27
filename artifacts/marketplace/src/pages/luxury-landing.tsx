@@ -1208,8 +1208,9 @@ export default function LuxuryLandingPage() {
   const [rightIdx, setRightIdx] = useState(0);
   const rightTurn = useRef(true);
 
-  /* Phase-2 split state — triggers ~1s after phase-1 entrance completes */
+  /* Phase-2 split state — triggers 4s after the right banner finishes its drop-in */
   const [splitTriggered, setSplitTriggered] = useState(false);
+  const splitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -1221,13 +1222,16 @@ export default function LuxuryLandingPage() {
     return () => clearInterval(id);
   }, [reduced]);
 
-  useEffect(() => {
-    if (reduced) return;
-    // Phase 1 ends at ≈ 0.65s (delayChildren 0.15 + 2×stagger 0.1 + duration 0.3)
-    // Wait an additional 1 s pause → trigger at 1700ms
-    const id = setTimeout(() => setSplitTriggered(true), 1700);
-    return () => clearTimeout(id);
-  }, [reduced]);
+  // Cleanup split timer on unmount
+  useEffect(() => () => { if (splitTimerRef.current) clearTimeout(splitTimerRef.current); }, []);
+
+  // Called by onAnimationComplete on the RIGHT banner (last in the stagger sequence).
+  // Phase-1 right banner ends at: delayChildren(150ms) + 2×staggerChildren(100ms) + duration(300ms) = 650ms.
+  // We chain 4000ms from that point — not from mount.
+  const handlePhase1Complete = useCallback(() => {
+    if (reduced || splitTriggered) return;
+    splitTimerRef.current = setTimeout(() => setSplitTriggered(true), 4000);
+  }, [reduced, splitTriggered]);
 
   /* Product data */
   const { data: products } = useListProducts({}, {
@@ -1349,7 +1353,8 @@ export default function LuxuryLandingPage() {
             </motion.div>
 
             {/* RIGHT — phase 1: slides down; phase 2: real flex split into two independent cards */}
-            <motion.div variants={bannerVariant} style={{ display: "flex", flexDirection: "column", gap: "16px", transform: "translateZ(0)" }}>
+            {/* onAnimationComplete fires when the right banner finishes its variant animation — last in the stagger, so phase 1 is fully done at that point */}
+            <motion.div variants={bannerVariant} onAnimationComplete={handlePhase1Complete} style={{ display: "flex", flexDirection: "column", gap: "16px", transform: "translateZ(0)" }}>
               {/* Top new card — independent card, slides down from above into freed space */}
               <AnimatePresence>
                 {splitTriggered && (

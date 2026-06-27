@@ -1,0 +1,17 @@
+TASK: Fix the trigger timing for the second-phase split animation in luxury-landing.tsx.
+
+CONTEXT:
+The split animation (left column shrink-to-top + new banner from below; right column shrink-to-bottom + new banner from above) currently triggers ~1 second after page load. This is wrong — it must trigger relative to when the FIRST-phase animation (the 3-banner staggered drop-in: left → center → right) actually finishes, not from page load.
+
+REQUIREMENT:
+1. Find the current trigger logic for the second-phase split animation (likely a setTimeout or useEffect timer keyed off mount/page-load time). Remove this page-load-based timing.
+2. Recalculate the correct trigger point: the second-phase animation must start exactly 4 seconds AFTER the first-phase drop-in animation has fully completed (i.e., after the right banner — the last one in the stagger sequence — finishes settling into place, not after the left banner, and not from initial mount).
+3. To implement this correctly:
+   - Determine the total duration of the first-phase animation: initial pre-animation delay (~150ms) + stagger delay accumulated through all 3 banners + each banner's own drop duration. Use the actual current values in the code (do not assume — read them from the existing implementation).
+   - Chain the second-phase trigger off the completion of the first phase specifically — preferably using framer-motion's onAnimationComplete callback on the last (right) banner's animation, then starting a 4-second timer from that callback firing. If onAnimationComplete isn't practical given the current structure, calculate the exact total first-phase duration in code and use that computed value + 4000ms as the timer delay (not a hardcoded guess).
+4. Do not change anything about the first-phase animation itself (timing, stagger, blur, order) — only fix what the second-phase timer is measured from and update the delay value to 4 seconds.
+5. Do not change anything about the second-phase animation's own behavior (shrink mechanism, entrance direction, visual separation) — only fix its trigger timing.
+6. After the fix, run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json and confirm 0 TypeScript errors.
+7. Visually confirm: the 3 banners drop in first (left → center → right) as before, then — 4 full seconds after the right banner finishes settling (not 4 seconds from page load) — the left/right column split animation begins.
+
+Do not create any documentation file for this. Give a short confirmation summary at the end, including the exact computed first-phase duration value used and confirmation that the timer is chained off animation completion rather than mount time.
