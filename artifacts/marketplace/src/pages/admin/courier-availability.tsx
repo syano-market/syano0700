@@ -30,9 +30,9 @@ interface CourierAvailabilityRow {
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const AVAIL_CONFIG = {
-  ONLINE:  { label: "Online",  labelAr: "متاح",      color: "text-primary bg-primary/80/10 border-primary/30", dot: "bg-primary/80", icon: Wifi },
-  OFFLINE: { label: "Offline", labelAr: "غير متاح",  color: "text-gray-400 bg-gray-400/10 border-gray-500/30",         dot: "bg-gray-500",   icon: WifiOff },
-  BUSY:    { label: "Busy",    labelAr: "مشغول",      color: "text-amber-400 bg-amber-400/10 border-amber-500/30",      dot: "bg-amber-400",  icon: Package },
+  ONLINE:  { label: "Online",  labelAr: "متاح",      color: "text-primary bg-primary/10 border-primary/30", dot: "bg-primary", icon: Wifi },
+  OFFLINE: { label: "Offline", labelAr: "غير متاح",  color: "text-muted-foreground bg-muted/40 border-border", dot: "bg-muted-foreground", icon: WifiOff },
+  BUSY:    { label: "Busy",    labelAr: "مشغول",      color: "text-amber-500 dark:text-amber-400 bg-amber-500/10 border-amber-500/30", dot: "bg-amber-400", icon: Package },
 } as const;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -67,10 +67,10 @@ export default function AdminCourierAvailability() {
             <Truck className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-white">
+            <h1 className="text-xl font-semibold text-foreground">
               {isRtl ? "توافر المندوبين" : "Courier Availability"}
             </h1>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {isRtl ? "نظرة عامة على حالة توافر المندوبين المعتمدين" : "Real-time availability of all approved couriers"}
             </p>
           </div>
@@ -79,23 +79,23 @@ export default function AdminCourierAvailability() {
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: isRtl ? "متاحون" : "Online",  value: onlineCount,  cls: "text-primary" },
-            { label: isRtl ? "مشغولون" : "Busy",   value: busyCount,    cls: "text-amber-400" },
-            { label: isRtl ? "غير متاح" : "Offline", value: offlineCount, cls: "text-gray-400" },
+            { label: isRtl ? "متاحون" : "Online",    value: onlineCount,  cls: "text-primary" },
+            { label: isRtl ? "مشغولون" : "Busy",     value: busyCount,    cls: "text-amber-500 dark:text-amber-400" },
+            { label: isRtl ? "غير متاح" : "Offline", value: offlineCount, cls: "text-muted-foreground" },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-gray-800 bg-gray-900/60 p-4 text-center">
+            <div key={s.label} className="rounded-xl border border-border bg-card/60 p-4 text-center">
               <p className={cn("text-3xl font-bold", s.cls)}>{s.value}</p>
-              <p className="text-sm text-gray-400 mt-1">{s.label}</p>
+              <p className="text-sm text-muted-foreground mt-1">{s.label}</p>
             </div>
           ))}
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-gray-800 overflow-hidden">
+        <div className="rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-900/80">
-                <tr className="text-gray-400 text-left border-b border-gray-800">
+              <thead className="bg-muted/50">
+                <tr className="text-muted-foreground text-left border-b border-border">
                   <th className="px-4 py-3 font-medium whitespace-nowrap">
                     {isRtl ? "المندوب" : "Courier"}
                   </th>
@@ -113,17 +113,17 @@ export default function AdminCourierAvailability() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-border">
                 {isLoading && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-gray-500">
+                    <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
                       {isRtl ? "جارٍ التحميل..." : "Loading..."}
                     </td>
                   </tr>
                 )}
                 {!isLoading && couriers.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-gray-500">
+                    <td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
                       <Truck className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>{isRtl ? "لا يوجد مندوبون معتمدون بعد" : "No approved couriers yet"}</p>
                     </td>
@@ -139,19 +139,19 @@ export default function AdminCourierAvailability() {
                     : "—";
 
                   return (
-                    <tr key={c.id} className="hover:bg-gray-900/40 transition-colors">
+                    <tr key={c.id} className="hover:bg-muted/30 transition-colors">
                       {/* Courier */}
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
                           <div className="relative">
-                            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
-                              <Truck className="w-4 h-4 text-gray-400" />
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                              <Truck className="w-4 h-4 text-muted-foreground" />
                             </div>
-                            <span className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-gray-950", cfg.dot)} />
+                            <span className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background", cfg.dot)} />
                           </div>
                           <div>
-                            <p className="text-white font-medium text-sm">{c.name}</p>
-                            <p className="text-gray-500 text-xs">{c.phone}</p>
+                            <p className="text-foreground font-medium text-sm">{c.name}</p>
+                            <p className="text-muted-foreground text-xs">{c.phone}</p>
                           </div>
                         </div>
                       </td>
@@ -172,7 +172,7 @@ export default function AdminCourierAvailability() {
                             {isRtl ? "نعم" : "Yes"}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {isRtl ? "لا" : "No"}
                           </span>
                         )}
@@ -180,7 +180,7 @@ export default function AdminCourierAvailability() {
 
                       {/* Last change */}
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 text-gray-400 text-xs">
+                        <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
                           <Clock className="w-3 h-3 shrink-0" />
                           <span className="whitespace-nowrap">{lastChange}</span>
                         </div>
@@ -189,12 +189,12 @@ export default function AdminCourierAvailability() {
                       {/* Active mission */}
                       <td className="px-4 py-3">
                         {c.activeMission ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs text-amber-400">
+                          <span className="inline-flex items-center gap-1.5 text-xs text-amber-500 dark:text-amber-400">
                             <Package className="w-3.5 h-3.5" />
                             {isRtl ? `مهمة #${c.activeMission.missionId}` : `Mission #${c.activeMission.missionId}`}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-600 italic">
+                          <span className="text-xs text-muted-foreground italic">
                             {isRtl ? "لا توجد" : "None"}
                           </span>
                         )}
@@ -207,7 +207,7 @@ export default function AdminCourierAvailability() {
           </div>
         </div>
 
-        <p className="text-xs text-gray-600 text-center">
+        <p className="text-xs text-muted-foreground text-center">
           {isRtl ? "يتحدث كل 15 ثانية" : "Auto-refreshes every 15 seconds"}
         </p>
       </div>

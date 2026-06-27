@@ -322,6 +322,10 @@
     font-size: clamp(10px, calc(4px + 0.75vw), 18px);
     scrollbar-gutter: stable both-edges;
     -webkit-text-size-adjust: 100%;
+    /* Prevent any child from causing horizontal page scroll */
+    overflow-x: clip;
+    /* Anchor links scroll to the correct position, below the sticky navbar */
+    scroll-padding-top: var(--navbar-height);
   }
 
   * {

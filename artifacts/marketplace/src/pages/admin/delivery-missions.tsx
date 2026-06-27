@@ -179,15 +179,15 @@ function DispatchAlertsPanel({ token, isRtl }: { token: string; isRtl: boolean }
               <p className="text-xs font-medium text-rose-200">
                 {isRtl ? `مهمة #${a.missionId}` : `Mission #${a.missionId}`}
               </p>
-              <p className="text-xs text-gray-400 leading-snug mt-0.5">{a.message}</p>
-              <p className="text-[10px] text-gray-600 mt-1">
+              <p className="text-xs text-muted-foreground leading-snug mt-0.5">{a.message}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
                 {new Date(a.createdAt).toLocaleString(isRtl ? "ar-SY" : "en-US")}
               </p>
             </div>
             <button
               onClick={() => resolve(a.id)}
               disabled={resolving === a.id}
-              className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 disabled:opacity-50 transition-colors"
+              className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-muted border border-border text-foreground hover:bg-accent disabled:opacity-50 transition-colors"
             >
               {resolving === a.id
                 ? <Loader2 className="w-3 h-3 animate-spin" />
@@ -253,7 +253,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
             <button
               onClick={() => refetch()}
               disabled={isFetching}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400 hover:text-gray-300 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted border border-border text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
             >
               {isFetching ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
               {isRtl ? "تحديث" : "Refresh"}
@@ -264,7 +264,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
 
       {/* Not yet triggered */}
       {!enabled && (
-        <p className="text-xs text-gray-500 italic">
+        <p className="text-xs text-muted-foreground italic">
           {isRtl
             ? "اضغط «إيجاد أقرب المندوبين» لتشغيل محرك الاكتشاف"
             : "Press «Find Nearest Couriers» to run the discovery engine"}
@@ -273,7 +273,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
 
       {/* Loading */}
       {enabled && isLoading && (
-        <div className="flex items-center gap-2 py-3 text-gray-400 text-xs">
+        <div className="flex items-center gap-2 py-3 text-muted-foreground text-xs">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
           {isRtl ? "جارٍ حساب المسافات..." : "Calculating distances..."}
         </div>
