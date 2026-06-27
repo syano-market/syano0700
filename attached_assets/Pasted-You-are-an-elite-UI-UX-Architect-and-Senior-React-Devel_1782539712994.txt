@@ -1,0 +1,16 @@
+You are an elite UI/UX Architect and Senior React Developer. We need to perform two critical layout updates to our homepage grid based on `image_562218.jpg` to maximize minimal luxury and inject a high-end cinematic feel into the central fold.
+
+Please execute the following code modifications immediately:
+
+### 1. ABSOLUTE DOM REMOVAL OF THE BOTTOM ROW
+- Locate and completely delete the entire horizontal row at the bottom of the grid containing the "Explore More" (`استكشف المزيد`) capsule button and the accompanying tagline text layout ("منتجات سورية مصنوعة بشغف واحترافية عالية...").
+- Ensure this entire asset line is completely stripped from the DOM. Re-calibrate any bottom margins or padding tokens so the interface transitions elegantly without leaving blank or dead layout spaces.
+
+### 2. CINEMATIC CENTER HERO CARD UPGRADE (Dynamic Image Slider)
+- **From Flat to Fluid**: Transform the central solid purple block into a high-end dynamic background image slider/carousel, matching the rich editorial imagery aesthetic used in the flanking left and right columns.
+- **Visual Content**: The background must smoothly cycle (using a soft cross-fade or linear translation) through premium, darkened photographs representing upscale Syrian production (e.g., luxury textiles, refined handcrafting, high-end design workshops).
+- **Text Layering & Contrast Guardrails**: The main brand typography ("منصة سِيانو"), subtext, and the interactive CTA buttons ("ابدأ التجربة") must remain perfectly intact and float flawlessly *on top* of this sliding image sequence. 
+- **Overlay Layer**: Apply a rich, low-opacity dark radial gradient overlay (e.g., `bg-gradient-to-b from-black/20 via-neutral-950/50 to-neutral-950/80`) directly behind the typography layer to lock continuous readability and strict contrast compliance.
+- **60fps Execution**: Power the background image loop using Framer Motion with `transform-gpu` to ensure the transition runs natively on the device's hardware with absolute fluidity and zero frame drops.
+
+Run a clean compilation with 0 TypeScript errors and reveal this highly automated, hyper-smooth cinematic layout in the live preview!

@@ -53,9 +53,6 @@ const FONT_CSS = `
 
 /* ─── Responsive section grid rules ─────────────────────────────────────────*/
 const SECTION_CSS = `
-  .lux-strip-tagline { display: none; }
-  @media (min-width: 768px) { .lux-strip-tagline { display: block !important; } }
-
   .lux-cat-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -257,6 +254,14 @@ const RIGHT_STACK: StackItem[] = [
     accent: "#38BDF8" },
 ];
 
+/* ─── Cinematic center-card background images ────────────────────────────────*/
+const CENTER_SLIDE_IMAGES = [
+  "https://images.pexels.com/photos/3771813/pexels-photo-3771813.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
+  "https://images.pexels.com/photos/5632395/pexels-photo-5632395.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
+  "https://images.pexels.com/photos/3738090/pexels-photo-3738090.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
+  "https://images.pexels.com/photos/4215110/pexels-photo-4215110.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
+];
+
 /* ─── Category definitions ────────────────────────────────────────────────────*/
 const CATEGORY_DEFS = [
   { nameKey: "home.categories.electronics", countKey: "home.categories.count_electronics", img: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&h=360&fit=crop&auto=format&q=85", accent: "#3b82f6", slug: "Electronics" },
@@ -312,16 +317,50 @@ function ProductCard({ item }: { item: StackItem; reduced: boolean }) {
   );
 }
 
-function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () => void; onSell: () => void }) {
+const CenterCard = memo(function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () => void; onSell: () => void }) {
   const { t } = useTranslation();
+  const [imgIdx, setImgIdx] = useState(0);
+
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => setImgIdx(i => (i + 1) % CENTER_SLIDE_IMAGES.length), 4200);
+    return () => clearInterval(id);
+  }, [reduced]);
+
   return (
-    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(158deg, #180650 0%, #2D0F88 28%, #1B0B60 58%, #08040D 100%)", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(1.25rem,3vw,2rem)", borderRadius: "inherit" }}>
-      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 75% 55% at 50% 38%, ${C.purpleGlow} 0%, transparent 68%)`, pointerEvents: "none", borderRadius: "inherit" }} />
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(1.25rem,3vw,2rem)", borderRadius: "inherit" }}>
+
+      {/* Cinematic background image cross-fade */}
+      <AnimatePresence>
+        <motion.img
+          key={CENTER_SLIDE_IMAGES[imgIdx]}
+          src={CENTER_SLIDE_IMAGES[imgIdx]}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", filter: "brightness(0.50) saturate(0.65) contrast(1.10)", willChange: "opacity", backfaceVisibility: "hidden" }}
+        />
+      </AnimatePresence>
+
+      {/* Dark cinematic gradient — locks text contrast */}
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(8,3,24,0.56) 44%, rgba(4,1,14,0.90) 100%)", pointerEvents: "none", borderRadius: "inherit" }} />
+
+      {/* Purple spectral glow */}
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 72% 52% at 50% 40%, ${C.purpleGlow} 0%, transparent 66%)`, pointerEvents: "none", borderRadius: "inherit", opacity: 0.44 }} />
+
+      {/* Badge */}
       <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>
         <span style={{ fontFamily: F.sans, fontSize: "0.7rem", fontWeight: 500, padding: "0.35rem 1rem", borderRadius: "9999px", background: C.purpleAlpha, color: "#C4B5FD", border: `1px solid ${C.purple}42` }}>
           🇸🇾 {t("lux.center.badge")}
         </span>
       </div>
+
+      {/* Title + tagline + slide indicator dots */}
       <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "1rem" }}>
         <motion.h1
           animate={reduced ? {} : { scale: [1, 1.025, 1] }}
@@ -333,11 +372,13 @@ function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () 
           {t("lux.center.tagline")}
         </p>
         <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          {[0,1,2,3,4].map((i) => (
-            <div key={i} style={{ width: i === 2 ? 22 : 7, height: 2, borderRadius: 9999, background: i === 2 ? C.purple : C.dimmed, transition: "width 0.3s" }} />
+          {CENTER_SLIDE_IMAGES.map((_, i) => (
+            <div key={i} style={{ width: i === imgIdx ? 22 : 7, height: 2, borderRadius: 9999, background: i === imgIdx ? C.purple : C.dimmed, transition: "width 0.4s ease" }} />
           ))}
         </div>
       </div>
+
+      {/* CTA buttons */}
       <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.65rem" }}>
         <motion.button onClick={onShop} whileHover={reduced ? {} : { scale: 1.04 }} whileTap={reduced ? {} : { scale: 0.96 }}
           style={{ fontFamily: F.sans, fontSize: "0.85rem", fontWeight: 600, padding: "0.75rem 2rem", borderRadius: "9999px", background: C.green, color: C.white, width: "100%", maxWidth: "220px", willChange: "transform" }}>
@@ -350,32 +391,7 @@ function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () 
       </div>
     </div>
   );
-}
-
-function BottomStrip({ onExplore }: { onExplore: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.9rem 2rem", flexShrink: 0, borderTop: `1px solid ${C.border}`, background: C.bg, gap: "1rem" }}>
-      <span style={{ fontFamily: F.naskh, fontSize: "clamp(1rem,2vw,1.4rem)", fontWeight: 700, color: C.white, letterSpacing: "-0.01em", flexShrink: 0 }}>
-        {t("lux.strip.brand")}
-      </span>
-      <p style={{ fontFamily: F.sans, fontSize: "clamp(0.65rem,1vw,0.82rem)", color: C.muted, lineHeight: 1.65, textAlign: "center", flex: 1, display: "none", maxWidth: "36ch", margin: "0 auto" }} className="lux-strip-tagline">
-        {t("lux.strip.tagline")}
-      </p>
-      <motion.button onClick={onExplore} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-        style={{ display: "flex", alignItems: "center", gap: 0, borderRadius: "9999px", overflow: "hidden", direction: "ltr", flexShrink: 0 }}>
-        <div style={{ height: 44, padding: "0 1.25rem", background: C.white, borderRadius: "9999px 0 0 9999px", display: "flex", alignItems: "center" }}>
-          <span style={{ fontFamily: F.sans, fontSize: "0.82rem", fontWeight: 600, color: C.bg, whiteSpace: "nowrap" }}>{t("lux.strip.explore")}</span>
-        </div>
-        <div style={{ width: 44, height: 44, background: C.white, borderRadius: "0 9999px 9999px 0", marginInlineStart: "1px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.bg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5m7-7-7 7 7 7" />
-          </svg>
-        </div>
-      </motion.button>
-    </div>
-  );
-}
+});
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LUXURY SECTION HELPERS
@@ -1214,9 +1230,8 @@ export default function LuxuryLandingPage() {
   const leftItem  = LEFT_STACK[leftIdx];
   const rightItem = RIGHT_STACK[rightIdx];
 
-  const onShop    = useCallback(() => navigate("/shop"),         [navigate]);
-  const onSell    = useCallback(() => navigate("/seller/apply"), [navigate]);
-  const onExplore = useCallback(() => navigate("/shop"),         [navigate]);
+  const onShop = useCallback(() => navigate("/shop"),         [navigate]);
+  const onSell = useCallback(() => navigate("/seller/apply"), [navigate]);
 
   return (
     <>
@@ -1246,22 +1261,13 @@ export default function LuxuryLandingPage() {
         <section
           style={{
             height: "calc(100dvh - 3.75rem)",
-            display: "flex",
-            flexDirection: "column",
+            display: "grid",
+            gridTemplateColumns: "1fr 1.48fr 1fr",
+            gap: "16px",
+            padding: "0 20px",
             overflow: "hidden",
           }}
         >
-          {/* 3-column animated card grid */}
-          <div
-            style={{
-              flex: 1,
-              display: "grid",
-              gridTemplateColumns: "1fr 1.48fr 1fr",
-              gap: "16px",
-              padding: "0 20px",
-              minHeight: 0,
-            }}
-          >
             {/* LEFT — enters from bottom, exits to top */}
             <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
               <AnimatePresence mode="popLayout" initial={false}>
@@ -1288,10 +1294,6 @@ export default function LuxuryLandingPage() {
                 </motion.div>
               </AnimatePresence>
             </div>
-          </div>
-
-          {/* Bottom branding strip */}
-          <BottomStrip onExplore={onExplore} />
         </section>
 
         {/* ── Below-fold sections ────────────────────────────────────────── */}
