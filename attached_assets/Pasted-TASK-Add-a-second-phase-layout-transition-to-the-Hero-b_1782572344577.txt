@@ -1,0 +1,29 @@
+TASK: Add a second-phase layout transition to the Hero banners in luxury-landing.tsx, triggered ~1 second after the initial drop-in animation completes.
+
+CONTEXT:
+The 3-banner staggered drop-in animation (left → center → right, with blur) is already implemented and working. Now add a NEW animation phase that happens automatically afterward, based on a reference video:
+
+1. RIGHT column: the existing banner (currently filling the full column height) shrinks down to occupy only the BOTTOM half of the column. At the same time, a NEW second banner slides/drops in from above to fill the now-empty TOP half of that column.
+
+2. LEFT column: the existing banner shrinks down to occupy only the TOP half of the column. At the same time, a NEW second banner slides up from below to fill the now-empty BOTTOM half of that column.
+
+3. CENTER column: stays exactly as is — no change, no split.
+
+TIMING:
+- This transition starts ~1 second after the initial drop-in animation for all 3 banners has fully completed (i.e., after the existing entrance animation's total duration + a short pause).
+- The shrink + new-banner-entrance should happen together, smoothly, in roughly 0.4-0.5s, ease: "easeOut".
+
+IMPLEMENTATION NOTES:
+- Read the current luxury-landing.tsx structure first to find the left and right banner blocks and confirm what content/images are available for the "new" banners that appear (check if there's existing unused content/copy for these, such as a tagline or secondary product image, before inventing new content — ask me if nothing suitable exists in the codebase).
+- Use framer-motion for this: animate the existing banner's height (or transform: scaleY + transform-origin anchored to the correct edge — bottom-anchored shrink for the right column existing banner, top-anchored shrink for the left column existing banner) while the new banner animates in with motion (y translation from the opposite edge + opacity, similar pattern to the existing entrance animation).
+- Each column (left, right) should end up as two stacked half-height banners after this transition. Center remains a single full-height banner.
+- Do not affect the center column or break the existing first-phase drop-in animation — this is an additional animation phase chained after it (e.g., trigger via animation sequencing in framer-motion: onAnimationComplete, or a useEffect timer keyed to the total duration of phase 1 + 1000ms).
+- Maintain existing Tailwind classes/layout structure as much as possible; only add the motion/layout logic needed for the split.
+- Respect vercel-react-best-practices: avoid unnecessary re-renders elsewhere on the page from this state change.
+
+5. After implementation, run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json and confirm 0 TypeScript errors.
+6. Visually confirm: ~1s after the initial drop-in finishes, right column splits with new banner entering from top into the freed top half, left column splits with new banner entering from bottom into the freed bottom half, center column unchanged.
+
+If suitable content/images for the two new "second" banners don't already exist in the codebase or related assets, stop and ask the user before fabricating placeholder content.
+
+Do not create any documentation file for this. Give a short confirmation summary at the end.
