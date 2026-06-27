@@ -63,7 +63,7 @@ const SECTION_CSS = `
   .lux-deals-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 16px;
   }
   @media (min-width: 1024px) { .lux-deals-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
 
@@ -78,7 +78,7 @@ const SECTION_CSS = `
   .lux-trending-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 16px;
   }
   @media (min-width: 640px) { .lux-trending-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
 
@@ -295,7 +295,7 @@ const toBottom   = { opacity: 0, scale: 0.87, y: 54  };
    HERO COMPONENTS (existing — unchanged)
 ═══════════════════════════════════════════════════════════════════════════*/
 
-function ProductCard({ item }: { item: StackItem; reduced: boolean }) {
+function ProductCard({ item }: { item: StackItem }) {
   const { t } = useTranslation();
   return (
     <div style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden" }}>
@@ -381,11 +381,11 @@ const CenterCard = memo(function CenterCard({ reduced, onShop, onSell }: { reduc
       {/* CTA buttons */}
       <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.65rem" }}>
         <motion.button onClick={onShop} whileHover={reduced ? {} : { scale: 1.04 }} whileTap={reduced ? {} : { scale: 0.96 }}
-          style={{ fontFamily: F.sans, fontSize: "0.85rem", fontWeight: 600, padding: "0.75rem 2rem", borderRadius: "9999px", background: C.green, color: C.white, width: "100%", maxWidth: "220px", willChange: "transform" }}>
+          style={{ fontFamily: F.sans, fontSize: "0.85rem", fontWeight: 600, padding: "0.75rem 2rem", borderRadius: "9999px", background: C.green, color: C.white, width: "100%", maxWidth: "220px" }}>
           {t("lux.center.cta_shop")}
         </motion.button>
         <motion.button onClick={onSell} whileHover={reduced ? {} : { scale: 1.03 }} whileTap={reduced ? {} : { scale: 0.97 }}
-          style={{ fontFamily: F.sans, fontSize: "0.82rem", fontWeight: 500, padding: "0.65rem 1.75rem", borderRadius: "9999px", background: "transparent", color: C.dimmed, border: `1px solid ${C.border}`, width: "100%", maxWidth: "220px", willChange: "transform" }}>
+          style={{ fontFamily: F.sans, fontSize: "0.82rem", fontWeight: 500, padding: "0.65rem 1.75rem", borderRadius: "9999px", background: "transparent", color: C.dimmed, border: `1px solid ${C.border}`, width: "100%", maxWidth: "220px" }}>
           {t("lux.center.cta_sell")}
         </motion.button>
       </div>
@@ -431,6 +431,8 @@ function LuxSectionHeader({
   );
 }
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 /** Countdown timer for deals section */
 function LuxCountdownTimer() {
   const { t } = useTranslation();
@@ -445,7 +447,6 @@ function LuxCountdownTimer() {
     }, 1000);
     return () => clearInterval(id);
   }, []);
-  const pad = (n: number) => String(n).padStart(2, "0");
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.75rem" }}>
       <Timer style={{ width: 13, height: 13, color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
@@ -545,7 +546,7 @@ const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData;
           <button
             onClick={handleAdd}
             disabled={adding}
-            style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.75rem", background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`, color: C.muted, padding: "6px 12px", borderRadius: "9999px", flexShrink: 0, opacity: adding ? 0.5 : 1 }}>
+            style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.75rem", background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`, color: C.muted, padding: "12px 14px", borderRadius: "9999px", flexShrink: 0, opacity: adding ? 0.5 : 1 }}>
             {adding
               ? <div style={{ width: 12, height: 12, border: "1.5px solid rgba(255,255,255,0.5)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
               : <ShoppingCart style={{ width: 12, height: 12 }} />}
@@ -631,7 +632,7 @@ const LuxCategoriesSection = memo(function LuxCategoriesSection() {
         <LuxSectionHeader eyebrowKey="home.categories.eyebrow" titleKey="home.categories.title" seeAllKey="home.categories.see_all" seeAllHref="/shop" />
         <div className="lux-cat-grid">
           {CATEGORY_DEFS.map((cat, i) => (
-            <motion.div key={`${cat.slug}-${i}`}
+            <motion.div key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
@@ -642,7 +643,7 @@ const LuxCategoriesSection = memo(function LuxCategoriesSection() {
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.72) saturate(0.80)", transition: "transform 0.6s ease" }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.20) 55%, transparent 100%)" }} />
                 <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 65% 45% at 50% 0%, ${cat.accent}22 0%, transparent 60%)` }} />
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "1.1rem 1rem 1rem" }}>
+                <div style={{ position: "absolute", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, padding: "1.1rem 1rem 1rem" }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: cat.accent, marginBottom: "0.45rem" }} />
                   <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.95rem", color: C.white, margin: "0 0 0.2rem" }}>
                     {t(cat.nameKey)}
@@ -908,6 +909,9 @@ const LuxJoinSection = memo(function LuxJoinSection() {
               {/* Seller card */}
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.1, ease: fadeEase }}
                 onClick={handleOpenYourStore}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenYourStore(); } }}
+                role="button"
+                tabIndex={0}
                 style={{ background: C.card2, border: `1px solid rgba(124,58,237,0.20)`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 60% at 50% 110%, rgba(124,58,237,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
                 <div style={{ position: "relative", zIndex: 1 }}>
@@ -926,6 +930,9 @@ const LuxJoinSection = memo(function LuxJoinSection() {
               {/* Courier card */}
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.2, ease: fadeEase }}
                 onClick={handleBecomeCourier}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleBecomeCourier(); } }}
+                role="button"
+                tabIndex={0}
                 style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer" }}>
                 <div style={{ width: 48, height: 48, borderRadius: "14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
                   <Bike style={{ width: 22, height: 22, color: C.muted }} />
@@ -1111,7 +1118,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
             </p>
 
             {subscribed ? (
-              <div style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", color: "#4ade80", padding: "0.8rem 1rem", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.20)", borderRadius: "12px" }}>
+              <div aria-live="polite" style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", color: "#4ade80", padding: "0.8rem 1rem", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.20)", borderRadius: "12px" }}>
                 ✓ {t("home.footer.subscribed", "تم الاشتراك!")}
               </div>
             ) : (
@@ -1127,6 +1134,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t("home.footer.newsletter_placeholder")}
+                  aria-label={t("home.footer.newsletter_placeholder")}
                   className="lux-footer-input"
                   style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", width: "100%", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, borderRadius: "12px", padding: "0.72rem 1rem", color: C.white, outline: "none", transition: "border-color 0.2s" }}
                 />
@@ -1274,7 +1282,7 @@ export default function LuxuryLandingPage() {
                 <motion.div key={leftItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
                   initial={reduced ? false : fromBottom} animate={visible} exit={reduced ? {} : toTop}
                   transition={{ duration: 0.55, ease: SPRING }}>
-                  <ProductCard item={leftItem} reduced={reduced} />
+                  <ProductCard item={leftItem} />
                 </motion.div>
               </AnimatePresence>
             </div>
@@ -1290,7 +1298,7 @@ export default function LuxuryLandingPage() {
                 <motion.div key={rightItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
                   initial={reduced ? false : fromTop} animate={visible} exit={reduced ? {} : toBottom}
                   transition={{ duration: 0.55, ease: SPRING }}>
-                  <ProductCard item={rightItem} reduced={reduced} />
+                  <ProductCard item={rightItem} />
                 </motion.div>
               </AnimatePresence>
             </div>

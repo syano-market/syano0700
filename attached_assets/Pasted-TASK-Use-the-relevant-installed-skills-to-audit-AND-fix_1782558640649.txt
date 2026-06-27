@@ -1,0 +1,45 @@
+TASK: Use the relevant installed skills to audit AND fix the website homepage (artifacts/marketplace) in a single pass.
+
+STEP 1 — IDENTIFY THE RELEVANT SKILLS
+Read SKILL.md for these three installed skills:
+- tailwind-design-system
+- ui-ux-pro-max
+- vercel-react-best-practices
+
+Confirm what each one specifically evaluates so you apply its actual documented criteria.
+
+STEP 2 — LOCATE THE HOMEPAGE
+Find the actual homepage route/component for the web app inside artifacts/marketplace (the route mounted at "/" per the route map in SYANO_MASTER_RECOVERY.md). Read the full component tree it renders — the page file plus every child component it imports (hero, product sections, banners, etc.).
+
+STEP 3 — AUDIT
+Go through the homepage component tree once per skill lens:
+1. tailwind-design-system — inconsistent spacing, color usage, typography scale, responsive breakpoints, hardcoded values that should use design tokens instead.
+2. ui-ux-pro-max — usability issues, information hierarchy, accessibility gaps (contrast, tap targets, alt text).
+3. vercel-react-best-practices — React anti-patterns, unnecessary re-renders, missing memoization, improper key usage, prop drilling.
+
+Also verify RTL/Arabic correctness: logical Tailwind classes (ms-/me-/ps-/pe-/start-/end-, not ml-/mr-/pl-/pr-/left-/right-) per SYANO's existing TYPESCRIPT POLICY rules.
+
+STEP 4 — PRINT THE FINDINGS LIST FIRST
+Before touching any code, print a short findings list (file/component, issue, which skill flagged it, severity: cosmetic/moderate/significant). This is for visibility/record only — do not wait for approval, proceed immediately to Step 5 after printing it.
+
+STEP 5 — APPLY FIXES
+Apply fixes for every finding from Step 4, ordered significant → moderate → cosmetic. Rules while fixing:
+- Do not change any text content, copy, or i18n strings — visual/structural/code-quality fixes only, not content changes.
+- Do not change product data, business logic, or API calls — frontend presentation and code-quality only.
+- Do not remove or rename any component, prop, or route — refactor in place.
+- After each fix, keep the component visually equivalent in intent (same content, same sections) — you're improving consistency, accessibility, and code quality, not redesigning the page.
+- If a fix is genuinely ambiguous or risky (e.g. could break a layout you can't visually verify, or conflicts between two skills' guidance), skip it and note it under "Deferred — needs manual review" in your final report instead of guessing.
+
+STEP 6 — VERIFY NOTHING BROKE
+After all fixes, run the project's TypeScript check for the marketplace package (npx tsc --noEmit -p artifacts/marketplace/tsconfig.json) and confirm 0 errors, per SYANO's existing TYPESCRIPT POLICY. If errors appear, fix them before finishing — do not leave the codebase in a broken state.
+
+CONSTRAINTS:
+- Only touch files inside artifacts/marketplace related to the homepage component tree identified in Step 2.
+- Do not modify SYANO_MASTER_RECOVERY.md or any other doc in this task.
+- Do not touch backend, database, or API code.
+
+When finished, output:
+1. The findings list from Step 4.
+2. Exactly which findings were fixed vs deferred, and why for any deferred ones.
+3. Confirmation of 0 TypeScript errors after the fixes.
+4. Commit the changes with a clear message referencing the homepage audit/fix.

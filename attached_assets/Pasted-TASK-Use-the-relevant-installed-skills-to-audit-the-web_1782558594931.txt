@@ -1,0 +1,42 @@
+TASK: Use the relevant installed skills to audit the website homepage (artifacts/marketplace) and identify what needs improvement, before making any changes.
+
+CONTEXT: This is a review/audit pass only — do NOT modify any code yet. The goal is to produce a clear list of findings first, so they can be reviewed before any change is applied.
+
+STEP 1 — IDENTIFY THE RELEVANT SKILLS
+From the 6 skills installed under .agents/skills/, read the SKILL.md for these three (they are the ones relevant to this kind of frontend review):
+- tailwind-design-system
+- ui-ux-pro-max
+- vercel-react-best-practices
+
+Confirm what each one specifically evaluates (visual/design consistency, UX/usability patterns, React code quality/best practices respectively) so you apply each one's actual criteria rather than generic web design opinions.
+
+STEP 2 — LOCATE THE HOMEPAGE
+Find the actual homepage route/component for the web app inside artifacts/marketplace (the route mounted at "/" per the existing route map in SYANO_MASTER_RECOVERY.md). Read the full component tree it renders — the page file itself plus every child component it imports and uses (hero section, product sections, banners, etc.) — not just the top-level file.
+
+STEP 3 — AUDIT USING EACH SKILL
+Go through the homepage component tree three times, once per skill lens:
+
+1. Using tailwind-design-system: check for inconsistent spacing, color usage, typography scale, responsive breakpoints, and any hardcoded values that should follow the design system's tokens/conventions instead.
+
+2. Using ui-ux-pro-max: check for usability issues, information hierarchy problems, accessibility gaps (contrast, tap targets, alt text), and UX patterns the skill specifically flags as problems.
+
+3. Using vercel-react-best-practices: check for React anti-patterns, unnecessary re-renders, missing memoization where it matters, improper key usage, prop drilling, or any other code-quality issue the skill's guidance specifically covers.
+
+For RTL/Arabic-specific concerns, also verify logical Tailwind classes are used correctly (ms-/me-/ps-/pe-/start-/end- rather than ml-/mr-/pl-/pr-/left-/right-) per SYANO's existing TYPESCRIPT POLICY rules in SYANO_MASTER_RECOVERY.md.
+
+STEP 4 — PRODUCE A FINDINGS REPORT (NO CODE CHANGES YET)
+Output a structured list, grouped by skill, where each finding includes:
+- File and line number (or component name) where the issue is
+- What the issue is, in one sentence
+- Which specific skill/rule flagged it
+- Suggested fix, in one sentence
+- A rough severity: cosmetic / moderate / significant
+
+Do not apply any fix yet. Do not edit any file in this task. Just produce the findings report as your final output, ordered by severity (significant first).
+
+CONSTRAINTS:
+- Do not modify any file under artifacts/marketplace.
+- Do not modify SYANO_MASTER_RECOVERY.md or any other doc in this task — this is audit-only.
+- Do not install or reference any skill other than the 3 listed above for this specific audit.
+
+When finished, just present the findings report. Wait for explicit approval before fixing anything.
