@@ -1,0 +1,53 @@
+TASK: Verify the current state of 6 expected agent skills, then complete documentation for whichever ones are confirmed present.
+
+CONTEXT: This project may have been previously worked on in a different session/account. Skills may already be installed under .agents/skills/. Do not assume anything — verify first.
+
+STEP 1 — VERIFY WHAT ACTUALLY EXISTS ON DISK
+Check whether the directory .agents/skills/ exists, and if so, list its contents. For each of these 6 expected skill folders, check if it exists and contains a SKILL.md file:
+- agentation
+- brainstorming
+- tailwind-design-system
+- ui-ux-pro-max
+- vercel-react-best-practices
+- writing-clearly-and-concisely
+
+Report back clearly: which of the 6 are fully present (folder + SKILL.md exists), which are partially present (folder exists but missing files), and which are completely missing.
+
+STEP 2 — FOR ANY SKILLS CONFIRMED FULLY PRESENT
+Do NOT reinstall them. Do NOT run npx skills add for these. Simply read their SKILL.md files directly from disk to understand: purpose, triggers, commands/workflows, and any conflicts with SYANO's stack (React 19, Vite 7, Tailwind v4, Expo 54).
+
+STEP 3 — FOR ANY SKILLS MISSING OR INCOMPLETE
+Only for these, run the corresponding install command:
+- npx skills add https://github.com/softaworks/agent-toolkit --skill writing-clearly-and-concisely
+- npx skills add https://github.com/obra/superpowers --skill brainstorming
+- npx skills add https://github.com/benjitaylor/agentation --skill agentation
+- npx skills add https://github.com/wshobson/agents --skill tailwind-design-system
+- npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+- npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
+
+Install one at a time, confirm success before the next, then read its SKILL.md as in Step 2.
+
+STEP 4 — CHECK IF DOCUMENTATION ALREADY EXISTS
+Open SYANO_MASTER_RECOVERY.md and check whether a section titled "INSTALLED SKILLS" already exists. If it already exists and looks complete, report that and stop — do not duplicate it. If it does not exist, proceed to Step 5.
+
+STEP 5 — ADD THE DOCUMENTATION SECTION
+Insert ONE new top-level section titled "INSTALLED SKILLS", placed after the "MOBILE" section and before the "REQUIRED SECRETS" section. Match the file's existing heading style and table formatting exactly. Include:
+
+1. A summary table: Skill Name | Source Repo | Purpose | When To Use (6 rows, using the real GitHub URLs listed in Step 3 above).
+
+2. A subsection "Reinstall Commands" with all 6 npx commands above in a single code block, in original order.
+
+3. A subsection "Usage Notes — SYANO Context" — one short paragraph per skill, each referencing real SYANO files/folders/components already named elsewhere in this document (e.g. artifacts/marketplace/src/components/, SyanoHero.jsx-style hero work, artifacts/mobile, i18n keys in en.json/ar.json, RTL/LTR logical Tailwind classes). No generic boilerplate.
+
+4. A subsection "Known Conflicts / Caveats" — one line per skill; if none, write "No conflicts identified."
+
+CONSTRAINTS:
+- Do not create any new file.
+- Do not duplicate this content into any other file (AGENT_BOOTSTRAP.md, RECOVERY_GUIDE.md, PROJECT_STATE.md, replit.md).
+- Do not modify, reorder, or rephrase any existing section of SYANO_MASTER_RECOVERY.md outside the one new section being added.
+- Do not touch "CERTIFIED STATE".
+
+When finished, report:
+1. Which of the 6 skills were already present vs newly installed.
+2. Whether INSTALLED SKILLS section was newly added, already existed, or updated.
+3. Confirmation that no other part of the file was altered.

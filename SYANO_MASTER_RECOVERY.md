@@ -487,6 +487,57 @@ GET /api/search/suggestions?q=<q>  Autocomplete suggestions
 
 ---
 
+## INSTALLED SKILLS
+
+Six agent skills are installed under `.agents/skills/`. They extend agent capability for specific task types. Read the relevant `SKILL.md` before any work that falls under its triggers.
+
+### Summary
+
+| Skill Name | Source Repo | Purpose | When To Use |
+|---|---|---|---|
+| agentation | https://github.com/benjitaylor/agentation | Visual feedback toolbar for in-development annotation and MCP-based annotation sync | Adding a dev-only annotation layer to the marketplace UI; setting up MCP annotation sync |
+| brainstorming | https://github.com/obra/superpowers | Hard-gates implementation behind collaborative design; produces a spec doc before any code | **Before any feature, component, or behavior change** — mandatory hard gate |
+| tailwind-design-system | https://github.com/wshobson/agents | Tailwind v4 CSS-first design token system with OKLCH tokens, component variants, dark mode | Creating or refactoring the marketplace component library; extending the `@theme` token block |
+| ui-ux-pro-max | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | Full UI/UX design intelligence: 50+ styles, 161 palettes, 99 UX rules, accessibility, animation | Any visual design work on marketplace or mobile — pages, components, navigation patterns, charts |
+| vercel-react-best-practices | https://github.com/vercel-labs/agent-skills | 70 React performance rules (waterfalls, bundle, re-renders, rendering, JS perf) | Writing or reviewing React components in marketplace or mobile; bundle/performance work |
+| writing-clearly-and-concisely | https://github.com/softaworks/agent-toolkit | Strunk-based prose guide; flags AI puffery patterns | Writing any human-readable text: i18n strings, error messages, docs, commit messages |
+
+### Reinstall Commands
+
+```bash
+npx skills add https://github.com/softaworks/agent-toolkit --skill writing-clearly-and-concisely
+npx skills add https://github.com/obra/superpowers --skill brainstorming
+npx skills add https://github.com/benjitaylor/agentation --skill agentation
+npx skills add https://github.com/wshobson/agents --skill tailwind-design-system
+npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
+npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
+```
+
+### Usage Notes — SYANO Context
+
+**agentation** — SYANO uses React 19 + Vite 7 (not Next.js), so skip the App Router / Pages Router injection patterns. Add `<Agentation />` directly in `artifacts/marketplace/src/main.tsx` wrapped in `process.env.NODE_ENV === 'development'`. The MCP server runs on port 4747; add it only if you need real-time annotation sync. Do not use in `artifacts/mobile`.
+
+**brainstorming** — This is a hard gate: no code may be written for any new feature, page, or component until a spec is approved. Specs are saved to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`. When working on marketplace features such as the vendor dashboard or courier workspace, explore `artifacts/marketplace/src/pages/` and `artifacts/mobile/app/` before proposing approaches. After spec approval the skill transitions to `writing-plans` — do not invoke any implementation skill directly.
+
+**tailwind-design-system** — SYANO's marketplace already uses Tailwind v4 with `@import "tailwindcss"` and an `@theme` block; extend tokens there, not in a `tailwind.config.ts`. All token changes must use Tailwind logical classes (`ms-`, `ps-`, `start-`) to preserve RTL support for the Arabic locale defined in `artifacts/marketplace/src/i18n/ar.json`. Dark mode uses `@custom-variant dark (&:where(.dark, .dark *))`.
+
+**ui-ux-pro-max** — Apply to all UI work in `artifacts/marketplace/src/components/` and `artifacts/mobile/app/`. For Arabic RTL screens respect the logical-class rule (never `ml-`/`pl-`/`left-`). The mobile app targets Expo 54 + React Native 0.81, so use the Apple HIG and Material Design rules from this skill's navigation and touch sections — bottom nav max 5 items, 44pt minimum touch targets, spring-physics animations via `react-native-reanimated`.
+
+**vercel-react-best-practices** — The async/waterfall, bundle, re-render, rendering, and JS performance rules apply directly to the Vite marketplace and the Expo mobile app. The server-side rules (`server-cache-react`, `server-after-nonblocking`, RSC patterns) do **not** apply — SYANO's backend is an Express API server at `artifacts/api-server/`, not a Next.js server. When optimizing marketplace bundle, avoid barrel imports from `artifacts/marketplace/src/components/` and prefer direct imports.
+
+**writing-clearly-and-concisely** — Use whenever editing `artifacts/marketplace/src/i18n/en.json` or `ar.json`, writing error strings surfaced through the API in `artifacts/api-server/src/`, or updating any section of this document. The skill's "AI patterns to avoid" list (puffery, empty -ing phrases, promotional adjectives) applies to all user-facing copy in both the web and mobile apps.
+
+### Known Conflicts / Caveats
+
+- **agentation** — Designed for Next.js; inject manually in `main.tsx` instead of using the App/Pages Router pattern the skill describes. MCP port 4747 must not conflict with API_PORT (8080) or embedding service (8000).
+- **brainstorming** — Spec output directory `docs/superpowers/specs/` does not yet exist in the repo; create it on first use.
+- **tailwind-design-system** — Skill includes a v3→v4 migration guide; SYANO is already on v4 so skip migration steps entirely.
+- **ui-ux-pro-max** — Next.js-specific examples appear in the skill's stack references; apply React + Vite equivalents for marketplace and React Native equivalents for mobile.
+- **vercel-react-best-practices** — All RSC/server-action/Next.js server rules are irrelevant to SYANO's architecture; apply only the React client-side rule categories.
+- **writing-clearly-and-concisely** — No conflicts identified.
+
+---
+
 ## REQUIRED SECRETS
 
 ### Replit Secrets tab (sensitive — never in code or shared env)
