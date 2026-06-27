@@ -291,6 +291,17 @@ const visible    = { opacity: 1, scale: 1,    y: 0   };
 const toTop      = { opacity: 0, scale: 0.87, y: -54 };
 const toBottom   = { opacity: 0, scale: 0.87, y: 54  };
 
+/* ─── Hero banner entrance variants (staggered slide-down) ───────────────────*/
+const heroContainerVariants = {
+  hidden:   {},
+  visible:  { transition: { staggerChildren: 0.2, delayChildren: 0.15 } },
+} as const;
+
+const bannerVariant = {
+  hidden:   { y: "-100%", opacity: 0 },
+  visible:  { y: 0, opacity: 1, transition: { duration: 0.65, ease: "easeOut" } },
+} as const;
+
 /* ═══════════════════════════════════════════════════════════════════════════
    HERO COMPONENTS (existing — unchanged)
 ═══════════════════════════════════════════════════════════════════════════*/
@@ -1266,7 +1277,10 @@ export default function LuxuryLandingPage() {
         </div>
 
         {/* ── Hero section — fills exactly one viewport height ───────────── */}
-        <section
+        <motion.section
+          variants={heroContainerVariants}
+          initial={reduced ? false : "hidden"}
+          animate="visible"
           style={{
             height: "calc(100dvh - 3.75rem)",
             display: "grid",
@@ -1276,8 +1290,8 @@ export default function LuxuryLandingPage() {
             overflow: "hidden",
           }}
         >
-            {/* LEFT — enters from bottom, exits to top */}
-            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
+            {/* LEFT — entrance: slides down; carousel: enters from bottom, exits to top */}
+            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.div key={leftItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
                   initial={reduced ? false : fromBottom} animate={visible} exit={reduced ? {} : toTop}
@@ -1285,15 +1299,15 @@ export default function LuxuryLandingPage() {
                   <ProductCard item={leftItem} />
                 </motion.div>
               </AnimatePresence>
-            </div>
+            </motion.div>
 
-            {/* CENTER — static */}
-            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
+            {/* CENTER — entrance: slides down */}
+            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
               <CenterCard reduced={reduced} onShop={onShop} onSell={onSell} />
-            </div>
+            </motion.div>
 
-            {/* RIGHT — enters from top, exits to bottom */}
-            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
+            {/* RIGHT — entrance: slides down; carousel: enters from top, exits to bottom */}
+            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.div key={rightItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
                   initial={reduced ? false : fromTop} animate={visible} exit={reduced ? {} : toBottom}
@@ -1301,8 +1315,8 @@ export default function LuxuryLandingPage() {
                   <ProductCard item={rightItem} />
                 </motion.div>
               </AnimatePresence>
-            </div>
-        </section>
+            </motion.div>
+        </motion.section>
 
         {/* ── Below-fold sections ────────────────────────────────────────── */}
         <LuxCategoriesSection />

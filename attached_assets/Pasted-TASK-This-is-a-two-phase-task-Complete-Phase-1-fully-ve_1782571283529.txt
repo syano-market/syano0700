@@ -1,0 +1,46 @@
+TASK: This is a two-phase task. Complete Phase 1 fully, verify it, then proceed to Phase 2. Do not start Phase 2 until Phase 1 is confirmed clean with 0 TypeScript errors.
+
+═══════════════════════════════════════
+PHASE 1 — Final cleanup of dead Hero files
+═══════════════════════════════════════
+
+Delete these files:
+1. artifacts/marketplace/src/pages/home.tsx
+2. artifacts/marketplace/src/components/HomeSections/HeroShowcase.tsx
+3. artifacts/marketplace/src/components/home/HomeHeroV2.tsx
+
+Then:
+- Remove the lazy import of Home in App.tsx (around line 100: const Home = lazy(...)) and any associated route reference, if one exists.
+- Grep the entire codebase to confirm no other file still imports any of these 3 deleted files.
+- Run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json and confirm 0 TypeScript errors.
+
+Do not proceed to Phase 2 until this check passes with 0 errors. Give a short confirmation summary: files deleted, App.tsx changes made, TypeScript check result.
+
+═══════════════════════════════════════
+PHASE 2 — Add staggered entrance animation to Hero banners using framer-motion
+═══════════════════════════════════════
+
+CONTEXT:
+- Confirmed real homepage file: artifacts/marketplace/src/pages/luxury-landing.tsx (rendered on route "/" via App.tsx).
+- framer-motion is already installed in the project.
+- Read the current structure of luxury-landing.tsx fully before making changes, and identify the 3 banner blocks (left, center "SYANO Platform", right) within it.
+
+REQUIREMENTS:
+1. On initial page load, the three banners must NOT be visible — only the black background of the Hero Section should show.
+2. After a short delay (~150ms), the three banners animate in with a drop-down/slide-down entrance, staggered in this exact order:
+   - Left banner first
+   - Center banner (SYANO Platform) second
+   - Right banner last
+3. Each banner starts with y: "-100%" and opacity: 0, animating to y: 0 and opacity: 1.
+4. Implement with framer-motion using a parent motion.div with variants + staggerChildren (preferred pattern) rather than manually staggering with individual delay values, unless the existing JSX structure makes that impractical — in that case, use individual transition.delay values (0, 0.2, 0.4s).
+5. Use ease: "easeOut", duration ~0.6-0.7s per banner.
+6. Do not break any existing functionality (buttons, links, images, text on the banners must keep working exactly as before).
+7. Do not use inline styles that conflict with existing Tailwind classes — only add the motion/animation layer on top of the current structure.
+8. Per vercel-react-best-practices: avoid unnecessary re-renders of the rest of the page from this animation; use will-change sparingly, only during the animation.
+9. If the page supports RTL (Arabic locale), confirm the animation only affects the y-axis and behaves identically in Arabic and English.
+10. After implementation, run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json and confirm 0 TypeScript errors.
+11. Visually confirm: homepage loads with black background only, then banners drop from top in order left → center → right.
+
+═══════════════════════════════════════
+
+Do not create any documentation file for either phase. Give a final combined summary at the end covering both phases: files deleted, App.tsx changes, animation implementation details, and both TypeScript check results.

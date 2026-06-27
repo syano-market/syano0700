@@ -97,7 +97,6 @@ const CourierWallet                  = lazy(() => import("@/pages/courier/wallet
 const AdminCourierPayouts            = lazy(() => import("@/pages/admin/courier-payouts"));
 const WishlistPage                   = lazy(() => import("@/pages/wishlist"));
 const NewLandingPage                 = lazy(() => import("@/pages/new-landing"));
-const Home                           = lazy(() => import("@/pages/home"));
 const LuxuryLandingPage              = LuxuryLandingPageEager;
 /* ── Footer / Info pages ─────────────────────────────────────── */
 const AboutPage           = lazy(() => import("@/pages/about/index"));
