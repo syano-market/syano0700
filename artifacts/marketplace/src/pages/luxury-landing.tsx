@@ -302,6 +302,13 @@ const bannerVariant = {
   visible:  { y: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 0.3, ease: "easeOut" } },
 } as const;
 
+// Exact ms when the LAST (right/3rd) banner finishes its phase-1 drop-in:
+//   delayChildren(150) + 2×staggerChildren(100) + duration(300) = 650ms
+const PHASE1_END_MS =
+  heroContainerVariants.visible.transition.delayChildren * 1000 +
+  (3 - 1) * heroContainerVariants.visible.transition.staggerChildren * 1000 +
+  bannerVariant.visible.transition.duration * 1000; // = 650
+
 /* ═══════════════════════════════════════════════════════════════════════════
    HERO COMPONENTS (existing — unchanged)
 ═══════════════════════════════════════════════════════════════════════════*/
@@ -1208,9 +1215,8 @@ export default function LuxuryLandingPage() {
   const [rightIdx, setRightIdx] = useState(0);
   const rightTurn = useRef(true);
 
-  /* Phase-2 split state — triggers 4s after the right banner finishes its drop-in */
+  /* Phase-2 split state — triggers (PHASE1_END_MS + 4000ms) after mount */
   const [splitTriggered, setSplitTriggered] = useState(false);
-  const splitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -1222,16 +1228,13 @@ export default function LuxuryLandingPage() {
     return () => clearInterval(id);
   }, [reduced]);
 
-  // Cleanup split timer on unmount
-  useEffect(() => () => { if (splitTimerRef.current) clearTimeout(splitTimerRef.current); }, []);
-
-  // Called by onAnimationComplete on the RIGHT banner (last in the stagger sequence).
-  // Phase-1 right banner ends at: delayChildren(150ms) + 2×staggerChildren(100ms) + duration(300ms) = 650ms.
-  // We chain 4000ms from that point — not from mount.
-  const handlePhase1Complete = useCallback(() => {
-    if (reduced || splitTriggered) return;
-    splitTimerRef.current = setTimeout(() => setSplitTriggered(true), 4000);
-  }, [reduced, splitTriggered]);
+  useEffect(() => {
+    if (reduced) return;
+    // PHASE1_END_MS = 650ms (right banner drop-in completes at mount + 650ms).
+    // Wait an additional 4000ms after that → total 4650ms from mount.
+    const id = setTimeout(() => setSplitTriggered(true), PHASE1_END_MS + 4000);
+    return () => clearTimeout(id);
+  }, [reduced]);
 
   /* Product data */
   const { data: products } = useListProducts({}, {
@@ -1353,8 +1356,7 @@ export default function LuxuryLandingPage() {
             </motion.div>
 
             {/* RIGHT — phase 1: slides down; phase 2: real flex split into two independent cards */}
-            {/* onAnimationComplete fires when the right banner finishes its variant animation — last in the stagger, so phase 1 is fully done at that point */}
-            <motion.div variants={bannerVariant} onAnimationComplete={handlePhase1Complete} style={{ display: "flex", flexDirection: "column", gap: "16px", transform: "translateZ(0)" }}>
+            <motion.div variants={bannerVariant} style={{ display: "flex", flexDirection: "column", gap: "16px", transform: "translateZ(0)" }}>
               {/* Top new card — independent card, slides down from above into freed space */}
               <AnimatePresence>
                 {splitTriggered && (
