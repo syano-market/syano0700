@@ -1,0 +1,42 @@
+TASK: For each of the 6 installed skills under .agents/skills/, determine whether its workflow actually produces standalone output files (specs, reports, generated documents, etc.) as opposed to skills that only edit/improve existing project files or apply rules directly to existing code. Only for skills that genuinely produce standalone outputs, create a properly structured output directory and wire it into the skill so it's used automatically.
+
+STEP 1 — CLASSIFY EACH SKILL
+Read each SKILL.md fully (and any other files in that skill's folder) for:
+- agentation
+- brainstorming
+- tailwind-design-system
+- ui-ux-pro-max
+- vercel-react-best-practices
+- writing-clearly-and-concisely
+
+For each one, determine: does this skill's documented workflow involve writing a new standalone file as its output (e.g. a spec, a report, a generated artifact), or does it only modify/review/guide edits to existing project files (components, copy, code) without producing a separate output document?
+
+Report your classification for each of the 6 skills with a one-line justification quoting or paraphrasing the relevant part of its SKILL.md.
+
+STEP 2 — FOR SKILLS THAT PRODUCE STANDALONE OUTPUTS ONLY
+For each skill classified as "produces standalone outputs" in Step 1:
+
+1. Check if the skill's own SKILL.md already specifies a default/expected output path. If it does, use that exact path — do not invent a different one.
+2. If the skill's SKILL.md does NOT specify a path, create one following this convention: docs/<skill-name>/ (e.g. docs/brainstorming/ for the brainstorming skill), placed at the project root, not inside .agents/.
+3. Inside that directory, add a .gitkeep so the empty folder is preserved in git.
+4. Add a single README.md inside that same directory containing:
+   - One sentence: which skill writes to this folder and why
+   - The exact naming convention future outputs should follow (infer this from the skill's own documentation if it specifies one; otherwise propose a clear convention like YYYY-MM-DD-<short-topic>.md and state that's a default, not a hard requirement from the skill itself)
+5. If the skill's SKILL.md contains an explicit configuration mechanism (a config file, a frontmatter field, an environment variable, a constant) for setting its output path, update that configuration to point to the new folder. Do not invent a config mechanism that doesn't exist — only wire it in if the skill actually supports it.
+
+STEP 3 — FOR SKILLS THAT ONLY MODIFY EXISTING FILES (NO STANDALONE OUTPUT)
+Do not create any folder for these. State explicitly in your final report why each was skipped (e.g. "writing-clearly-and-concisely edits prose in place per its SKILL.md — no output folder needed").
+
+STEP 4 — UPDATE SYANO_MASTER_RECOVERY.md
+Open the existing "INSTALLED SKILLS" section (already present in the file). For each skill that received a new output folder in Step 2, add one line to its existing entry in the "Usage Notes — SYANO Context" subsection stating where its outputs are saved (the real path created). Do not touch any skill's note that didn't get a folder. Do not alter any other section of the file. Match the existing formatting exactly — no new headings, no restructuring.
+
+CONSTRAINTS:
+- Do not create an output folder for every skill indiscriminately — only for the ones genuinely classified as producing standalone outputs in Step 1.
+- Do not duplicate this information into AGENT_BOOTSTRAP.md, RECOVERY_GUIDE.md, PROJECT_STATE.md, or replit.md.
+- Do not modify any skill's actual SKILL.md content unless Step 2.5 explicitly applies (a real, pre-existing config mechanism).
+- Do not touch the CERTIFIED STATE section.
+
+When finished, report:
+1. The classification table from Step 1 (skill | produces standalone output? yes/no | justification).
+2. The exact list of folders created (if any) and their paths.
+3. Confirmation of what was updated in SYANO_MASTER_RECOVERY.md, and confirmation nothing else in that file changed.
