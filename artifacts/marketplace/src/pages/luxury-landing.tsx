@@ -8,7 +8,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
@@ -154,6 +154,9 @@ const SECTION_CSS = `
   .lux-footer-link:hover { color: rgba(255,255,255,0.80) !important; }
   .lux-social-icon:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(255,255,255,0.18) !important; color: rgba(255,255,255,0.80) !important; }
   .lux-footer-input:focus { border-color: rgba(255,255,255,0.20) !important; }
+
+  .lux-root { text-rendering: optimizeSpeed; }
+  .lux-gpu-layer { transform: translateZ(0); backface-visibility: hidden; }
 `;
 
 /* ─── Brand tokens ────────────────────────────────────────────────────────────*/
@@ -291,7 +294,7 @@ function ProductCard({ item }: { item: StackItem; reduced: boolean }) {
   const { t } = useTranslation();
   return (
     <div style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden" }}>
-      <img src={item.imageUrl} alt="" aria-hidden="true"
+      <img src={item.imageUrl} alt="" aria-hidden="true" fetchPriority="high" decoding="async"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", filter: "brightness(0.75) saturate(0.82)" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 38%)", borderRadius: "inherit" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 42%, transparent 72%)", borderRadius: "inherit" }} />
@@ -323,7 +326,7 @@ function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () 
         <motion.h1
           animate={reduced ? {} : { scale: [1, 1.025, 1] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          style={{ fontFamily: F.naskh, fontSize: "clamp(2rem,4.5vw,4rem)", fontWeight: 700, color: C.white, lineHeight: 1.15, textShadow: `0 0 90px ${C.purple}80`, margin: 0 }}>
+          style={{ fontFamily: F.naskh, fontSize: "clamp(2rem,4.5vw,4rem)", fontWeight: 700, color: C.white, lineHeight: 1.15, textShadow: `0 0 90px ${C.purple}80`, margin: 0, willChange: "transform" }}>
           {t("lux.center.title")}
         </motion.h1>
         <p style={{ fontFamily: F.sans, fontSize: "clamp(0.7rem,1.1vw,0.9rem)", color: C.muted, maxWidth: "26ch", lineHeight: 1.75, margin: 0 }}>
@@ -337,11 +340,11 @@ function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () 
       </div>
       <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.65rem" }}>
         <motion.button onClick={onShop} whileHover={reduced ? {} : { scale: 1.04 }} whileTap={reduced ? {} : { scale: 0.96 }}
-          style={{ fontFamily: F.sans, fontSize: "0.85rem", fontWeight: 600, padding: "0.75rem 2rem", borderRadius: "9999px", background: C.green, color: C.white, width: "100%", maxWidth: "220px" }}>
+          style={{ fontFamily: F.sans, fontSize: "0.85rem", fontWeight: 600, padding: "0.75rem 2rem", borderRadius: "9999px", background: C.green, color: C.white, width: "100%", maxWidth: "220px", willChange: "transform" }}>
           {t("lux.center.cta_shop")}
         </motion.button>
         <motion.button onClick={onSell} whileHover={reduced ? {} : { scale: 1.03 }} whileTap={reduced ? {} : { scale: 0.97 }}
-          style={{ fontFamily: F.sans, fontSize: "0.82rem", fontWeight: 500, padding: "0.65rem 1.75rem", borderRadius: "9999px", background: "transparent", color: C.dimmed, border: `1px solid ${C.border}`, width: "100%", maxWidth: "220px" }}>
+          style={{ fontFamily: F.sans, fontSize: "0.82rem", fontWeight: 500, padding: "0.65rem 1.75rem", borderRadius: "9999px", background: "transparent", color: C.dimmed, border: `1px solid ${C.border}`, width: "100%", maxWidth: "220px", willChange: "transform" }}>
           {t("lux.center.cta_sell")}
         </motion.button>
       </div>
@@ -446,7 +449,7 @@ function LuxCountdownTimer() {
 }
 
 /* ─── Luxury deal card (needs cart hooks → separate component) ────────────────*/
-function LuxDealCard({ deal, index }: { deal: DealData; index: number }) {
+const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData; index: number }) {
   const { t } = useTranslation();
   const { format } = useCurrency();
   const [, navigate] = useLocation();
@@ -493,7 +496,7 @@ function LuxDealCard({ deal, index }: { deal: DealData; index: number }) {
       transition={{ duration: 0.5, delay: index * 0.07, ease: fadeEase }}
       style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "16px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       <Link href={href} style={{ display: "block", position: "relative", aspectRatio: "1 / 1", overflow: "hidden", background: C.card2 }}>
-        {deal.img && <img src={deal.img} alt={deal.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.88) contrast(1.05)" }} />}
+        {deal.img && <img src={deal.img} alt={deal.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.88) contrast(1.05)" }} />}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%)" }} />
         {hasDiscount && (
           <div style={{ position: "absolute", top: "10px", insetInlineEnd: "10px" }}>
@@ -536,10 +539,10 @@ function LuxDealCard({ deal, index }: { deal: DealData; index: number }) {
       </div>
     </motion.div>
   );
-}
+});
 
 /* ─── Luxury store card ───────────────────────────────────────────────────────*/
-function LuxStoreCard({ store, index }: { store: StoreDisplayData; index: number }) {
+const LuxStoreCard = memo(function LuxStoreCard({ store, index }: { store: StoreDisplayData; index: number }) {
   const { t } = useTranslation();
   return (
     <motion.div
@@ -549,7 +552,7 @@ function LuxStoreCard({ store, index }: { store: StoreDisplayData; index: number
       transition={{ duration: 0.55, delay: index * 0.1, ease: fadeEase }}
       style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "20px", overflow: "hidden" }}>
       <div style={{ position: "relative", height: "10rem", overflow: "hidden", background: C.card2 }}>
-        <img src={store.coverImg} alt={store.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.78) contrast(1.1)" }} />
+        <img src={store.coverImg} alt={store.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.78) contrast(1.1)" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }} />
         {store.verified && (
           <div style={{ position: "absolute", top: "12px", insetInlineStart: "12px" }}>
@@ -589,7 +592,7 @@ function LuxStoreCard({ store, index }: { store: StoreDisplayData; index: number
       </div>
     </motion.div>
   );
-}
+});
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LUXURY SECTION COMPONENTS
@@ -604,7 +607,7 @@ const sectionStyle = (alt = false): React.CSSProperties => ({
 });
 
 /* ── 1. Popular Categories ───────────────────────────────────────────────────*/
-function LuxCategoriesSection() {
+const LuxCategoriesSection = memo(function LuxCategoriesSection() {
   const { t, i18n } = useTranslation();
   return (
     <section style={sectionStyle(false)} dir={i18n.dir()}>
@@ -619,7 +622,7 @@ function LuxCategoriesSection() {
               transition={{ duration: 0.48, delay: i * 0.05, ease: fadeEase }}>
               <Link href={`/shop?category=${encodeURIComponent(cat.slug)}`}
                 style={{ display: "block", position: "relative", overflow: "hidden", borderRadius: "16px", aspectRatio: "4 / 3", background: C.card }}>
-                <img src={cat.img} alt={t(cat.nameKey)}
+                <img src={cat.img} alt={t(cat.nameKey)} loading="lazy" decoding="async"
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.72) saturate(0.80)", transition: "transform 0.6s ease" }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.20) 55%, transparent 100%)" }} />
                 <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 65% 45% at 50% 0%, ${cat.accent}22 0%, transparent 60%)` }} />
@@ -639,10 +642,10 @@ function LuxCategoriesSection() {
       </div>
     </section>
   );
-}
+});
 
 /* ── 2. Featured Deals ───────────────────────────────────────────────────────*/
-function LuxDealsSection({ deals }: { deals: DealData[] }) {
+const LuxDealsSection = memo(function LuxDealsSection({ deals }: { deals: DealData[] }) {
   const { i18n } = useTranslation();
   if (deals.length === 0) return null;
   return (
@@ -655,10 +658,10 @@ function LuxDealsSection({ deals }: { deals: DealData[] }) {
       </div>
     </section>
   );
-}
+});
 
 /* ── 3. Trusted Stores ───────────────────────────────────────────────────────*/
-function LuxStoresSection() {
+const LuxStoresSection = memo(function LuxStoresSection() {
   const { t, i18n } = useTranslation();
 
   const [stores, setStores] = useState<StoreDisplayData[]>(() =>
@@ -691,12 +694,12 @@ function LuxStoresSection() {
       .catch(() => {});
   }, [t]);
 
-  const displayStores = stores.map(s => ({
+  const displayStores = useMemo(() => stores.map(s => ({
     ...s,
     categoryLabel: STATIC_STORES.find(st => st.id === s.id)
       ? t(STATIC_STORES.find(st => st.id === s.id)!.categoryKey)
       : s.categoryLabel,
-  }));
+  })), [stores, t]);
 
   return (
     <section style={sectionStyle(false)} dir={i18n.dir()}>
@@ -708,10 +711,10 @@ function LuxStoresSection() {
       </div>
     </section>
   );
-}
+});
 
 /* ── 4. Trending Products ────────────────────────────────────────────────────*/
-function LuxTrendingSection({ products }: { products: Product[] }) {
+const LuxTrendingSection = memo(function LuxTrendingSection({ products }: { products: Product[] }) {
   const { t, i18n } = useTranslation();
   const { format } = useCurrency();
   if (products.length === 0) return null;
@@ -737,7 +740,7 @@ function LuxTrendingSection({ products }: { products: Product[] }) {
                 transition={{ duration: 0.48, delay: i * 0.06, ease: fadeEase }}
                 style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "16px", overflow: "hidden" }}>
                 <Link href={`/products/${p.id}`} style={{ display: "block", position: "relative", aspectRatio: "1 / 1", overflow: "hidden", background: C.card2 }}>
-                  {imgs?.[0] && <img src={imgs[0]} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.88)" }} />}
+                  {imgs?.[0] && <img src={imgs[0]} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.88)" }} />}
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%)" }} />
                   {isTrending && (
                     <div style={{ position: "absolute", top: "10px", insetInlineStart: "10px" }}>
@@ -773,10 +776,10 @@ function LuxTrendingSection({ products }: { products: Product[] }) {
       </div>
     </section>
   );
-}
+});
 
 /* ── 5. New Arrivals ─────────────────────────────────────────────────────────*/
-function LuxArrivalsSection({ products }: { products: Product[] }) {
+const LuxArrivalsSection = memo(function LuxArrivalsSection({ products }: { products: Product[] }) {
   const { t, i18n } = useTranslation();
   const { format } = useCurrency();
   if (products.length < 4) return null;
@@ -809,7 +812,7 @@ function LuxArrivalsSection({ products }: { products: Product[] }) {
             transition={{ duration: 0.6, ease: fadeEase }}
             style={{ position: "relative", borderRadius: "20px", overflow: "hidden", background: C.card, minHeight: "280px" }}>
             <Link href={`/products/${main.id}`} style={{ display: "block", width: "100%", height: "100%" }}>
-              {main.img && <img src={main.img} alt={main.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.78) contrast(1.08)" }} />}
+              {main.img && <img src={main.img} alt={main.name} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.78) contrast(1.08)" }} />}
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.30) 50%, transparent 80%)" }} />
               <div style={{ position: "absolute", top: "1.25rem", insetInlineStart: "1.25rem" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 700, fontSize: "0.72rem", background: C.green, color: C.white, padding: "5px 12px", borderRadius: "9999px" }}>
@@ -833,7 +836,7 @@ function LuxArrivalsSection({ products }: { products: Product[] }) {
               transition={{ duration: 0.5, delay: i * 0.1, ease: fadeEase }}
               style={{ position: "relative", borderRadius: "16px", overflow: "hidden", background: C.card, minHeight: "180px" }}>
               <Link href={`/products/${item.id}`} style={{ display: "block", width: "100%", height: "100%" }}>
-                {item.img && <img src={item.img} alt={item.name} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) contrast(1.08)" }} />}
+                {item.img && <img src={item.img} alt={item.name} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) contrast(1.08)" }} />}
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 65%)" }} />
                 <div style={{ position: "absolute", top: "10px", insetInlineStart: "10px" }}>
                   <span style={{ display: "flex", alignItems: "center", gap: "4px", fontFamily: F.sans, fontWeight: 700, fontSize: "9px", background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.65)", padding: "3px 8px", borderRadius: "9999px", backdropFilter: "blur(6px)" }}>
@@ -853,10 +856,10 @@ function LuxArrivalsSection({ products }: { products: Product[] }) {
       </div>
     </section>
   );
-}
+});
 
 /* ── 6. Join Section ─────────────────────────────────────────────────────────*/
-function LuxJoinSection() {
+const LuxJoinSection = memo(function LuxJoinSection() {
   const { t, i18n } = useTranslation();
   const { handleOpenYourStore } = useSellerOnboarding();
   const { handleBecomeCourier } = useCourierOnboarding();
@@ -924,7 +927,7 @@ function LuxJoinSection() {
       </div>
     </section>
   );
-}
+});
 
 /* ── 7. Full luxury footer ───────────────────────────────────────────────────*/
 
@@ -1000,7 +1003,7 @@ const LUX_LEGAL_LINKS = [
   { labelKey: "home.footer.link_returns", href: "/returns-policy" },
 ];
 
-function LuxFooterBar() {
+const LuxFooterBar = memo(function LuxFooterBar() {
   const { t, i18n } = useTranslation();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -1156,7 +1159,7 @@ function LuxFooterBar() {
       </div>
     </footer>
   );
-}
+});
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN PAGE
@@ -1189,26 +1192,31 @@ export default function LuxuryLandingPage() {
     },
   });
 
-  const hotDeals: DealData[] = (products?.filter((p) => (p as { isBestDeal?: boolean }).isBestDeal) ?? [])
-    .slice(0, 4)
-    .map(p => {
-      const imgs = (p as { imageUrls?: string[] }).imageUrls;
-      return {
-        id: p.id,
-        name: p.name,
-        category: p.category ?? "",
-        price:          (p as { finalPrice?: number }).finalPrice ? Number((p as { finalPrice?: number }).finalPrice) : Number(p.price),
-        originalPrice:  (p as { compareAtPrice?: number }).compareAtPrice  ? Number((p as { compareAtPrice?: number }).compareAtPrice)  : null,
-        discountPercent:(p as { discountPercent?: number }).discountPercent ? Number((p as { discountPercent?: number }).discountPercent) : null,
-        img: imgs?.[0] ?? "",
-      };
-    });
+  const hotDeals = useMemo<DealData[]>(() =>
+    (products?.filter((p) => (p as { isBestDeal?: boolean }).isBestDeal) ?? [])
+      .slice(0, 4)
+      .map(p => {
+        const imgs = (p as { imageUrls?: string[] }).imageUrls;
+        return {
+          id: p.id,
+          name: p.name,
+          category: p.category ?? "",
+          price:          (p as { finalPrice?: number }).finalPrice ? Number((p as { finalPrice?: number }).finalPrice) : Number(p.price),
+          originalPrice:  (p as { compareAtPrice?: number }).compareAtPrice  ? Number((p as { compareAtPrice?: number }).compareAtPrice)  : null,
+          discountPercent:(p as { discountPercent?: number }).discountPercent ? Number((p as { discountPercent?: number }).discountPercent) : null,
+          img: imgs?.[0] ?? "",
+        };
+      }), [products]);
 
-  const trending    = products?.slice(0, 6) ?? [];
-  const newArrivals = products?.slice(0, 4) ?? [];
+  const trending    = useMemo(() => products?.slice(0, 6) ?? [], [products]);
+  const newArrivals = useMemo(() => products?.slice(0, 4) ?? [], [products]);
 
   const leftItem  = LEFT_STACK[leftIdx];
   const rightItem = RIGHT_STACK[rightIdx];
+
+  const onShop    = useCallback(() => navigate("/shop"),         [navigate]);
+  const onSell    = useCallback(() => navigate("/seller/apply"), [navigate]);
+  const onExplore = useCallback(() => navigate("/shop"),         [navigate]);
 
   return (
     <>
@@ -1255,9 +1263,9 @@ export default function LuxuryLandingPage() {
             }}
           >
             {/* LEFT — enters from bottom, exits to top */}
-            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
+            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
               <AnimatePresence mode="popLayout" initial={false}>
-                <motion.div key={leftItem.id} style={{ position: "absolute", inset: 0 }}
+                <motion.div key={leftItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
                   initial={reduced ? false : fromBottom} animate={visible} exit={reduced ? {} : toTop}
                   transition={{ duration: 0.55, ease: SPRING }}>
                   <ProductCard item={leftItem} reduced={reduced} />
@@ -1267,13 +1275,13 @@ export default function LuxuryLandingPage() {
 
             {/* CENTER — static */}
             <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
-              <CenterCard reduced={reduced} onShop={() => navigate("/shop")} onSell={() => navigate("/seller/apply")} />
+              <CenterCard reduced={reduced} onShop={onShop} onSell={onSell} />
             </div>
 
             {/* RIGHT — enters from top, exits to bottom */}
-            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
+            <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, transform: "translateZ(0)" }}>
               <AnimatePresence mode="popLayout" initial={false}>
-                <motion.div key={rightItem.id} style={{ position: "absolute", inset: 0 }}
+                <motion.div key={rightItem.id} style={{ position: "absolute", inset: 0, willChange: "transform, opacity", backfaceVisibility: "hidden" }}
                   initial={reduced ? false : fromTop} animate={visible} exit={reduced ? {} : toBottom}
                   transition={{ duration: 0.55, ease: SPRING }}>
                   <ProductCard item={rightItem} reduced={reduced} />
@@ -1283,7 +1291,7 @@ export default function LuxuryLandingPage() {
           </div>
 
           {/* Bottom branding strip */}
-          <BottomStrip onExplore={() => navigate("/shop")} />
+          <BottomStrip onExplore={onExplore} />
         </section>
 
         {/* ── Below-fold sections ────────────────────────────────────────── */}

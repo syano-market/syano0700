@@ -1,0 +1,32 @@
+You are an elite Lead Performance Engineer, Chromium Core Contributor, and React Architecture Specialist. The SYANO marketplace is experiencing visual stuttering, frame drops, and rendering lag during interactions and scrolling. This completely compromises our luxury UX. We need to refactor the codebase to achieve a locked, butter-smooth 60fps (or 120fps on capable screens) and instantaneous loading speeds.
+
+Execute the following ultimate performance optimization workflow across the entire page architecture immediately:
+
+### 1. GPU HARDWARE ACCELERATION & FRAMER MOTION TUNING (Eliminate Stutter)
+- **Force GPU Layers**: Inject Tailwind's `transform-gpu` class or the raw CSS `transform: translate3d(0,0,0);` and `backface-visibility: hidden;` onto the 3 main hero cards, the expanded search bar, and all animated grid components.
+- **Paint Optimization**: Add `will-change: transform, opacity` ONLY to elements that actively animate. Do not abuse it.
+- **Framer Motion Pruning**: 
+  - Audit the alternating loop animation on the 3 hero cards. Ensure it uses pure numbers for translations (e.g., `y: [0, -10, 0]`) rather than strings or layout-altering properties.
+  - Strictly remove the `layout` prop from Framer Motion tags across lower sections unless absolutely vital, as it forces continuous, expensive DOM layout calculations (Layout Thrashing).
+  - Force all micro-interactions and transitions to complete within a strict 150ms to 250ms threshold using high-performance cubic-bezier curves (e.g., `ease: [0.16, 1, 0.3, 1]`).
+
+### 2. RADICAL RE-RENDER PREVENTION (React Memory & Lifecycle Lock)
+- **Component Memoization**: Wrap ALL lower sections that were restored below the hero fold (Categories grid, Product lists, Factory showcases, and the Footer) inside `React.memo()`. They must be fully decoupled from the upper hero animation timers or navbar state changes.
+- **Hook Optimization**: 
+  - Wrap all event handlers, toggles, and callback functions in `useCallback`.
+  - Ensure any filtered arrays, translation keys mappings, or computed style matrices are strictly cached using `useMemo` with razor-sharp dependency arrays.
+- **State Leakage Audit**: Eliminate any cascading state updates where a minor state change in the top-level layout triggers a full-tree re-render of the page.
+
+### 3. RENDERING & PAINT OPTIMIZATION (Butter-Smooth Scrolling)
+- **CSS Painting Fixes**: Heavy CSS properties cause massive paint lag during scrolling. Optimize all boxes:
+  - Replace any heavy, complex `box-shadow` or massive `backdrop-filter: blur()` properties with lightweight, high-performance solid color or low-opacity alpha variations (`bg-neutral-950/80`) if they overlap scrolling content.
+  - Set `text-rendering: optimizeSpeed;` and use `content-visibility: auto;` on large, deeply nested product list sections located far below the fold to bypass rendering until they enter the viewport.
+
+### 4. ULTRA-LIGHT ASSET LOADING & CLS PREVENTION
+- **Image Deferral**: Enforce strict native lazy loading (`loading="lazy"`), asynchronous decoding (`decoding="async"`), and proper `fetchpriority="low"` on all images below the hero fold.
+- **Zero Cumulative Layout Shift (CLS)**: Every image container must have a hardcoded, explicit layout boundary or aspect-ratio (e.g., `aspect-[4/3]` or `aspect-square`) so the browser reserves the exact space before the image loads, eliminating visual jumps.
+
+### 5. DOM & BUNDLE DE-BLOATING
+- Run a deep code-clean workflow. Completely delete any legacy commented-out components, dead import statements, or hidden template code blocks left behind during the migration and navbar refactoring.
+
+Execute a clean optimization build, thoroughly profile the rendering timeline, and upgrade the live preview to showcase our blazing-fast, hyper-responsive, lag-free luxury platform!
