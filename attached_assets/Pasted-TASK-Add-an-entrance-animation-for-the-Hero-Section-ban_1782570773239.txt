@@ -1,0 +1,31 @@
+TASK: Add an entrance animation for the Hero Section banners on the homepage using framer-motion.
+
+CONTEXT:
+- Read SYANO_MASTER_RECOVERY.md first to understand the project structure.
+- The homepage has 3 banners side by side (left, center, right). The center banner is the main "SYANO Platform" banner; the left/right are product banners (e.g. Damascus Textiles, Halabi Apparel).
+- Find the component responsible for this Hero Section inside artifacts/marketplace/src/pages/ or artifacts/marketplace/src/components/ (likely named Hero.tsx, HeroBanners.tsx, or embedded directly in Home.tsx).
+
+REQUIREMENTS:
+1. First check if framer-motion is already in artifacts/marketplace/package.json. If not, install it: pnpm --filter @workspace/marketplace add framer-motion
+2. On initial page load, the three banners must NOT be visible at all — only the black background (bg-black) of the Hero Section should be shown.
+3. After a short delay (~150ms), the three banners must drop down from the top (slide-down entrance) in a staggered sequence, in this exact order:
+   - Left banner first
+   - Center banner (SYANO Platform) second
+   - Right banner last
+4. Each banner starts off-screen from the top with y: "-100%" (or y: -50 in px, depending on size) and opacity: 0, then animates to its natural position y: 0 with opacity: 1.
+5. Use framer-motion with:
+   - motion.div for each banner
+   - initial={{ y: "-100%", opacity: 0 }}
+   - animate={{ y: 0, opacity: 1 }}
+   - transition with ease: "easeOut", duration around 0.6-0.7s
+   - Staggered delay between banners via transition.delay (e.g. 0, 0.2, 0.4s), or better, use a parent container with variants and staggerChildren (preferred, cleaner framer-motion pattern).
+6. Use AnimatePresence only if needed for exit/unmount control — the core requirement here is mount animation, no exit animation needed at this stage.
+7. Do not break any existing functionality on the banners (buttons, links, text, images must all keep working exactly as before).
+8. Respect project conventions:
+   - Do not use inline styles that conflict with existing Tailwind classes — keep the current structure and only add the animation layer on top.
+   - Follow vercel-react-best-practices: the animation must not cause unnecessary re-renders on the rest of the page; use will-change sparingly and only during the animation.
+   - If the page supports RTL (Arabic), make sure the animation (y-axis only, not x-axis) behaves identically in both Arabic and English — no RTL-related side effects.
+9. After implementation, run npx tsc --noEmit -p artifacts/marketplace/tsconfig.json and confirm 0 TypeScript errors.
+10. Visually test: open the homepage and confirm the background is black and empty for a brief moment, then the banners drop down from the top one by one in order: left → center → right.
+
+Do not create a new documentation file for this change — implement the code directly.
