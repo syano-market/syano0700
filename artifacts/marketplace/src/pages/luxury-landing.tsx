@@ -294,12 +294,12 @@ const toBottom   = { opacity: 0, scale: 0.87, y: 54  };
 /* ─── Hero banner entrance variants (staggered slide-down) ───────────────────*/
 const heroContainerVariants = {
   hidden:   {},
-  visible:  { transition: { staggerChildren: 0.2, delayChildren: 0.15 } },
+  visible:  { transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
 } as const;
 
 const bannerVariant = {
-  hidden:   { y: "-100%", opacity: 0 },
-  visible:  { y: 0, opacity: 1, transition: { duration: 0.65, ease: "easeOut" } },
+  hidden:   { y: "-100%", opacity: 0, filter: "blur(10px)" },
+  visible:  { y: 0, opacity: 1, filter: "blur(0px)", transition: { duration: 0.3, ease: "easeOut" } },
 } as const;
 
 /* ═══════════════════════════════════════════════════════════════════════════
