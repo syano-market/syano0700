@@ -1,0 +1,21 @@
+You are an elite Senior Frontend Engineer and UI/UX Designer. Now that the entire landing page and navbar have been modernized, we need to perform the final step: restore the complete, original Footer layout and its contents, but completely re-skin it to match our premium minimal luxury design language.
+
+⚠️ CRITICAL MANDATE: Bring back ALL legacy footer elements (including multi-column links like "About Us", "Categories", "Support", social media icon links, newsletter forms, copyright notices, and payment badges if any). However, you must structurally adapt every single component to our new theme. Absolutely NO default gray, white, or light-mode backgrounds are allowed.
+
+Execute this transformation according to these strict styling tokens:
+
+### 1. VISUAL THEME & CONTRAST (The Luxury DNA)
+- **Background**: Ensure the footer wrapper uses the exact same deep matte charcoal black (`#0B0B0C`) to maintain perfect continuity with the rest of the page.
+- **Typography**: 
+  - Column headings or section titles inside the footer must use `Noto Naskh Arabic` in crisp white (`#FFFFFF`).
+  - Navigational links, sub-texts, and the copyright line must use `Noto Sans Arabic` styled in a highly premium, muted silver-grey (e.g., `text-neutral-400` or `text-neutral-500`) with elegant hover states (`hover:text-white` with smooth transitions).
+- **Inputs & Buttons (Newsletter)**: If there is an email/newsletter subscription box, transform the input field into a sleek, dark container with an ultra-thin border (`border-neutral-800`), and style its action button as a sharp white capsule shape (`rounded-full`).
+
+### 2. SPATIAL ALIGNMENT & RESPONSIVABILITY
+- **Grid Padding**: Apply a strict horizontal layout padding of `px-8` (32px) so the footer boundaries line up flawlessly down to the pixel with our Navbar and Hero sections.
+- **Vertical Breathing**: Use generous padding on the top and bottom (`pt-16 pb-12` or `py-16`) to give the footer an editorial, high-end marketplace feel.
+
+### 3. RTL SAFE EXECUTION
+- All link columns, form layouts, social icons, and text alignments must flow naturally in the proper Arabic RTL grid layout. Use Tailwind logical classes exclusively (`text-start`, `ms-`, `pe-`, `space-x-reverse`).
+
+Double-check that 0 TypeScript or compilation errors are introduced, and verify that all original interactive link pathways remain fully functional. Trigger a rebuild and show me the full live preview once completed!

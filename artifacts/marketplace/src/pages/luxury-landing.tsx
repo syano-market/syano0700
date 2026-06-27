@@ -36,6 +36,10 @@ import {
   ArrowLeft,
   ShoppingBag,
   ExternalLink,
+  Instagram,
+  Twitter,
+  Facebook,
+  Youtube,
 } from "lucide-react";
 import type { Product } from "@workspace/api-client-react";
 
@@ -114,6 +118,42 @@ const SECTION_CSS = `
     padding: 0 2rem;
   }
   @media (min-width: 768px) { .lux-section-inner { padding: 0 3rem; } }
+
+  .lux-footer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2.5rem 2rem;
+    padding: 4rem 0 3rem;
+  }
+  @media (min-width: 640px) { .lux-footer-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 1024px) { .lux-footer-grid { grid-template-columns: 1.25fr 1fr 1fr 1fr 1fr 1.25fr; } }
+
+  .lux-footer-brand, .lux-footer-newsletter { grid-column: 1 / -1; }
+  @media (min-width: 640px) {
+    .lux-footer-brand { grid-column: 1 / 3; }
+    .lux-footer-newsletter { grid-column: 3 / 5; }
+  }
+  @media (min-width: 1024px) {
+    .lux-footer-brand { grid-column: 1 / 2; }
+    .lux-footer-newsletter { grid-column: 6 / 7; }
+  }
+
+  .lux-footer-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.25rem 0 1.75rem;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    text-align: center;
+  }
+  @media (min-width: 768px) {
+    .lux-footer-bottom { flex-direction: row; justify-content: space-between; text-align: start; gap: 1rem; }
+  }
+
+  .lux-footer-link:hover { color: rgba(255,255,255,0.80) !important; }
+  .lux-social-icon:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(255,255,255,0.18) !important; color: rgba(255,255,255,0.80) !important; }
+  .lux-footer-input:focus { border-color: rgba(255,255,255,0.20) !important; }
 `;
 
 /* ─── Brand tokens ────────────────────────────────────────────────────────────*/
@@ -886,30 +926,233 @@ function LuxJoinSection() {
   );
 }
 
-/* ── 7. Minimal footer bar ───────────────────────────────────────────────────*/
+/* ── 7. Full luxury footer ───────────────────────────────────────────────────*/
+
+const LUX_SOCIAL_LINKS = [
+  { Icon: Instagram, label: "Instagram", href: "https://www.instagram.com/syano.market/" },
+  { Icon: Twitter,   label: "X (Twitter)", href: "https://x.com/Syanomarket" },
+  { Icon: Facebook,  label: "Facebook",   href: "https://www.facebook.com/SyanoMarket" },
+  { Icon: Youtube,   label: "YouTube",    href: "#" },
+];
+
+const LUX_PAYMENT_METHODS = ["VISA", "MasterCard", "PayPal", "SyriaTel Cash"];
+
+const LUX_FOOTER_COLS = [
+  {
+    titleKey: "home.footer.marketplace_title",
+    links: [
+      { labelKey: "home.footer.link_all_products",   href: "/shop" },
+      { labelKey: "home.footer.link_deals",          href: "/shop?hasDiscount=true" },
+      { labelKey: "home.footer.link_bestsellers",    href: "/shop?sortBy=best_selling" },
+      { labelKey: "home.footer.link_new_products",   href: "/shop?sortBy=newest" },
+      { labelKey: "home.footer.link_categories",     href: "/categories" },
+      { labelKey: "home.footer.link_trusted_stores", href: "/stores" },
+      { labelKey: "home.footer.link_wishlist",       href: "/wishlist" },
+      { labelKey: "home.footer.link_cart",           href: "/cart" },
+    ],
+  },
+  {
+    titleKey: "home.footer.sellers_title",
+    links: [
+      { labelKey: "home.footer.link_open_store",       href: "/seller/apply" },
+      { labelKey: "home.footer.link_seller_dashboard", href: "/seller/dashboard" },
+      { labelKey: "home.footer.link_seller_center",    href: "/seller/center" },
+      { labelKey: "home.footer.link_seller_how",       href: "/seller/how-to-sell" },
+      { labelKey: "home.footer.link_commission",       href: "/seller/commission" },
+      { labelKey: "home.footer.link_seller_faq",       href: "/seller/faq" },
+      { labelKey: "home.footer.link_seller_terms",     href: "/seller/terms" },
+      { labelKey: "home.footer.link_returns",          href: "/returns-policy" },
+    ],
+  },
+  {
+    titleKey: "home.footer.s_courier",
+    links: [
+      { labelKey: "home.footer.link_courier_apply",       href: "/courier/apply" },
+      { labelKey: "home.footer.link_courier_workspace",   href: "/courier" },
+      { labelKey: "home.footer.link_courier_earnings",    href: "/courier/earnings" },
+      { labelKey: "home.footer.link_courier_wallet",      href: "/courier/wallet" },
+      { labelKey: "home.footer.link_courier_performance", href: "/courier/performance" },
+      { labelKey: "home.footer.link_courier_history",     href: "/courier/history" },
+    ],
+  },
+  {
+    titleKey: "home.footer.company_title",
+    links: [
+      { labelKey: "home.footer.link_about",       href: "/about" },
+      { labelKey: "home.footer.link_about_story", href: "/about/story" },
+      { labelKey: "home.footer.link_about_team",  href: "/about/team" },
+      { labelKey: "home.footer.link_contact",     href: "/contact" },
+      { labelKey: "home.footer.link_shipping",    href: "/shipping" },
+      { labelKey: "home.footer.link_guarantee",   href: "/syano-guarantee" },
+      { labelKey: "home.footer.link_loyalty",     href: "/loyalty" },
+      { labelKey: "home.footer.link_payment",     href: "/payment-methods" },
+      { labelKey: "home.footer.link_help",        href: "/help" },
+      { labelKey: "home.footer.link_privacy",     href: "/privacy-policy" },
+      { labelKey: "home.footer.link_terms_page",  href: "/terms-of-use" },
+    ],
+  },
+];
+
+const LUX_LEGAL_LINKS = [
+  { labelKey: "home.footer.privacy",      href: "/privacy-policy" },
+  { labelKey: "home.footer.terms",        href: "/terms-of-use" },
+  { labelKey: "home.footer.cookies",      href: "/cookies" },
+  { labelKey: "home.footer.link_returns", href: "/returns-policy" },
+];
+
 function LuxFooterBar() {
   const { t, i18n } = useTranslation();
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+
+  const colHeadStyle: React.CSSProperties = {
+    fontFamily: F.naskh,
+    fontWeight: 700,
+    fontSize: "0.92rem",
+    color: C.white,
+    margin: "0 0 1.1rem",
+    letterSpacing: "0.01em",
+  };
+
+  const linkStyle: React.CSSProperties = {
+    fontFamily: F.sans,
+    fontWeight: 400,
+    fontSize: "0.8rem",
+    color: "rgba(255,255,255,0.38)",
+    textDecoration: "none",
+    display: "block",
+    lineHeight: 1,
+    transition: "color 0.2s",
+  };
+
   return (
-    <footer style={{ background: C.card2, borderTop: `1px solid ${C.border}`, padding: "1.75rem 2rem" }} dir={i18n.dir()}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-        <span style={{ fontFamily: F.naskh, fontWeight: 700, fontSize: "1.15rem", color: C.white, letterSpacing: "-0.01em" }}>
-          {t("lux.strip.brand")}
-        </span>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", alignItems: "center" }}>
-          {[
-            { labelKey: "home.footer.link_all_products",  href: "/shop" },
-            { labelKey: "home.footer.link_deals",         href: "/shop?hasDiscount=true" },
-            { labelKey: "home.footer.link_trusted_stores",href: "/sellers/directory" },
-          ].map(link => (
-            <Link key={link.href} href={link.href}
-              style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "0.8rem", color: C.dimmed, textDecoration: "none" }}>
-              {t(link.labelKey)}
-            </Link>
+    <footer style={{ background: C.bg, borderTop: `1px solid ${C.border}` }} dir={i18n.dir()}>
+      <div className="lux-section-inner">
+
+        {/* ── Main grid ── */}
+        <div className="lux-footer-grid">
+
+          {/* Brand block */}
+          <div className="lux-footer-brand">
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.1rem" }}>
+              <img
+                src="/syano-logo.png"
+                alt="SYANO"
+                width={36}
+                height={36}
+                style={{ width: 36, height: 36, objectFit: "contain",
+                  filter: "brightness(1.15) drop-shadow(0 1px 4px rgba(0,0,0,0.5))" }}
+              />
+              <div>
+                <div style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", letterSpacing: "0.08em", color: C.white }}>SYANO</div>
+                <div style={{ fontFamily: F.naskh, fontWeight: 400, fontSize: "0.72rem", color: "rgba(255,255,255,0.38)", letterSpacing: "0.12em" }}>سوق سوريا</div>
+              </div>
+            </div>
+            <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.82rem", lineHeight: 1.8, color: "rgba(255,255,255,0.36)", maxWidth: "280px", margin: "0 0 1.5rem" }}>
+              {t("home.footer.tagline")}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
+              {LUX_SOCIAL_LINKS.map(({ Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="lux-social-icon"
+                  style={{ width: 36, height: 36, borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.38)", textDecoration: "none", transition: "background 0.2s, color 0.2s, border-color 0.2s" }}
+                >
+                  <Icon style={{ width: 15, height: 15 }} />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* 4 link columns */}
+          {LUX_FOOTER_COLS.map((col) => (
+            <div key={col.titleKey}>
+              <h4 style={colHeadStyle}>{t(col.titleKey)}</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+                {col.links.map((link) => (
+                  <li key={link.labelKey}>
+                    <Link href={link.href} className="lux-footer-link" style={linkStyle}>
+                      {t(link.labelKey)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
+
+          {/* Newsletter */}
+          <div className="lux-footer-newsletter">
+            <h4 style={colHeadStyle}>{t("home.footer.newsletter_title")}</h4>
+            <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", lineHeight: 1.75, color: "rgba(255,255,255,0.36)", margin: "0 0 1rem" }}>
+              {t("home.footer.newsletter_desc")}
+            </p>
+
+            {subscribed ? (
+              <div style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", color: "#4ade80", padding: "0.8rem 1rem", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.20)", borderRadius: "12px" }}>
+                ✓ {t("home.footer.subscribed", "تم الاشتراك!")}
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (email.trim()) { setSubscribed(true); setEmail(""); }
+                }}
+                style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}
+              >
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("home.footer.newsletter_placeholder")}
+                  className="lux-footer-input"
+                  style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", width: "100%", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, borderRadius: "12px", padding: "0.72rem 1rem", color: C.white, outline: "none", transition: "border-color 0.2s" }}
+                />
+                <button
+                  type="submit"
+                  style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: C.white, color: C.bg, width: "100%", padding: "0.72rem", borderRadius: "9999px", transition: "opacity 0.2s" }}
+                >
+                  {t("home.footer.subscribe")} <ArrowLeft style={{ width: 13, height: 13 }} />
+                </button>
+              </form>
+            )}
+          </div>
         </div>
-        <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: "rgba(255,255,255,0.22)", margin: 0 }}>
-          © {new Date().getFullYear()} SYANO
-        </p>
+
+        {/* ── Bottom bar ── */}
+        <div className="lux-footer-bottom">
+          <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: "rgba(255,255,255,0.22)", margin: 0, flexShrink: 0 }}>
+            {t("home.footer.copyright")}
+          </p>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", justifyContent: "center" }}>
+            {LUX_PAYMENT_METHODS.map((method) => (
+              <span
+                key={method}
+                style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "10px", letterSpacing: "0.05em", padding: "3px 10px", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, color: "rgba(255,255,255,0.28)", borderRadius: "6px" }}
+              >
+                {method}
+              </span>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap", justifyContent: "center" }}>
+            {LUX_LEGAL_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="lux-footer-link"
+                style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: "rgba(255,255,255,0.26)", textDecoration: "none", transition: "color 0.2s" }}
+              >
+                {t(link.labelKey)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
       </div>
     </footer>
   );
