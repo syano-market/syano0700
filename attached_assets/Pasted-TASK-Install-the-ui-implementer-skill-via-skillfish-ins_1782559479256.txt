@@ -1,0 +1,52 @@
+TASK: Install the "ui-implementer" skill via skillfish, install any dependencies it requires, integrate it the same way the previous 6 skills were integrated, and document it in SYANO_MASTER_RECOVERY.md.
+
+STEP 1 — INSTALL
+Run:
+npx skillfish add tianzecn/myclaudecode ui-implementer
+
+Confirm the install succeeded (check exit code, confirm the skill's files now exist on disk, likely under .agents/skills/ui-implementer/ or wherever skillfish places it — check both .agents/skills/ and any skillfish-specific default directory). Report the exact path where it landed.
+
+STEP 2 — READ AND UNDERSTAND THE SKILL FULLY
+Open and read every file the skill ships with (SKILL.md or equivalent, plus any scripts, configs, or example files). Extract:
+- Exact purpose and workflow (this skill is expected to implement a UI from a reference image, take a browser screenshot of the result, do a pixel-level diff against the reference, and iterate until they match closely)
+- Exact commands/scripts it exposes
+- ALL dependencies it requires to function — check explicitly for things like: a headless browser/screenshot tool (e.g. Playwright or Puppeteer), an image-diffing library (e.g. Python PIL/Pillow, pixelmatch, or similar), and any Python or Node packages referenced in its docs or scripts
+- Any environment assumptions (e.g. does it expect a dev server already running at a specific port, does it expect a specific screenshot resolution)
+
+Do not guess — read the actual files. If something is unclear or undocumented, note that explicitly rather than assuming.
+
+STEP 3 — INSTALL ALL REQUIRED DEPENDENCIES
+For every dependency identified in Step 2 that is not already present in this project, install it properly:
+- Node/npm packages: add via pnpm in the correct workspace (likely artifacts/marketplace, since this is for frontend UI work — confirm with the skill's docs which package context it expects)
+- Python packages: use pip install --user (per this project's existing Python install convention documented in SYANO_MASTER_RECOVERY.md's RECOVERY PROCEDURE STEP 3) — do not use plain pip install or introduce uv/pyproject.toml
+- If a dependency conflicts with an existing package version in this project (check package.json across artifacts/marketplace, artifacts/api-server, artifacts/mobile), stop and report the conflict instead of forcing an install that could break the existing TypeScript-policy-required 0-errors state
+
+After installing, verify each dependency actually works (e.g. confirm Playwright can launch a browser, confirm the diff library imports successfully) before proceeding.
+
+STEP 4 — VERIFY COMPATIBILITY WITH SYANO'S STACK
+Check this skill's expectations against SYANO's actual setup (React 19, Vite 7, Tailwind v4, artifacts/marketplace dev server). Confirm the skill can take a screenshot of the actual running marketplace dev server, not just a generic localhost assumption. Note any adjustment needed to point it at the right port/URL for this project.
+
+STEP 5 — DOCUMENT IN SYANO_MASTER_RECOVERY.md
+Open the existing "INSTALLED SKILLS" section in SYANO_MASTER_RECOVERY.md (already present from prior work — do not recreate it, extend it). Match its exact existing table and subsection format.
+
+1. Add ONE new row to the existing summary table: Skill Name | Source Repo | Purpose | When To Use — using "tianzecn/myclaudecode" as the source, with the real install command as: npx skillfish add tianzecn/myclaudecode ui-implementer
+
+2. In "Reinstall Commands", add this skill's install command to the existing code block, AND add a clearly labeled sub-block listing every dependency installed in Step 3 with its own install command, so a future agent can restore not just the skill but everything it needs.
+
+3. In "Usage Notes — SYANO Context", add one paragraph for this skill explaining: it is used when implementing a UI component from a reference image (e.g. a screenshot of an existing design) and needing pixel-level visual fidelity, referencing real SYANO context (e.g. "relevant when matching hero sections, banners, or any visual component to a provided reference image, similar to the SyanoHero.jsx work"). State clearly that it requires a running dev server and a reference image to operate against.
+
+4. In "Known Conflicts / Caveats", add a line for this skill listing: any dependency version conflicts found in Step 3, the fact that it requires extra installed tooling (name them) beyond a plain documentation-only skill, and any manual step a future agent must do before using it (e.g. "requires artifacts/marketplace dev server running before use").
+
+CONSTRAINTS:
+- Do not create any new file outside what the skill's own installer creates and the one documented update to SYANO_MASTER_RECOVERY.md.
+- Do not duplicate this information into AGENT_BOOTSTRAP.md, RECOVERY_GUIDE.md, PROJECT_STATE.md, or replit.md.
+- Do not modify, reorder, or rephrase any existing content in SYANO_MASTER_RECOVERY.md outside the additions specified above.
+- Do not touch CERTIFIED STATE.
+- Do not run the skill against any real SYANO page yet — this task is install + document only, not first use.
+
+When finished, report:
+1. Exact install path of the new skill.
+2. Full list of dependencies installed (with versions).
+3. Any conflicts or issues found in Step 3 or Step 4.
+4. Confirmation of what was added to SYANO_MASTER_RECOVERY.md and that nothing else in the file changed.
+5. Commit and push with a clear message.

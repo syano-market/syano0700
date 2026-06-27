@@ -501,6 +501,7 @@ Six agent skills are installed under `.agents/skills/`. They extend agent capabi
 | ui-ux-pro-max | https://github.com/nextlevelbuilder/ui-ux-pro-max-skill | Full UI/UX design intelligence: 50+ styles, 161 palettes, 99 UX rules, accessibility, animation | Any visual design work on marketplace or mobile — pages, components, navigation patterns, charts |
 | vercel-react-best-practices | https://github.com/vercel-labs/agent-skills | 70 React performance rules (waterfalls, bundle, re-renders, rendering, JS perf) | Writing or reviewing React components in marketplace or mobile; bundle/performance work |
 | writing-clearly-and-concisely | https://github.com/softaworks/agent-toolkit | Strunk-based prose guide; flags AI puffery patterns | Writing any human-readable text: i18n strings, error messages, docs, commit messages |
+| ui-implementer | tianzecn/myclaudecode | Implements UI components from scratch from design references (Figma URLs, screenshots, mockups) with a validation+iteration loop and adaptive agent switching | When a reference image or Figma link is provided and the goal is pixel-level fidelity — e.g. matching hero sections, banners, or any visual component to a design |
 
 ### Reinstall Commands
 
@@ -511,6 +512,19 @@ npx skills add https://github.com/benjitaylor/agentation --skill agentation
 npx skills add https://github.com/wshobson/agents --skill tailwind-design-system
 npx skills add https://github.com/nextlevelbuilder/ui-ux-pro-max-skill --skill ui-ux-pro-max
 npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
+```
+
+**ui-implementer — manual install (skillfish requires Claude Code; use raw download instead):**
+
+```bash
+# Install skill file
+mkdir -p .agents/skills/ui-implementer
+curl -s https://raw.githubusercontent.com/tianzecn/myclaudecode/main/plugins/frontend/skills/ui-implementer/SKILL.md \
+  > .agents/skills/ui-implementer/SKILL.md
+
+# No additional Node or Python packages required — the skill is workflow-only.
+# It delegates screenshot capture to sub-agents via Chrome DevTools MCP or Figma MCP.
+# Those MCPs must be configured separately if screenshot-based validation is needed.
 ```
 
 ### Usage Notes — SYANO Context
@@ -527,6 +541,8 @@ npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-
 
 **writing-clearly-and-concisely** — Use whenever editing `artifacts/marketplace/src/i18n/en.json` or `ar.json`, writing error strings surfaced through the API in `artifacts/api-server/src/`, or updating any section of this document. The skill's "AI patterns to avoid" list (puffery, empty -ing phrases, promotional adjectives) applies to all user-facing copy in both the web and mobile apps.
 
+**ui-implementer** — Use when a reference image (screenshot, mockup, or Figma URL) is provided and the goal is pixel-level fidelity — for example, matching a hero section, product banner, or any visual component to a provided reference. Relevant SYANO scenarios: matching the luxury-landing hero to a new brand direction, implementing a provided Figma spec for a vendor dashboard widget, or rebuilding the courier workspace cards from a design screenshot. **Requires a running dev server** before use; in SYANO this means `artifacts/marketplace: web` must be running. When asked for the preview URL, supply the Replit dev domain (`https://$REPLIT_DEV_DOMAIN`) rather than a localhost address. The skill asks the user for the target component directory — use `artifacts/marketplace/src/components/` for shared components or the relevant page directory for page-scoped components. After the skill completes its implementation, run `npx tsc --noEmit -p artifacts/marketplace/tsconfig.json` to confirm 0 TypeScript errors before accepting the result.
+
 ### Known Conflicts / Caveats
 
 - **agentation** — Designed for Next.js; inject manually in `main.tsx` instead of using the App/Pages Router pattern the skill describes. MCP port 4747 must not conflict with API_PORT (8080) or embedding service (8000).
@@ -535,6 +551,7 @@ npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-
 - **ui-ux-pro-max** — Next.js-specific examples appear in the skill's stack references; apply React + Vite equivalents for marketplace and React Native equivalents for mobile.
 - **vercel-react-best-practices** — All RSC/server-action/Next.js server rules are irrelevant to SYANO's architecture; apply only the React client-side rule categories.
 - **writing-clearly-and-concisely** — No conflicts identified.
+- **ui-implementer** — `npx skillfish add tianzecn/myclaudecode ui-implementer` exits with code 1 on Replit ("No agents detected") because skillfish requires Claude Code, Cursor, or another supported agent binary to be installed. **Manual install only** — use the curl command in the Reinstall Commands block above. No dependency version conflicts with existing packages: the skill ships no Node or Python packages of its own. Screenshot capture and pixel-level diffing are delegated to the skill's sub-agents (`frontend:ui-developer`, `frontend:designer`) which rely on Chrome DevTools MCP and/or Figma MCP — these MCPs are not pre-configured in SYANO; configure them separately before any screenshot-based validation. The `artifacts/marketplace: web` workflow must be running before the skill is invoked.
 
 ---
 
