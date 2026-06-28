@@ -1,0 +1,57 @@
+TASK: Fix the settings dropdown menu in LuxuryNavbar.tsx (opened via the gear/settings icon in the navbar — contains "المظهر" theme selector, "اللغة" language selector, "العملة" currency selector) so its colors correctly adapt to both light and dark mode, matching the rest of the site's existing dropdown/popover styling.
+
+CONTEXT: This dropdown currently appears to render with the same fixed light appearance regardless of which theme (light/dark) is active — it needs to follow the active theme the same way the rest of the navbar and page already do (per `LuxColorCtx` / `useTheme().resolvedTheme` from prior tasks, or whatever the canonical theme mechanism is — re-confirm it still applies here since this dropdown's component may live outside the part of the tree already wired to that context).
+
+STRICT RULE: Do not add any new UI control beyond what already exists in this dropdown (the existing فاتح/داكن/تلقائي, العربية/English, and currency buttons stay exactly as they are functionally — only their colors change). Do not invent any new color value — every color used must be traceable to a token/value already established elsewhere in this codebase (the site-wide CSS variables in index.css, and/or any existing dropdown/popover/menu component already used elsewhere on the site, e.g. shadcn/ui's Popover/DropdownMenu if that's what this project uses).
+
+═══════════════════════════════════════
+STEP 1 — LOCATE AND IDENTIFY THE EXACT COMPONENT
+═══════════════════════════════════════
+1. Find the exact component file rendering this settings dropdown (the gear icon trigger + the panel containing "المظهر"/"اللغة"/"العملة"). Confirm whether it's part of LuxuryNavbar.tsx directly or a separate component it imports.
+2. Quote its current markup/styling for the dropdown panel's background, text colors, the selected-vs-unselected button states (e.g. how "فاتح" appears as the currently-selected pill vs. "داكن"/"تلقائي" as unselected, per the screenshot), borders, and shadow.
+3. Confirm whether this component currently reads from the active theme at all, or whether its colors are fully hardcoded/independent of theme — state this clearly with evidence (e.g. "no dark: variant classes present" or "uses hardcoded bg-white with no theme conditional").
+
+═══════════════════════════════════════
+STEP 2 — FIND THE SITE'S EXISTING DROPDOWN/POPOVER THEME PATTERN
+═══════════════════════════════════════
+1. Search the codebase for any OTHER dropdown, popover, menu, or modal component already used elsewhere on the site (e.g. a user account menu, a filter dropdown on the shop page, a notification panel) that already correctly adapts between light and dark mode.
+2. Record its exact background, border, and text color tokens for both themes, with file + line references — this is the pattern to replicate, not a new design.
+3. If no such existing themed dropdown pattern exists anywhere else in the codebase, check the underlying UI library being used (e.g. shadcn/ui Popover/DropdownMenu primitives, if present in package.json/components) for its own built-in theme-aware default styling, and use that instead of designing something new.
+
+═══════════════════════════════════════
+STEP 3 — APPLY THE CORRECT THEME-AWARE COLORS
+═══════════════════════════════════════
+1. Update the settings dropdown panel's background and border to use the existing theme-aware surface/card token (the same one already confirmed for cards/surfaces elsewhere in dark vs. light mode in prior tasks — re-use `C.card`/`CL.card` equivalents or the underlying CSS variable directly, whichever this component is structurally able to consume).
+2. Update all text inside the dropdown (labels like "المظهر", "اللغة", "العملة" and the option button labels) to use the existing theme-aware text token for both modes.
+3. Update the selected-state pill/button styling (e.g. "فاتح" shown as selected in the screenshot) to use an existing selected/active-state token already used elsewhere in the codebase for a similar toggle-group pattern — do not invent a new selected-state color.
+4. Update the unselected button states similarly, reusing whatever existing "inactive/secondary button" token pattern is already established.
+5. Verify WCAG AA contrast (4.5:1 text, 3:1 for borders/large elements) for every text/background and selected-state pairing in BOTH themes.
+
+═══════════════════════════════════════
+STEP 4 — VERIFY AGAINST THE GREEN NAVBAR BACKDROP
+═══════════════════════════════════════
+Since this dropdown opens directly below/against the now-solid-green navbar (per the prior task), confirm the dropdown panel itself has a clearly distinct edge/border/shadow so it doesn't visually merge into the green navbar behind it, in both themes — check this specifically since the green navbar background is new since this dropdown was likely last styled.
+
+═══════════════════════════════════════
+STEP 5 — VERIFICATION (USE REAL VISUAL PROOF, NOT CODE-ONLY REASONING)
+═══════════════════════════════════════
+1. Attempt to capture real screenshots of the open settings dropdown in both light and dark mode, at minimum at 375px and 1440px widths.
+2. If the screenshot tool is unavailable (as happened in the immediately prior task), do not declare success based on TypeScript passing alone — instead, quote the actual final rendered className/style output for the dropdown panel and its buttons in both theme states, and explicitly state that screenshots were unavailable and this alternative method was used.
+3. Confirm specifically: dropdown background correctly switches between light/dark, all text remains legible in both modes, the selected-state indicator (e.g. "فاتح" highlighted) is clearly distinguishable from unselected options in both modes, the dropdown is visually distinct from the green navbar behind it in both modes.
+
+CONSTRAINTS:
+- Do not change the dropdown's functionality, options, or layout — color/theme-adaptation only.
+- Do not change the navbar's own green background (already correct from the prior task) — this task only touches the dropdown panel that opens from it.
+- Do not add any new UI element/control.
+- Do not modify SYANO_MASTER_RECOVERY.md in this task.
+- Run the marketplace TypeScript check (npx tsc --noEmit -p artifacts/marketplace/tsconfig.json) and confirm 0 errors before finishing.
+
+When finished, report:
+1. The exact component file found, and whether it previously had any theme-awareness at all (with evidence).
+2. The existing themed dropdown/popover pattern (or UI library primitive) found and reused, with file/line references.
+3. The exact before→after color tokens applied to the dropdown background, text, selected-state, and unselected-state, for both themes.
+4. Contrast-ratio confirmation for all of the above, both themes.
+5. Confirmation the dropdown remains visually distinct from the green navbar in both themes.
+6. Real screenshot results, or — if unavailable — the alternative verification method used and its findings, stated explicitly.
+7. TypeScript check result.
+8. Commit with a clear message.

@@ -143,11 +143,12 @@ export function LuxuryNavbar() {
   const { user, logout, isAuthenticated, isCustomer, isSeller, isAdmin, isCourier } = useAuth();
   const { openLogin } = useAuthModal();
   const { count: wishlistCount } = useWishlist();
-  const { setTheme, theme } = useTheme();
+  const { setTheme, theme, resolvedTheme } = useTheme();
   const { currency, setCurrency } = useCurrency();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const isRtl = lang === "ar";
+  const isDark = resolvedTheme !== "light";
 
   /* ── State ── */
   const [searchOpen,      setSearchOpen]      = useState(false);
@@ -326,11 +327,26 @@ export function LuxuryNavbar() {
     { href: "/orders",             icon: ClipboardList,   label: t("nav.orders")    },
   ], [t]);
 
-  /* ── Shared dropdown token ── */
+  /* ── Shared dropdown token (dark-only — used for auth + search dropdowns) ── */
   const dropStyle: React.CSSProperties = {
     background: DROP_BG,
     border: `1px solid ${BORDER_H}`,
   };
+
+  /* ── Settings dropdown: theme-adaptive surface tokens ────────────────────── */
+  const settingsDropStyle: React.CSSProperties = {
+    background: isDark ? "hsl(0, 0%, 14%)" : "#FFFFFF",
+    border: `1px solid ${isDark ? "hsl(0, 0%, 20%)" : "hsl(220, 13%, 84%)"}`,
+  };
+  /* Button states inside settings dropdown */
+  const sBtnSelBg = isDark ? WHITE : "#276221";                   /* selected pill bg */
+  const sBtnSelFg = isDark ? BG   : WHITE;                        /* selected pill text */
+  const sBtnUnsBg = isDark ? "rgba(255,255,255,0.07)" : "hsl(220, 16%, 94%)"; /* idle */
+  const sBtnUnsFg = isDark ? MUTED : "#3D4554";
+  const sBtnHovBg = isDark ? "rgba(255,255,255,0.12)" : "hsl(220, 13%, 88%)"; /* hover */
+  const sBtnHovFg = isDark ? WHITE : "#111827";
+  const sPanelDim = isDark ? DIMMED : "#3D4554";                  /* section label */
+  const sPanelSep = isDark ? BORDER : "hsl(220, 13%, 84%)";       /* divider */
 
   return (
     <>
@@ -771,11 +787,11 @@ export function LuxuryNavbar() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={8} className="p-0 overflow-hidden rounded-2xl w-52 shadow-2xl"
-                  style={dropStyle}>
+                  style={settingsDropStyle}>
 
                   {/* Theme */}
                   <div style={{ padding: "0.75rem 0.875rem 0.625rem" }}>
-                    <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: DIMMED, textTransform: "uppercase", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: sPanelDim, textTransform: "uppercase", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Sun style={{ height: 11, width: 11 }} /> {isRtl ? "المظهر" : "Theme"}
                     </p>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.25rem" }}>
@@ -788,22 +804,22 @@ export function LuxuryNavbar() {
                           style={{
                             fontFamily: F_SANS, fontSize: "11px", fontWeight: 600,
                             padding: "0.375rem 0.25rem", borderRadius: 8, cursor: "pointer", border: "none",
-                            background: theme === opt.val ? WHITE : "rgba(255,255,255,0.07)",
-                            color: theme === opt.val ? BG : MUTED,
+                            background: theme === opt.val ? sBtnSelBg : sBtnUnsBg,
+                            color: theme === opt.val ? sBtnSelFg : sBtnUnsFg,
                             transition: "background 0.15s, color 0.15s",
                           }}
-                          onMouseEnter={e => { if (theme !== opt.val) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLElement).style.color = WHITE; }}}
-                          onMouseLeave={e => { if (theme !== opt.val) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = MUTED; }}}>
+                          onMouseEnter={e => { if (theme !== opt.val) { (e.currentTarget as HTMLElement).style.background = sBtnHovBg; (e.currentTarget as HTMLElement).style.color = sBtnHovFg; }}}
+                          onMouseLeave={e => { if (theme !== opt.val) { (e.currentTarget as HTMLElement).style.background = sBtnUnsBg; (e.currentTarget as HTMLElement).style.color = sBtnUnsFg; }}}>
                           {isRtl ? opt.ar : opt.en}
                         </button>
                       ))}
                     </div>
                   </div>
-                  <div style={{ height: 1, background: BORDER, margin: "0 0.875rem" }} />
+                  <div style={{ height: 1, background: sPanelSep, margin: "0 0.875rem" }} />
 
                   {/* Language */}
                   <div style={{ padding: "0.625rem 0.875rem" }}>
-                    <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: DIMMED, textTransform: "uppercase", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: sPanelDim, textTransform: "uppercase", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Globe style={{ height: 11, width: 11 }} /> {isRtl ? "اللغة" : "Language"}
                     </p>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.25rem" }}>
@@ -812,22 +828,22 @@ export function LuxuryNavbar() {
                           style={{
                             fontFamily: F_SANS, fontSize: "11px", fontWeight: 600,
                             padding: "0.375rem 0.25rem", borderRadius: 8, cursor: "pointer", border: "none",
-                            background: lang === opt.val ? WHITE : "rgba(255,255,255,0.07)",
-                            color: lang === opt.val ? BG : MUTED,
+                            background: lang === opt.val ? sBtnSelBg : sBtnUnsBg,
+                            color: lang === opt.val ? sBtnSelFg : sBtnUnsFg,
                             transition: "background 0.15s, color 0.15s",
                           }}
-                          onMouseEnter={e => { if (lang !== opt.val) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLElement).style.color = WHITE; }}}
-                          onMouseLeave={e => { if (lang !== opt.val) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = MUTED; }}}>
+                          onMouseEnter={e => { if (lang !== opt.val) { (e.currentTarget as HTMLElement).style.background = sBtnHovBg; (e.currentTarget as HTMLElement).style.color = sBtnHovFg; }}}
+                          onMouseLeave={e => { if (lang !== opt.val) { (e.currentTarget as HTMLElement).style.background = sBtnUnsBg; (e.currentTarget as HTMLElement).style.color = sBtnUnsFg; }}}>
                           {opt.label}
                         </button>
                       ))}
                     </div>
                   </div>
-                  <div style={{ height: 1, background: BORDER, margin: "0 0.875rem" }} />
+                  <div style={{ height: 1, background: sPanelSep, margin: "0 0.875rem" }} />
 
                   {/* Currency */}
                   <div style={{ padding: "0.625rem 0.875rem 0.875rem" }}>
-                    <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: DIMMED, textTransform: "uppercase", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: sPanelDim, textTransform: "uppercase", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <DollarSign style={{ height: 11, width: 11 }} /> {isRtl ? "العملة" : "Currency"}
                     </p>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.25rem" }}>
@@ -836,12 +852,12 @@ export function LuxuryNavbar() {
                           style={{
                             fontFamily: F_SANS, fontSize: "11px", fontWeight: 600,
                             padding: "0.375rem 0.25rem", borderRadius: 8, cursor: "pointer", border: "none",
-                            background: currency === opt.val ? WHITE : "rgba(255,255,255,0.07)",
-                            color: currency === opt.val ? BG : MUTED,
+                            background: currency === opt.val ? sBtnSelBg : sBtnUnsBg,
+                            color: currency === opt.val ? sBtnSelFg : sBtnUnsFg,
                             transition: "background 0.15s, color 0.15s",
                           }}
-                          onMouseEnter={e => { if (currency !== opt.val) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLElement).style.color = WHITE; }}}
-                          onMouseLeave={e => { if (currency !== opt.val) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; (e.currentTarget as HTMLElement).style.color = MUTED; }}}>
+                          onMouseEnter={e => { if (currency !== opt.val) { (e.currentTarget as HTMLElement).style.background = sBtnHovBg; (e.currentTarget as HTMLElement).style.color = sBtnHovFg; }}}
+                          onMouseLeave={e => { if (currency !== opt.val) { (e.currentTarget as HTMLElement).style.background = sBtnUnsBg; (e.currentTarget as HTMLElement).style.color = sBtnUnsFg; }}}>
                           {opt.label}
                         </button>
                       ))}
