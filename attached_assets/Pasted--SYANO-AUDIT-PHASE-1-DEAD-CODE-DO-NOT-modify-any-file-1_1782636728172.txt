@@ -1,0 +1,218 @@
+# SYANO AUDIT — PHASE 1: DEAD CODE
+# ══════════════════════════════════
+# ⛔ DO NOT modify any file
+# ⛔ DO NOT run any command
+# ⛔ DO NOT install anything
+# ✅ READ files only
+# ✅ Create ONE file: docs/audit/phase1-dead-code.md
+
+# ══════════════════════════════════
+# SCOPE — READ ONLY THESE FOLDERS
+# ══════════════════════════════════
+# artifacts/marketplace/src/
+# artifacts/api-server/src/
+# artifacts/mobile/app/
+# artifacts/mobile/src/
+
+# ══════════════════════════════════
+# AUTO-PROTECT — NEVER FLAG THESE
+# ══════════════════════════════════
+# artifacts/marketplace/src/components/TrackingMap.tsx
+# artifacts/marketplace/src/components/LocationMapModal.tsx
+# artifacts/marketplace/src/components/CourierMapClustered.tsx
+# artifacts/marketplace/src/lib/map-hardening.ts
+# artifacts/marketplace/public/sw.js
+# artifacts/api-server/src/lib/run-migrations.ts
+# artifacts/api-server/src/services/osrmService.ts
+# artifacts/api-server/src/services/routeCacheService.ts
+# artifacts/api-server/src/services/cacheService.ts
+# artifacts/api-server/src/lib/searchCache.ts
+# lib/db/** — entire folder
+# lib/api-zod/** — entire folder
+# lib/api-client-react/** — entire folder
+# artifacts/embedding-service/** — entire folder
+
+# ══════════════════════════════════════════════
+# KNOWN INTENTIONAL STUBS — DO NOT FLAG THESE
+# ══════════════════════════════════════════════
+# /loyalty page — static marketing, no backend on purpose
+# /contact form — onSubmit not wired on purpose
+# /payment-methods — Credit Card = Coming Soon on purpose
+# wishlists web UI — uses localStorage on purpose
+# FACEBOOK_LOGIN_ENABLED=false — disabled on purpose
+
+# ════════════════════════════════
+# TASK 1 — UNUSED IMPORTS
+# ════════════════════════════════
+Read every .ts and .tsx file in scope.
+For each file, find every import that meets ALL of these:
+- The imported name never appears in the file body after the import line
+- It is not a type-only import used in a JSX prop type
+- It is not a side-effect import (import 'some-css' is intentional)
+
+Pay special attention to:
+- lucide-react icon imports (commonly 10 imported, 3 used)
+- TanStack Query: useQuery, useMutation, useQueryClient, useInfiniteQuery
+- Zod: z, ZodError, ZodSchema imported but no schema defined in file
+- Drizzle operators: eq, and, or, desc, asc, sql imported but unused
+- React: useState, useEffect, useCallback, useMemo, useRef imported but unused
+
+For each finding write EXACTLY this format — nothing else:
+---
+FILE: artifacts/marketplace/src/components/Example.tsx
+LINE: 3
+IMPORT: import { useState, useCallback } from 'react'
+UNUSED: useCallback
+SAFE_TO_REMOVE: YES
+---
+
+# ════════════════════════════════
+# TASK 2 — DEAD VARIABLES
+# ════════════════════════════════
+Read every .ts and .tsx file in scope.
+Find const/let declarations where the variable is:
+- Declared and assigned a value
+- Never read anywhere in the same file
+- Not exported for use in other files
+
+Also find:
+- Destructured values never used: const { a, b, unusedC } = obj
+- useState pairs where the state value is set but never read in JSX
+- useRef where .current is never accessed after creation
+
+DO NOT flag:
+- Variables starting with _ (intentionally unused by convention)
+- Variables exported from the file (might be used elsewhere)
+- Variables used only in return statements or JSX
+
+For each finding:
+---
+FILE: artifacts/api-server/src/routes/products.ts
+LINE: 45
+CODE: const tempData = await db.select()...
+REASON: Assigned but never read or returned
+SAFE_TO_REMOVE: YES / REVIEW_FIRST
+---
+
+# ════════════════════════════════
+# TASK 3 — DEAD FUNCTIONS
+# ════════════════════════════════
+Read every .ts and .tsx file in scope.
+Find functions (including arrow functions) that are:
+- Defined in the file
+- Never called within the same file
+- Never exported from the file
+
+Also find custom hooks in any hooks/ folder that:
+- Are never imported by any other file in the codebase
+
+For React-specific dead code:
+- useCallback wrapping a function never passed as a prop or called
+- useMemo computing a value never used in JSX or logic
+- useEffect with an empty dependency array that does nothing
+  (empty body, or only sets state that is never read)
+
+For each finding:
+---
+FILE: artifacts/marketplace/src/components/ProductCard.tsx
+LINE: 67
+CODE: const handleOldClick = useCallback(() => { ... }, [])
+REASON: handleOldClick never attached to any element or passed as prop
+SAFE_TO_REMOVE: YES / REVIEW_FIRST
+---
+
+# ════════════════════════════════
+# TASK 4 — CONSOLE STATEMENTS
+# ════════════════════════════════
+Find every console.log, console.error, console.warn,
+console.debug, console.info, console.table, console.dir
+in all scoped files.
+
+DO NOT flag:
+- Files that import pino logger (intentional server logging)
+- artifacts/api-server/src/lib/run-migrations.ts
+- console.error inside catch blocks of React ErrorBoundary components
+- Any file with .test. or .spec. in its name
+
+For each finding:
+---
+FILE: artifacts/marketplace/src/pages/Home.tsx
+LINE: 78
+CODE: console.log("products loaded:", data)
+SAFE_TO_REMOVE: YES
+---
+
+# ════════════════════════════════
+# TASK 5 — COMMENTED-OUT CODE
+# ════════════════════════════════
+Find blocks of 5 or more consecutive commented lines
+in all .ts, .tsx, .js, .py files in scope.
+
+DO NOT flag:
+- JSDoc blocks /** ... */
+- License headers at top of files
+- Single-line TODO comments
+- Section dividers // ====== ... ======
+
+DO flag:
+- Old implementation left commented out
+- Entire components or functions commented out
+- Debug code left commented
+
+For each finding:
+---
+FILE: artifacts/marketplace/src/components/Search.tsx
+LINES: 45-67
+PREVIEW: // const oldSearchLogic = async (query) => {
+SIZE: 23 lines
+SAFE_TO_REMOVE: YES / REVIEW_FIRST
+---
+
+# ════════════════════════════════
+# OUTPUT FORMAT
+# ════════════════════════════════
+Save to: docs/audit/phase1-dead-code.md
+
+Structure:
+
+# Phase 1 — Dead Code Audit
+
+## Summary
+| Task | Findings | Safe🟢 | Review🟡 |
+|------|----------|--------|----------|
+| Unused Imports | X | X | X |
+| Dead Variables | X | X | X |
+| Dead Functions | X | X | X |
+| Console Statements | X | X | X |
+| Commented Code | X | X | X |
+| TOTAL | X | X | X |
+
+## Estimated lines safe to remove: ~X
+
+## Task 1 — Unused Imports
+[all findings in exact format above]
+
+## Task 2 — Dead Variables
+[all findings]
+
+## Task 3 — Dead Functions
+[all findings]
+
+## Task 4 — Console Statements
+[all findings]
+
+## Task 5 — Commented Code
+[all findings]
+
+# ════════════════════════════════
+# ANTI-HALLUCINATION RULES
+# ════════════════════════════════
+BEFORE writing any finding you MUST:
+- Open the actual file
+- Read the actual line number
+- Confirm the import/variable/function name exists exactly as written
+- Confirm it is NOT referenced elsewhere in the file
+
+If you cannot open a file → write: COULD_NOT_READ: path/to/file
+If you are unsure → write: UNCERTAIN: skip and move on
+NEVER invent a finding. One real finding is worth more than ten invented ones.
