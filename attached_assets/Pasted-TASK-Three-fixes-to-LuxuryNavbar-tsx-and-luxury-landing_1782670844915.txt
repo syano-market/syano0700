@@ -1,0 +1,51 @@
+TASK: Three fixes to LuxuryNavbar.tsx and luxury-landing.tsx (note: LuxuryNavbar.tsx is shared site-wide via Layout.tsx, so navbar changes here apply to every page, not just the homepage — confirm this scope explicitly in your report).
+
+FIX 1 — Dark-mode page background must genuinely match the rest of the site (override the prior task's deviation)
+The prior task's report explicitly stated: "C.bg = '#0B0B0C' (luxury dark intentional, kept by design)" — this was NOT what was instructed; the homepage's dark background was supposed to match the site-wide dark background token, the same way CL.bg (light) was correctly matched to the site's light --background token. This must now actually be done for dark mode too.
+
+1. Open index.css and find the exact --background value defined inside the .dark block (confirm the literal value, not a guess — quote it with the line number).
+2. Replace `C.bg` in luxury-landing.tsx with this exact site-wide dark background value (use the CSS variable/Tailwind token reference if that's the established pattern in this codebase, rather than hardcoding a hex copy, so it stays in sync automatically if the token ever changes).
+3. Propagate this change through every section of the homepage that consumes `C.bg` (hero area, category row, product grid section, trust strip, footer) — confirm none are left on the old "#0B0B0C" value.
+4. Re-check any element that was visually tuned against the old near-black "#0B0B0C" (subtle borders, dividers, shadows, the hero panels' boundary against the page) — if the new background's actual brightness/tone differs enough to break that subtle contrast or make a boundary disappear/clash, fix that specific element using an existing token. Report any such adjustment.
+
+FIX 2 — Remove the navbar logo "button"; show plain logo + "SYANO" text only
+1. Open LuxuryNavbar.tsx and find the exact current markup for the brand/logo area. Quote its current structure and exact text content (the user reports it currently shows "SYANO" plus a "سوق سوريا" subtitle, styled as a pill/button — confirm this exactly as it exists in code, including whether it's a real <button>/<Link> with button-like styling, button states, etc.).
+2. Remove all button/pill visual styling from this element: no background fill, no border-radius-as-pill, no padding sized like a button, no hover/active button-press states.
+3. Remove the "سوق سوريا" subtitle text entirely.
+4. Render only: the existing logo icon/mark (whatever SVG/image asset is already used elsewhere for the SYANO logo — do not create a new one) immediately followed by plain text reading exactly "SYANO" — no extra styling implying interactivity beyond it still being clickable.
+5. Preserve the existing click-to-homepage navigation behavior (it should still link to "/") but with zero visual button/pill chrome — it should read as a simple logo lockup, not a UI control.
+6. Confirm "SYANO" text color against the current green navbar background (set in the immediately prior task) meets WCAG AA contrast in both light and dark mode — reuse the same white/foreground token already used for other navbar text (per the prior task's confirmed 6.45:1 white-on-green pairing) unless investigation shows the logo previously used an intentionally different color for brand reasons — if so, report that and decide accordingly.
+
+FIX 3 — Fix the search button's colors
+1. Open LuxuryNavbar.tsx and find the exact current background/icon color values for the search button specifically, and do the same for at least one sibling icon button (e.g. cart or notifications) in the same navbar.
+2. Identify and report concretely what is currently wrong/inconsistent about the search button's colors (e.g. wrong background shade left over from before the navbar turned green, insufficient contrast against the new green background, mismatched icon color vs. its sibling buttons).
+3. Correct the search button so its background/icon colors are CONSISTENT with the other icon buttons in the same navbar (matching pattern), unless you find clear evidence elsewhere on the site that the search button is deliberately styled differently for a specific reason — if so, report that finding instead of overriding it blindly.
+4. Confirm WCAG AA contrast for the search icon against its background in both themes.
+
+═══════════════════════════════════════
+VERIFICATION — DO NOT REPEAT THE PRIOR TASK'S MISTAKE
+═══════════════════════════════════════
+In the immediately prior task, visual success was declared based only on "TypeScript 0 errors + dev server returns HTTP 200" after the screenshot tool failed to connect — that is NOT visual proof, the same gap identified and corrected earlier in this project's hero-animation debugging work. Do not repeat this here.
+
+1. Attempt to capture real screenshots again (logo/navbar area and the homepage background area) in both light and dark mode, at 375px, 768px, 1024px, 1440px.
+2. If the screenshot tool fails to connect again, do NOT fall back to "TypeScript passes + server returns 200" as proof. Instead, use an alternative concrete verification method — e.g., read and quote the actual final rendered JSX/className output for the changed elements, or inspect computed DOM styles via whatever browser devtools equivalent is available — and explicitly state in your report that screenshots were unavailable and this alternative method was used instead, so this limitation is visible rather than glossed over.
+3. Confirm specifically: dark-mode page background now visibly matches the value found in Step 1 (not "#0B0B0C"), the logo area shows only icon + "SYANO" with no pill/button background and no "سوق سوريا" text, the search button's colors now match its sibling icon buttons (or the documented deliberate exception).
+
+CONSTRAINTS:
+- LuxuryNavbar.tsx is shared site-wide — explicitly confirm in your report that Fix 2 and Fix 3 are understood to apply to every page using this navbar, not just the homepage.
+- Fix 1 (background) is scoped to luxury-landing.tsx's own page-background tokens only — do not confuse this with the navbar's own (already-green, unchanged) background from the prior task.
+- Do not change the hero animation's timing/choreography.
+- Do not add any new UI element beyond what's explicitly requested here.
+- Do not modify SYANO_MASTER_RECOVERY.md in this task.
+- Run the marketplace TypeScript check (npx tsc --noEmit -p artifacts/marketplace/tsconfig.json) and confirm 0 errors before finishing.
+
+When finished, report:
+1. The exact site-wide dark --background value found and the before→after C.bg change, with file/line references.
+2. Any element that needed adjustment due to the background change, and how it was fixed.
+3. The exact prior markup/text found for the logo area (quoted), and confirmation it's now reduced to icon + "SYANO" only, no pill, no subtitle.
+4. What was specifically wrong with the search button's colors (concrete finding, not a guess), and what it was changed to match.
+5. Contrast confirmation for the logo text and search icon against the green navbar, both themes.
+6. Explicit confirmation that Fixes 2 and 3 apply site-wide via the shared LuxuryNavbar.
+7. Real screenshot results, or — if the tool failed again — the alternative verification method used and its findings, stated explicitly.
+8. TypeScript check result.
+9. Commit with a clear message.

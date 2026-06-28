@@ -433,36 +433,27 @@ export function LuxuryNavbar() {
 
             {/* ── COL 1: Brand + Location ─────────────────────────────────── */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* Brand pill */}
-              <motion.a
+              {/* Brand logo lockup — plain link, no pill chrome */}
+              <a
                 href="/"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
                 onClick={(e) => { e.preventDefault(); navigate("/"); }}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: "0.5rem",
-                  padding: "0.45rem 1.1rem 0.45rem 0.6rem",
-                  borderRadius: "9999px",
-                  background: WHITE,
                   textDecoration: "none",
                 }}
+                aria-label="Syano home"
               >
                 <img
                   src="/syano-logo.png" alt="Syano" width={28} height={28}
                   style={{ height: 28, width: 28, objectFit: "contain" }}
                   loading="eager"
                 />
-                <div>
-                  <div style={{ fontFamily: F_NASKH, fontWeight: 900, letterSpacing: "0.1em", fontSize: "0.875rem", lineHeight: 1, color: BG }}>
-                    SYANO
-                  </div>
-                  <div style={{ fontFamily: F_SANS, fontWeight: 500, fontSize: "7px", letterSpacing: "0.18em", color: "rgba(11,11,12,0.55)" }}>
-                    سوق سوريا
-                  </div>
-                </div>
-              </motion.a>
+                <span style={{ fontFamily: F_NASKH, fontWeight: 900, letterSpacing: "0.1em", fontSize: "0.875rem", color: WHITE }}>
+                  SYANO
+                </span>
+              </a>
 
               {/* Location selector */}
               <button
@@ -512,7 +503,7 @@ export function LuxuryNavbar() {
                     onMouseEnter={e => { if (!searchOpen) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.10)"; }}
                     onMouseLeave={e => { if (!searchOpen) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.07)"; }}
                   >
-                    <Search style={{ height: 14, width: 14, color: searchOpen ? WHITE : MUTED, flexShrink: 0, transition: "color 0.2s" }} />
+                    <Search style={{ height: 14, width: 14, color: WHITE, flexShrink: 0 }} />
                     <input
                       ref={inputRef}
                       value={searchQuery}

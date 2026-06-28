@@ -169,9 +169,9 @@ const SECTION_CSS = `
    and throughout badges/icons/interactive elements site-wide).
    greenAlpha / greenGlow are alpha variants of the same hue.                */
 const C = {
-  bg:         "#0B0B0C",
-  card:       "#111113",
-  card2:      "#141416",
+  bg:         "#1A1A1A",   /* hsl(0 0% 10%) — site-wide --background dark token (index.css line 225) */
+  card:       "#242424",   /* hsl(0 0% 14%) — site-wide --card dark token; elevated above new bg */
+  card2:      "#202020",   /* midpoint between bg and card, preserves three-level elevation */
   white:      "#FFFFFF",
   offWhite:   "#F2F2F0",
   muted:      "rgba(255,255,255,0.52)",
