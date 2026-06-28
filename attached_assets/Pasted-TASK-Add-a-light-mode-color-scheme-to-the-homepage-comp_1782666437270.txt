@@ -1,0 +1,60 @@
+TASK: Add a light mode color scheme to the homepage component (the file referred to as "luxury-landing.tsx" — confirm its exact name/casing and location via the import chain from the homepage route, e.g. App.tsx → pages/home.tsx). This applies ONLY to the web marketplace homepage (artifacts/marketplace) — do not touch the mobile app (artifacts/mobile) in this task. The dark mode design already exists and must remain visually unchanged as the default — you are adding a light-mode equivalent using colors that already exist elsewhere in the site, with NO new UI control of any kind.
+
+STRICT RULE — ADD NOTHING NEW TO THE UI: Do not add any toggle button, switch, icon, menu item, settings option, or any other new interactive element anywhere on this page or anywhere else in the app. The light mode must activate automatically based on EXISTING mechanisms only (determined in Step 1 below) — never by a new manually-added control. Also do not invent any new color value — every color used in light mode must be traceable to a color token/value already in use somewhere else in this project.
+
+═══════════════════════════════════════
+STEP 1 — DETERMINE HOW LIGHT MODE SHOULD ACTUALLY BE TRIGGERED (DO THIS FIRST, DO NOT SKIP)
+═══════════════════════════════════════
+Check, in this order, and report what you find at each:
+
+1. Does an app-wide theme-switching mechanism already exist somewhere else in this codebase (e.g. a ThemeProvider, a useTheme hook, a toggle already present in account/settings pages, a stored user preference, a class-based `dark` strategy already wired to some existing control elsewhere in the app)? Search broadly — not just within the homepage file.
+   - IF YES: the homepage must simply consume that existing global theme state (read from the same context/hook/mechanism already in use) so it automatically matches whatever the user has already set elsewhere in the app. Do not add a second, separate toggle for this page. Report exactly what existing mechanism was found and how the homepage now hooks into it.
+   - IF NO such mechanism exists anywhere in the app: fall back to automatic OS/browser-level detection using the CSS `prefers-color-scheme` media query (or Tailwind's `dark:` media-strategy variant, whichever is consistent with how this project's Tailwind config is set up — check Step 1 of the config investigation below first). In this case light mode appears automatically when the user's OS/browser is set to light mode, and dark mode (the current default) appears otherwise — no stored preference, no manual control, purely automatic.
+2. Check the Tailwind config (tailwind.config.* or the CSS-based config if this project uses Tailwind v4's CSS-first config) and any global CSS file (e.g. index.css) for the dark-mode strategy currently configured (`class` vs `media`) and for existing design tokens (CSS custom properties or Tailwind theme colors: background, foreground, card, border, muted, primary/accent, etc.).
+3. Open at least 2-3 OTHER existing pages/components in this project outside the homepage (e.g. the shop/product listing page, a public page like /about or /shipping, and the shared Navbar/Footer components) and record their actual current light AND dark colors exactly as coded today (hex values or token names, with file + line references). This is the palette you must reuse — do not design a new one.
+4. Report your conclusion clearly: which of the two trigger mechanisms above applies, with concrete evidence, before writing any theme-related code.
+
+═══════════════════════════════════════
+STEP 2 — MAP THE TARGET FILE
+═══════════════════════════════════════
+1. Confirm the exact file (path + filename) for the homepage component referred to as "luxury landing."
+2. Read the entire file plus every child component it renders (hero panels, category row, product grid cards, trust strip, footer) — inventory every hardcoded color currently used, since each one now needs a light-mode counterpart drawn from the existing site-wide palette (per Step 1.3), applied via whichever mechanism was confirmed in Step 1.1 (consuming existing global state, or a `dark:`/media-query variant per Tailwind's existing strategy).
+3. Note every place the hero entrance animation code currently assumes a dark backdrop (dark overlay cards, mix-blend-mode effects, glow/blur effects).
+
+═══════════════════════════════════════
+STEP 3 — APPLY THE EXISTING SITE-WIDE PALETTE FOR LIGHT MODE
+═══════════════════════════════════════
+1. Map every hardcoded dark-only color found in Step 2 to its existing site-wide light-mode counterpart from Step 1.3, applied through the confirmed mechanism from Step 1.1 — no new tokens, no newly chosen shades.
+2. Verify WCAG AA contrast (4.5:1 body text, 3:1 large text) for the resulting light-mode text/background pairings in the hero's bento layout specifically, since reusing existing tokens in this new layout context could still produce a poor pairing even if each token is individually correct elsewhere on the site.
+3. Apply consistently across every section: navbar, all hero panel states, category row, product cards, trust strip, footer.
+
+═══════════════════════════════════════
+STEP 4 — ADAPT THE HERO ANIMATION EFFECTS FOR LIGHT MODE
+═══════════════════════════════════════
+1. For every dark-backdrop-dependent effect (dark overlay tagline card, mix-blend-mode merge effect, glow/blur swirl), determine whether it still reads correctly against the existing site-wide light background. If it breaks or becomes illegible, adjust the specific technique (e.g. swap mix-blend-mode: multiply for darken, or give the tagline card a light surface using the existing light "card" token with a border instead of a dark overlay) — using only existing tokens.
+2. State clearly which effects needed adjustment, what changed, and which existing token was used for each.
+
+═══════════════════════════════════════
+STEP 5 — FULL RESPONSIVENESS VERIFICATION (BOTH MODES)
+═══════════════════════════════════════
+1. Check the rendered homepage at 375px, 768px, 1024px, 1440px, in both dark and light mode (8 total checks). To test light mode, simulate the trigger condition confirmed in Step 1 (e.g. toggle the existing global theme state if one exists, or emulate `prefers-color-scheme: light` in the browser tooling if relying on automatic OS detection).
+2. At each combination, confirm: no horizontal overflow, no overlapping/clipped text, the hero bento layout reflows correctly, images load and scale correctly, footer columns stack correctly on narrow widths.
+3. Take screenshots at each of the 8 combinations, review them yourself, and fix any issue found before declaring success.
+
+═══════════════════════════════════════
+CONSTRAINTS
+═══════════════════════════════════════
+- Scope entirely to the web marketplace homepage (artifacts/marketplace) — do not modify artifacts/mobile.
+- Respect existing RTL/LTR logical Tailwind class conventions (ms-/me-/ps-/pe-/start-/end-).
+- Do not change the existing hero animation's timing/choreography — only adapt colors/effects for light mode.
+- Do not add any new UI element, button, icon, or control anywhere, on this page or elsewhere in the app.
+- Do not modify SYANO_MASTER_RECOVERY.md in this task.
+- Run the marketplace TypeScript check (npx tsc --noEmit -p artifacts/marketplace/tsconfig.json) and confirm 0 errors before finishing.
+
+When finished, report:
+1. Which trigger mechanism applies (existing global theme state vs. automatic OS-level prefers-color-scheme) and the concrete evidence found in Step 1.
+2. The existing color tokens found and reused, with file/line references.
+3. Which hero animation effects needed light-mode-specific adjustment, what changed, and which existing token was used for each.
+4. The 8 responsiveness screenshots' results — any issues found and how fixed.
+5. TypeScript check result.
+6. Commit with a clear message.

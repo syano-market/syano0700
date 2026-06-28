@@ -8,10 +8,11 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { useState, useEffect, useRef, useMemo, memo, createContext, useContext } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
+import { useTheme } from "next-themes";
 import { LuxuryNavbar } from "@/components/LuxuryNavbar";
 import {
   useListProducts,
@@ -152,11 +153,22 @@ const SECTION_CSS = `
   .lux-social-icon:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(255,255,255,0.18) !important; color: rgba(255,255,255,0.80) !important; }
   .lux-footer-input:focus { border-color: rgba(255,255,255,0.20) !important; }
 
+  /* ── Light mode overrides ─────────────────────────────────────────────────
+     Applied when html does NOT carry the .dark class (next-themes light/system-light).
+     Only hover/focus interactive states need CSS overrides; other colors are
+     driven by the LuxColorCtx React context. */
+  html:not(.dark) .lux-footer-bottom { border-top-color: rgba(17,24,39,0.08); }
+  html:not(.dark) .lux-footer-link:hover { color: rgba(17,24,39,0.75) !important; }
+  html:not(.dark) .lux-social-icon:hover { background: rgba(17,24,39,0.06) !important; border-color: rgba(17,24,39,0.14) !important; color: rgba(17,24,39,0.60) !important; }
+  html:not(.dark) .lux-footer-input:focus { border-color: rgba(17,24,39,0.20) !important; }
+
   .lux-root { text-rendering: optimizeSpeed; }
   .lux-gpu-layer { transform: translateZ(0); backface-visibility: hidden; }
 `;
 
-/* ─── Brand tokens ────────────────────────────────────────────────────────────*/
+/* ─── Brand tokens — DARK (default) ──────────────────────────────────────────
+   All rgba(255,255,255,…) values are for dark surfaces.
+   C is the single source of truth for dark mode.                            */
 const C = {
   bg:          "#0B0B0C",
   card:        "#111113",
@@ -173,6 +185,39 @@ const C = {
   green:       "#16A34A",
   greenAlpha:  "rgba(22,163,74,0.16)",
 } as const;
+
+/* ─── Brand tokens — LIGHT ────────────────────────────────────────────────────
+   Every value is traceable to an existing site-wide token in index.css :root.
+   background  hsl(210 20% 98%) ≈ #F8FAFC         (--background light)
+   card        hsl(0 0% 100%)   = #FFFFFF           (--card light)
+   card2       hsl(220 22% 96%) ≈ #EEF0F7           (--section-alt light)
+   foreground  hsl(221 39% 11%) ≈ #111827           (--foreground light)
+   muted-fg    hsl(220 13% 32%) ≈ #3D4554           (--muted-foreground light)
+   border      hsl(220 13% 84%) ≈ #D1D4E0           (--border light)
+   purple / green unchanged — brand accents readable on both surfaces.       */
+const CL = {
+  bg:          "#F8FAFC",
+  card:        "#FFFFFF",
+  card2:       "#EEF0F7",
+  white:       "#111827",
+  offWhite:    "#111827",
+  muted:       "#3D4554",
+  dimmed:      "rgba(17,24,39,0.50)",
+  border:      "#D1D4E0",
+  borderHov:   "rgba(17,24,39,0.22)",
+  purple:      "#7C3AED",
+  purpleAlpha: "rgba(124,58,237,0.10)",
+  purpleGlow:  "rgba(124,58,237,0.18)",
+  green:       "#16A34A",
+  greenAlpha:  "rgba(22,163,74,0.10)",
+} as const;
+
+/* ─── Color token type — string-valued so both C (dark) and CL (light) fit ─*/
+type ColorTokens = { [K in keyof typeof C]: string };
+
+/* ─── Color context — consumed by all sub-components ────────────────────────
+   Defaults to dark tokens; LuxuryLandingPage overrides via resolvedTheme.   */
+const LuxColorCtx = createContext<ColorTokens>(C as ColorTokens);
 
 /* ─── Fonts ───────────────────────────────────────────────────────────────────*/
 const F = {
@@ -326,6 +371,7 @@ function ProductCard({ item }: { item: StackItem }) {
 }
 
 const CenterCard = memo(function CenterCard({ reduced }: { reduced: boolean }) {
+  const colors = useContext(LuxColorCtx);
   const [imgIdx, setImgIdx] = useState(0);
 
   useEffect(() => {
@@ -354,11 +400,11 @@ const CenterCard = memo(function CenterCard({ reduced }: { reduced: boolean }) {
         />
       </AnimatePresence>
 
-      {/* Dark cinematic gradient */}
+      {/* Dark cinematic gradient — kept in both modes to ensure tagline text contrast on image */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(8,3,24,0.56) 44%, rgba(4,1,14,0.90) 100%)", pointerEvents: "none", borderRadius: "inherit" }} />
 
-      {/* Purple spectral glow */}
-      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 72% 52% at 50% 40%, ${C.purpleGlow} 0%, transparent 66%)`, pointerEvents: "none", borderRadius: "inherit", opacity: 0.44 }} />
+      {/* Purple spectral glow — toned for light mode via purpleGlow token */}
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 72% 52% at 50% 40%, ${colors.purpleGlow} 0%, transparent 66%)`, pointerEvents: "none", borderRadius: "inherit", opacity: 0.44 }} />
     </div>
   );
 });
@@ -382,19 +428,20 @@ function LuxSectionHeader({
   extra?: React.ReactNode;
 }) {
   const { t } = useTranslation();
+  const colors = useContext(LuxColorCtx);
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: "1rem", marginBottom: "3rem" }}>
       <div>
-        <p style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.72rem", letterSpacing: "0.14em", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", marginBottom: "0.6rem", margin: "0 0 0.6rem" }}>
+        <p style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.72rem", letterSpacing: "0.14em", color: colors.dimmed, textTransform: "uppercase", marginBottom: "0.6rem", margin: "0 0 0.6rem" }}>
           {t(eyebrowKey)}
         </p>
-        <h2 style={{ fontFamily: F.naskh, fontWeight: 700, fontSize: "clamp(1.5rem,3vw,2.4rem)", letterSpacing: "-0.02em", lineHeight: 1.2, color: C.white, margin: 0 }}>
+        <h2 style={{ fontFamily: F.naskh, fontWeight: 700, fontSize: "clamp(1.5rem,3vw,2.4rem)", letterSpacing: "-0.02em", lineHeight: 1.2, color: colors.white, margin: 0 }}>
           {t(titleKey)}
         </h2>
         {extra}
       </div>
       <Link href={seeAllHref}
-        style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem", color: C.muted, textDecoration: "none", paddingBottom: "0.25rem", borderBottom: "1px solid rgba(255,255,255,0.15)", transition: "color 0.2s" }}>
+        style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem", color: colors.muted, textDecoration: "none", paddingBottom: "0.25rem", borderBottom: `1px solid ${colors.border}`, transition: "color 0.2s" }}>
         {t(seeAllKey)} <ArrowLeft style={{ width: 14, height: 14 }} />
       </Link>
     </div>
@@ -406,6 +453,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 /** Countdown timer for deals section */
 function LuxCountdownTimer() {
   const { t } = useTranslation();
+  const colors = useContext(LuxColorCtx);
   const [time, setTime] = useState({ h: 8, m: 24, s: 37 });
   useEffect(() => {
     const id = setInterval(() => {
@@ -419,15 +467,15 @@ function LuxCountdownTimer() {
   }, []);
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.75rem" }}>
-      <Timer style={{ width: 13, height: 13, color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
-      <span style={{ fontFamily: F.sans, fontSize: "0.75rem", color: "rgba(255,255,255,0.38)" }}>{t("home.deals.ends_in")}</span>
+      <Timer style={{ width: 13, height: 13, color: colors.dimmed, flexShrink: 0 }} />
+      <span style={{ fontFamily: F.sans, fontSize: "0.75rem", color: colors.dimmed }}>{t("home.deals.ends_in")}</span>
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
         {[pad(time.h), pad(time.m), pad(time.s)].map((val, i) => (
           <span key={i} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <span style={{ fontWeight: 700, fontSize: "0.78rem", fontVariantNumeric: "tabular-nums", color: C.white, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.10)", padding: "2px 8px", borderRadius: "6px", minWidth: "2rem", textAlign: "center", letterSpacing: "0.04em" }}>
+            <span style={{ fontWeight: 700, fontSize: "0.78rem", fontVariantNumeric: "tabular-nums", color: colors.white, background: colors.purpleAlpha, border: `1px solid ${colors.border}`, padding: "2px 8px", borderRadius: "6px", minWidth: "2rem", textAlign: "center", letterSpacing: "0.04em" }}>
               {val}
             </span>
-            {i < 2 && <span style={{ color: "rgba(255,255,255,0.25)", fontWeight: 700, fontSize: "0.8rem" }}>:</span>}
+            {i < 2 && <span style={{ color: colors.dimmed, fontWeight: 700, fontSize: "0.8rem" }}>:</span>}
           </span>
         ))}
       </div>
@@ -445,6 +493,7 @@ const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData;
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [adding, setAdding] = useState(false);
+  const colors = useContext(LuxColorCtx);
 
   const addToCartMutation = useAddToCart({
     mutation: {
@@ -481,34 +530,34 @@ const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData;
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: index * 0.07, ease: fadeEase }}
-      style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "16px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <Link href={href} style={{ display: "block", position: "relative", aspectRatio: "1 / 1", overflow: "hidden", background: C.card2 }}>
+      style={{ background: colors.card, border: `1px solid ${colors.border}`, borderRadius: "16px", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <Link href={href} style={{ display: "block", position: "relative", aspectRatio: "1 / 1", overflow: "hidden", background: colors.card2 }}>
         {deal.img && <img src={deal.img} alt={deal.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.88) contrast(1.05)" }} />}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%)" }} />
         {hasDiscount && (
           <div style={{ position: "absolute", top: "10px", insetInlineEnd: "10px" }}>
-            <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "0.75rem", background: C.green, color: C.white, padding: "3px 10px", borderRadius: "9999px" }}>
+            <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "0.75rem", background: colors.green, color: "#FFFFFF", padding: "3px 10px", borderRadius: "9999px" }}>
               -{deal.discountPercent}%
             </span>
           </div>
         )}
       </Link>
       <div style={{ padding: "1rem 1.1rem 1.1rem", flex: 1, display: "flex", flexDirection: "column" }}>
-        <p style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "10px", color: C.dimmed, marginBottom: "0.4rem", margin: "0 0 0.4rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+        <p style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "10px", color: colors.dimmed, marginBottom: "0.4rem", margin: "0 0 0.4rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
           {deal.category}
         </p>
         <Link href={href}>
-          <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.9rem", lineHeight: 1.4, color: C.white, margin: "0 0 0.85rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.9rem", lineHeight: 1.4, color: colors.white, margin: "0 0 0.85rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {deal.name}
           </h3>
         </Link>
         <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.5rem" }}>
           <div>
-            <div style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.02em", color: C.white }} translate="no">
+            <div style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1.1rem", letterSpacing: "-0.02em", color: colors.white }} translate="no">
               {format(deal.price)}
             </div>
             {hasDiscount && (
-              <div style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "11px", color: C.dimmed, textDecoration: "line-through", marginTop: "2px" }} translate="no">
+              <div style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "11px", color: colors.dimmed, textDecoration: "line-through", marginTop: "2px" }} translate="no">
                 {format(deal.originalPrice!)}
               </div>
             )}
@@ -516,9 +565,9 @@ const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData;
           <button
             onClick={handleAdd}
             disabled={adding}
-            style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.75rem", background: "rgba(255,255,255,0.07)", border: `1px solid ${C.border}`, color: C.muted, padding: "12px 14px", borderRadius: "9999px", flexShrink: 0, opacity: adding ? 0.5 : 1 }}>
+            style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.75rem", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, color: colors.muted, padding: "12px 14px", borderRadius: "9999px", flexShrink: 0, opacity: adding ? 0.5 : 1 }}>
             {adding
-              ? <div style={{ width: 12, height: 12, border: "1.5px solid rgba(255,255,255,0.5)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+              ? <div style={{ width: 12, height: 12, border: `1.5px solid ${colors.muted}`, borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
               : <ShoppingCart style={{ width: 12, height: 12 }} />}
             {t("home.deals.add")}
           </button>
@@ -531,19 +580,20 @@ const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData;
 /* ─── Luxury store card ───────────────────────────────────────────────────────*/
 const LuxStoreCard = memo(function LuxStoreCard({ store, index }: { store: StoreDisplayData; index: number }) {
   const { t } = useTranslation();
+  const colors = useContext(LuxColorCtx);
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.55, delay: index * 0.1, ease: fadeEase }}
-      style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "20px", overflow: "hidden" }}>
-      <div style={{ position: "relative", height: "10rem", overflow: "hidden", background: C.card2 }}>
+      style={{ background: colors.card, border: `1px solid ${colors.border}`, borderRadius: "20px", overflow: "hidden" }}>
+      <div style={{ position: "relative", height: "10rem", overflow: "hidden", background: colors.card2 }}>
         <img src={store.coverImg} alt={store.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.78) contrast(1.1)" }} />
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }} />
         {store.verified && (
           <div style={{ position: "absolute", top: "12px", insetInlineStart: "12px" }}>
-            <span style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "10px", background: "rgba(22,163,74,0.15)", border: "1px solid rgba(22,163,74,0.3)", color: "#4ade80", padding: "3px 10px", borderRadius: "9999px" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "10px", background: colors.greenAlpha, border: `1px solid rgba(22,163,74,0.30)`, color: "#4ade80", padding: "3px 10px", borderRadius: "9999px" }}>
               <span style={{ width: 5, height: 5, background: "#4ade80", borderRadius: "50%", display: "inline-block" }} />
               {t("home.stores.verified")}
             </span>
@@ -557,23 +607,23 @@ const LuxStoreCard = memo(function LuxStoreCard({ store, index }: { store: Store
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "4px" }}>
             <Star style={{ width: 13, height: 13, fill: "#fbbf24", color: "#fbbf24" }} />
-            <span style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.85rem", color: C.white }}>{store.rating}</span>
-            <span style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "11px", color: C.dimmed }}>({store.reviews.toLocaleString()})</span>
+            <span style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.85rem", color: colors.white }}>{store.rating}</span>
+            <span style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "11px", color: colors.dimmed }}>({store.reviews.toLocaleString()})</span>
           </div>
         </div>
-        <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.1rem", color: C.white, margin: "0 0 0.35rem" }}>{store.name}</h3>
-        <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", color: C.dimmed, lineHeight: 1.6, margin: "0 0 1rem" }}>{store.tagline}</p>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.85rem 0", borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`, marginBottom: "1rem" }}>
-          <ShoppingBag style={{ width: 13, height: 13, color: "rgba(255,255,255,0.25)", flexShrink: 0 }} />
-          <span style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.8rem", color: C.muted }}>
+        <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.1rem", color: colors.white, margin: "0 0 0.35rem" }}>{store.name}</h3>
+        <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", color: colors.dimmed, lineHeight: 1.6, margin: "0 0 1rem" }}>{store.tagline}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.85rem 0", borderTop: `1px solid ${colors.border}`, borderBottom: `1px solid ${colors.border}`, marginBottom: "1rem" }}>
+          <ShoppingBag style={{ width: 13, height: 13, color: colors.dimmed, flexShrink: 0 }} />
+          <span style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.8rem", color: colors.muted }}>
             {t("home.stores.products_count", { count: store.productCount.toLocaleString() })}
           </span>
-          <span style={{ width: 3, height: 3, background: C.dimmed, borderRadius: "50%", flexShrink: 0 }} />
-          <span style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", color: C.dimmed }}>{store.categoryLabel}</span>
+          <span style={{ width: 3, height: 3, background: colors.dimmed, borderRadius: "50%", flexShrink: 0 }} />
+          <span style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", color: colors.dimmed }}>{store.categoryLabel}</span>
         </div>
         <Link
           href={store.slug ? `/store/${store.slug}` : "/sellers/directory"}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: F.sans, fontWeight: 700, fontSize: "0.82rem", width: "100%", padding: "0.7rem", borderRadius: "9999px", background: "transparent", border: `1px solid ${C.border}`, color: C.muted, textDecoration: "none" }}>
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontFamily: F.sans, fontWeight: 700, fontSize: "0.82rem", width: "100%", padding: "0.7rem", borderRadius: "9999px", background: "transparent", border: `1px solid ${colors.border}`, color: colors.muted, textDecoration: "none" }}>
           <ExternalLink style={{ width: 13, height: 13 }} /> {t("home.stores.visit")}
         </Link>
       </div>
@@ -585,19 +635,20 @@ const LuxStoreCard = memo(function LuxStoreCard({ store, index }: { store: Store
    LUXURY SECTION COMPONENTS
 ═══════════════════════════════════════════════════════════════════════════*/
 
-/** Section wrapper style helper */
-const sectionStyle = (alt = false): React.CSSProperties => ({
-  background: alt ? C.card2 : C.bg,
+/** Section wrapper style helper — takes colors from caller (via context) */
+const sectionStyle = (c: ColorTokens, alt = false): React.CSSProperties => ({
+  background: alt ? c.card2 : c.bg,
   paddingTop: "5rem",
   paddingBottom: "5rem",
-  borderTop: `1px solid ${C.border}`,
+  borderTop: `1px solid ${c.border}`,
 });
 
 /* ── 1. Popular Categories ───────────────────────────────────────────────────*/
 const LuxCategoriesSection = memo(function LuxCategoriesSection() {
   const { t, i18n } = useTranslation();
+  const colors = useContext(LuxColorCtx);
   return (
-    <section style={sectionStyle(false)} dir={i18n.dir()}>
+    <section style={sectionStyle(colors, false)} dir={i18n.dir()}>
       <div className="lux-section-inner">
         <LuxSectionHeader eyebrowKey="home.categories.eyebrow" titleKey="home.categories.title" seeAllKey="home.categories.see_all" seeAllHref="/shop" />
         <div className="lux-cat-grid">
@@ -608,14 +659,14 @@ const LuxCategoriesSection = memo(function LuxCategoriesSection() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.48, delay: i * 0.05, ease: fadeEase }}>
               <Link href={`/shop?category=${encodeURIComponent(cat.slug)}`}
-                style={{ display: "block", position: "relative", overflow: "hidden", borderRadius: "16px", aspectRatio: "4 / 3", background: C.card }}>
+                style={{ display: "block", position: "relative", overflow: "hidden", borderRadius: "16px", aspectRatio: "4 / 3", background: colors.card }}>
                 <img src={cat.img} alt={t(cat.nameKey)} loading="lazy" decoding="async"
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.72) saturate(0.80)", transition: "transform 0.6s ease" }} />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.20) 55%, transparent 100%)" }} />
                 <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 65% 45% at 50% 0%, ${cat.accent}22 0%, transparent 60%)` }} />
                 <div style={{ position: "absolute", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, padding: "1.1rem 1rem 1rem" }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: cat.accent, marginBottom: "0.45rem" }} />
-                  <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.95rem", color: C.white, margin: "0 0 0.2rem" }}>
+                  <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.95rem", color: "#FFFFFF", margin: "0 0 0.2rem" }}>
                     {t(cat.nameKey)}
                   </h3>
                   <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.72rem", color: "rgba(255,255,255,0.55)", margin: 0 }}>
@@ -634,9 +685,10 @@ const LuxCategoriesSection = memo(function LuxCategoriesSection() {
 /* ── 2. Featured Deals ───────────────────────────────────────────────────────*/
 const LuxDealsSection = memo(function LuxDealsSection({ deals }: { deals: DealData[] }) {
   const { i18n } = useTranslation();
+  const colors = useContext(LuxColorCtx);
   if (deals.length === 0) return null;
   return (
-    <section style={sectionStyle(true)} dir={i18n.dir()}>
+    <section style={sectionStyle(colors, true)} dir={i18n.dir()}>
       <div className="lux-section-inner">
         <LuxSectionHeader eyebrowKey="home.deals.eyebrow" titleKey="home.deals.title" seeAllKey="home.deals.see_all" seeAllHref="/shop?hasDiscount=true" extra={<LuxCountdownTimer />} />
         <div className="lux-deals-grid">
@@ -650,6 +702,7 @@ const LuxDealsSection = memo(function LuxDealsSection({ deals }: { deals: DealDa
 /* ── 3. Trusted Stores ───────────────────────────────────────────────────────*/
 const LuxStoresSection = memo(function LuxStoresSection() {
   const { t, i18n } = useTranslation();
+  const colors = useContext(LuxColorCtx);
 
   const [stores, setStores] = useState<StoreDisplayData[]>(() =>
     STATIC_STORES.map(s => ({
@@ -689,7 +742,7 @@ const LuxStoresSection = memo(function LuxStoresSection() {
   })), [stores, t]);
 
   return (
-    <section style={sectionStyle(false)} dir={i18n.dir()}>
+    <section style={sectionStyle(colors, false)} dir={i18n.dir()}>
       <div className="lux-section-inner">
         <LuxSectionHeader eyebrowKey="home.stores.eyebrow" titleKey="home.stores.title" seeAllKey="home.stores.see_all" seeAllHref="/sellers/directory" />
         <div className="lux-stores-grid">
@@ -704,10 +757,11 @@ const LuxStoresSection = memo(function LuxStoresSection() {
 const LuxTrendingSection = memo(function LuxTrendingSection({ products }: { products: Product[] }) {
   const { t, i18n } = useTranslation();
   const { format } = useCurrency();
+  const colors = useContext(LuxColorCtx);
   if (products.length === 0) return null;
 
   return (
-    <section style={sectionStyle(true)} dir={i18n.dir()}>
+    <section style={sectionStyle(colors, true)} dir={i18n.dir()}>
       <div className="lux-section-inner">
         <LuxSectionHeader eyebrowKey="home.trending.eyebrow" titleKey="home.trending.title" seeAllKey="home.trending.see_all" seeAllHref="/shop" />
         <div className="lux-trending-grid">
@@ -725,35 +779,35 @@ const LuxTrendingSection = memo(function LuxTrendingSection({ products }: { prod
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.48, delay: i * 0.06, ease: fadeEase }}
-                style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: "16px", overflow: "hidden" }}>
-                <Link href={`/products/${p.id}`} style={{ display: "block", position: "relative", aspectRatio: "1 / 1", overflow: "hidden", background: C.card2 }}>
+                style={{ background: colors.card, border: `1px solid ${colors.border}`, borderRadius: "16px", overflow: "hidden" }}>
+                <Link href={`/products/${p.id}`} style={{ display: "block", position: "relative", aspectRatio: "1 / 1", overflow: "hidden", background: colors.card2 }}>
                   {imgs?.[0] && <img src={imgs[0]} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.88)" }} />}
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%)" }} />
                   {isTrending && (
                     <div style={{ position: "absolute", top: "10px", insetInlineStart: "10px" }}>
-                      <span style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "10px", background: "rgba(124,58,237,0.25)", border: "1px solid rgba(124,58,237,0.40)", color: "#c4b5fd", padding: "3px 9px", borderRadius: "9999px", letterSpacing: "0.04em" }}>
+                      <span style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "10px", background: colors.purpleAlpha, border: `1px solid rgba(124,58,237,0.40)`, color: "#c4b5fd", padding: "3px 9px", borderRadius: "9999px", letterSpacing: "0.04em" }}>
                         {t("home.trending.trending_badge")}
                       </span>
                     </div>
                   )}
                   {discPct && discPct > 0 && (
                     <div style={{ position: "absolute", top: "10px", insetInlineEnd: "10px" }}>
-                      <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "0.72rem", background: C.green, color: C.white, padding: "2px 8px", borderRadius: "9999px" }}>
+                      <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "0.72rem", background: colors.green, color: "#FFFFFF", padding: "2px 8px", borderRadius: "9999px" }}>
                         -{discPct}%
                       </span>
                     </div>
                   )}
                 </Link>
                 <div style={{ padding: "0.85rem 1rem 1rem" }}>
-                  {storeName && <p style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "10px", color: C.dimmed, margin: "0 0 0.3rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>{storeName}</p>}
+                  {storeName && <p style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "10px", color: colors.dimmed, margin: "0 0 0.3rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>{storeName}</p>}
                   <Link href={`/products/${p.id}`}>
-                    <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.88rem", lineHeight: 1.4, color: C.white, margin: "0 0 0.6rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.88rem", lineHeight: 1.4, color: colors.white, margin: "0 0 0.6rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {p.name}
                     </h3>
                   </Link>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
-                    <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", color: C.white }} translate="no">{format(finalPrice)}</span>
-                    {compareAt && <span style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "11px", color: C.dimmed, textDecoration: "line-through" }} translate="no">{format(compareAt)}</span>}
+                    <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", color: colors.white }} translate="no">{format(finalPrice)}</span>
+                    {compareAt && <span style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "11px", color: colors.dimmed, textDecoration: "line-through" }} translate="no">{format(compareAt)}</span>}
                   </div>
                 </div>
               </motion.div>
@@ -769,6 +823,7 @@ const LuxTrendingSection = memo(function LuxTrendingSection({ products }: { prod
 const LuxArrivalsSection = memo(function LuxArrivalsSection({ products }: { products: Product[] }) {
   const { t, i18n } = useTranslation();
   const { format } = useCurrency();
+  const colors = useContext(LuxColorCtx);
   if (products.length < 4) return null;
 
   const items = products.slice(0, 4).map((p, i) => {
@@ -787,7 +842,7 @@ const LuxArrivalsSection = memo(function LuxArrivalsSection({ products }: { prod
   const rest = items.slice(1);
 
   return (
-    <section style={sectionStyle(false)} dir={i18n.dir()}>
+    <section style={sectionStyle(colors, false)} dir={i18n.dir()}>
       <div className="lux-section-inner">
         <LuxSectionHeader eyebrowKey="home.arrivals.eyebrow" titleKey="home.arrivals.title" seeAllKey="home.arrivals.see_all" seeAllHref="/shop" />
         <div className="lux-arrivals-grid">
@@ -797,19 +852,19 @@ const LuxArrivalsSection = memo(function LuxArrivalsSection({ products }: { prod
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.6, ease: fadeEase }}
-            style={{ position: "relative", borderRadius: "20px", overflow: "hidden", background: C.card, minHeight: "280px" }}>
+            style={{ position: "relative", borderRadius: "20px", overflow: "hidden", background: colors.card, minHeight: "280px" }}>
             <Link href={`/products/${main.id}`} style={{ display: "block", width: "100%", height: "100%" }}>
               {main.img && <img src={main.img} alt={main.name} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.78) contrast(1.08)" }} />}
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.30) 50%, transparent 80%)" }} />
               <div style={{ position: "absolute", top: "1.25rem", insetInlineStart: "1.25rem" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 700, fontSize: "0.72rem", background: C.green, color: C.white, padding: "5px 12px", borderRadius: "9999px" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 700, fontSize: "0.72rem", background: colors.green, color: "#FFFFFF", padding: "5px 12px", borderRadius: "9999px" }}>
                   <Zap style={{ width: 11, height: 11 }} /> {t("home.arrivals.new_since", { count: main.daysAgo })}
                 </span>
               </div>
               <div style={{ position: "absolute", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, padding: "1.75rem" }}>
                 {main.category && <p style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "0.7rem", letterSpacing: "0.08em", color: "rgba(255,255,255,0.55)", textTransform: "uppercase", margin: "0 0 0.5rem" }}>{main.category}</p>}
-                <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.55rem", lineHeight: 1.3, letterSpacing: "-0.01em", color: C.white, margin: "0 0 0.65rem" }}>{main.name}</h3>
-                <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1.3rem", color: C.white }} translate="no">{format(main.price)}</span>
+                <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.55rem", lineHeight: 1.3, letterSpacing: "-0.01em", color: "#FFFFFF", margin: "0 0 0.65rem" }}>{main.name}</h3>
+                <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1.3rem", color: "#FFFFFF" }} translate="no">{format(main.price)}</span>
               </div>
             </Link>
           </motion.div>
@@ -821,7 +876,7 @@ const LuxArrivalsSection = memo(function LuxArrivalsSection({ products }: { prod
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.5, delay: i * 0.1, ease: fadeEase }}
-              style={{ position: "relative", borderRadius: "16px", overflow: "hidden", background: C.card, minHeight: "180px" }}>
+              style={{ position: "relative", borderRadius: "16px", overflow: "hidden", background: colors.card, minHeight: "180px" }}>
               <Link href={`/products/${item.id}`} style={{ display: "block", width: "100%", height: "100%" }}>
                 {item.img && <img src={item.img} alt={item.name} loading="lazy" decoding="async" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "brightness(0.75) contrast(1.08)" }} />}
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 65%)" }} />
@@ -833,8 +888,8 @@ const LuxArrivalsSection = memo(function LuxArrivalsSection({ products }: { prod
                 </div>
                 <div style={{ position: "absolute", bottom: 0, insetInlineStart: 0, insetInlineEnd: 0, padding: "0.85rem 1rem" }}>
                   {item.category && <p style={{ fontFamily: F.sans, fontWeight: 500, fontSize: "9px", color: "rgba(255,255,255,0.50)", textTransform: "uppercase", letterSpacing: "0.07em", margin: "0 0 0.3rem" }}>{item.category}</p>}
-                  <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.88rem", lineHeight: 1.3, color: C.white, margin: "0 0 0.4rem" }}>{item.name}</h3>
-                  <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", color: C.white }} translate="no">{format(item.price)}</span>
+                  <h3 style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.88rem", lineHeight: 1.3, color: "#FFFFFF", margin: "0 0 0.4rem" }}>{item.name}</h3>
+                  <span style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", color: "#FFFFFF" }} translate="no">{format(item.price)}</span>
                 </div>
               </Link>
             </motion.div>
@@ -850,27 +905,28 @@ const LuxJoinSection = memo(function LuxJoinSection() {
   const { t, i18n } = useTranslation();
   const { handleOpenYourStore } = useSellerOnboarding();
   const { handleBecomeCourier } = useCourierOnboarding();
+  const colors = useContext(LuxColorCtx);
 
   return (
-    <section style={sectionStyle(true)} dir={i18n.dir()}>
+    <section style={sectionStyle(colors, true)} dir={i18n.dir()}>
       <div className="lux-section-inner">
-        <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, border: `1px solid ${C.border}` }}>
+        <div style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: colors.card, border: `1px solid ${colors.border}` }}>
           {/* Background glows */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            <div style={{ position: "absolute", inset: 0, opacity: 0.035, backgroundImage: `linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "600px", height: "280px", borderRadius: "50%", background: "rgba(124,58,237,0.06)", filter: "blur(100px)" }} />
+            <div style={{ position: "absolute", inset: 0, opacity: 0.035, backgroundImage: `linear-gradient(${colors.border} 1px, transparent 1px), linear-gradient(90deg, ${colors.border} 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
+            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "600px", height: "280px", borderRadius: "50%", background: colors.purpleGlow, filter: "blur(100px)" }} />
           </div>
 
           <div style={{ position: "relative", zIndex: 1, padding: "4rem 2rem" }}>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: fadeEase }}
               style={{ textAlign: "center", marginBottom: "3rem" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.72rem", letterSpacing: "0.1em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, padding: "5px 14px", borderRadius: "9999px", marginBottom: "1.25rem" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.72rem", letterSpacing: "0.1em", color: colors.muted, textTransform: "uppercase", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, padding: "5px 14px", borderRadius: "9999px", marginBottom: "1.25rem" }}>
                 {t("home.join.badge")}
               </span>
-              <h2 style={{ fontFamily: F.naskh, fontWeight: 700, fontSize: "clamp(1.5rem,3.5vw,2.75rem)", letterSpacing: "-0.02em", lineHeight: 1.2, color: C.white, margin: "0 0 1rem" }}>
+              <h2 style={{ fontFamily: F.naskh, fontWeight: 700, fontSize: "clamp(1.5rem,3.5vw,2.75rem)", letterSpacing: "-0.02em", lineHeight: 1.2, color: colors.white, margin: "0 0 1rem" }}>
                 {t("home.join.title")}
               </h2>
-              <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.95rem", lineHeight: 1.7, color: C.muted, maxWidth: "480px", margin: "0 auto" }}>
+              <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.95rem", lineHeight: 1.7, color: colors.muted, maxWidth: "480px", margin: "0 auto" }}>
                 {t("home.join.subtitle")}
               </p>
             </motion.div>
@@ -882,14 +938,14 @@ const LuxJoinSection = memo(function LuxJoinSection() {
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenYourStore(); } }}
                 role="button"
                 tabIndex={0}
-                style={{ background: C.card2, border: `1px solid rgba(124,58,237,0.20)`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 60% at 50% 110%, rgba(124,58,237,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+                style={{ background: colors.card2, border: `1px solid ${colors.purpleAlpha}`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 110%, ${colors.purpleAlpha} 0%, transparent 70%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative", zIndex: 1 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "14px", background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.25)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "14px", background: colors.purpleAlpha, border: `1px solid rgba(124,58,237,0.25)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
                     <Store style={{ width: 22, height: 22, color: "#a78bfa" }} />
                   </div>
-                  <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.2rem", color: C.white, margin: "0 0 0.5rem" }}>{t("home.join.seller_title")}</h3>
-                  <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.85rem", lineHeight: 1.65, color: C.muted, margin: "0 0 1.25rem" }}>{t("home.join.seller_desc")}</p>
+                  <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.2rem", color: colors.white, margin: "0 0 0.5rem" }}>{t("home.join.seller_title")}</h3>
+                  <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.85rem", lineHeight: 1.65, color: colors.muted, margin: "0 0 1.25rem" }}>{t("home.join.seller_desc")}</p>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#c4b5fd" }}>
                     <span style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.85rem" }}>{t("home.join.seller_cta")}</span>
                     <ArrowLeft style={{ width: 14, height: 14 }} />
@@ -903,13 +959,13 @@ const LuxJoinSection = memo(function LuxJoinSection() {
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleBecomeCourier(); } }}
                 role="button"
                 tabIndex={0}
-                style={{ background: C.card2, border: `1px solid ${C.border}`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer" }}>
-                <div style={{ width: 48, height: 48, borderRadius: "14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
-                  <Bike style={{ width: 22, height: 22, color: C.muted }} />
+                style={{ background: colors.card2, border: `1px solid ${colors.border}`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "14px", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                  <Bike style={{ width: 22, height: 22, color: colors.muted }} />
                 </div>
-                <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.2rem", color: C.white, margin: "0 0 0.5rem" }}>{t("home.join.courier_title")}</h3>
-                <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.85rem", lineHeight: 1.65, color: C.muted, margin: "0 0 1.25rem" }}>{t("home.join.courier_desc")}</p>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: C.dimmed }}>
+                <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.2rem", color: colors.white, margin: "0 0 0.5rem" }}>{t("home.join.courier_title")}</h3>
+                <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.85rem", lineHeight: 1.65, color: colors.muted, margin: "0 0 1.25rem" }}>{t("home.join.courier_desc")}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", color: colors.dimmed }}>
                   <span style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.85rem" }}>{t("home.join.courier_cta")}</span>
                   <ArrowLeft style={{ width: 14, height: 14 }} />
                 </div>
@@ -998,6 +1054,7 @@ const LUX_LEGAL_LINKS = [
 
 const LuxFooterBar = memo(function LuxFooterBar() {
   const { t, i18n } = useTranslation();
+  const colors = useContext(LuxColorCtx);
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -1005,7 +1062,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
     fontFamily: F.naskh,
     fontWeight: 700,
     fontSize: "0.92rem",
-    color: C.white,
+    color: colors.white,
     margin: "0 0 1.1rem",
     letterSpacing: "0.01em",
   };
@@ -1014,7 +1071,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
     fontFamily: F.sans,
     fontWeight: 400,
     fontSize: "0.8rem",
-    color: "rgba(255,255,255,0.38)",
+    color: colors.dimmed,
     textDecoration: "none",
     display: "block",
     lineHeight: 1,
@@ -1022,7 +1079,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
   };
 
   return (
-    <footer style={{ background: C.bg, borderTop: `1px solid ${C.border}` }} dir={i18n.dir()}>
+    <footer style={{ background: colors.bg, borderTop: `1px solid ${colors.border}` }} dir={i18n.dir()}>
       <div className="lux-section-inner">
 
         {/* ── Main grid ── */}
@@ -1040,11 +1097,11 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                   filter: "brightness(1.15) drop-shadow(0 1px 4px rgba(0,0,0,0.5))" }}
               />
               <div>
-                <div style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", letterSpacing: "0.08em", color: C.white }}>SYANO</div>
-                <div style={{ fontFamily: F.naskh, fontWeight: 400, fontSize: "0.72rem", color: "rgba(255,255,255,0.38)", letterSpacing: "0.12em" }}>سوق سوريا</div>
+                <div style={{ fontFamily: F.sans, fontWeight: 800, fontSize: "1rem", letterSpacing: "0.08em", color: colors.white }}>SYANO</div>
+                <div style={{ fontFamily: F.naskh, fontWeight: 400, fontSize: "0.72rem", color: colors.dimmed, letterSpacing: "0.12em" }}>سوق سوريا</div>
               </div>
             </div>
-            <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.82rem", lineHeight: 1.8, color: "rgba(255,255,255,0.36)", maxWidth: "280px", margin: "0 0 1.5rem" }}>
+            <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.82rem", lineHeight: 1.8, color: colors.dimmed, maxWidth: "280px", margin: "0 0 1.5rem" }}>
               {t("home.footer.tagline")}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: "0.55rem" }}>
@@ -1056,7 +1113,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="lux-social-icon"
-                  style={{ width: 36, height: 36, borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.38)", textDecoration: "none", transition: "background 0.2s, color 0.2s, border-color 0.2s" }}
+                  style={{ width: 36, height: 36, borderRadius: "10px", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: colors.dimmed, textDecoration: "none", transition: "background 0.2s, color 0.2s, border-color 0.2s" }}
                 >
                   <Icon style={{ width: 15, height: 15 }} />
                 </a>
@@ -1083,12 +1140,12 @@ const LuxFooterBar = memo(function LuxFooterBar() {
           {/* Newsletter */}
           <div className="lux-footer-newsletter">
             <h4 style={colHeadStyle}>{t("home.footer.newsletter_title")}</h4>
-            <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", lineHeight: 1.75, color: "rgba(255,255,255,0.36)", margin: "0 0 1rem" }}>
+            <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", lineHeight: 1.75, color: colors.dimmed, margin: "0 0 1rem" }}>
               {t("home.footer.newsletter_desc")}
             </p>
 
             {subscribed ? (
-              <div aria-live="polite" style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", color: "#4ade80", padding: "0.8rem 1rem", background: "rgba(22,163,74,0.08)", border: "1px solid rgba(22,163,74,0.20)", borderRadius: "12px" }}>
+              <div aria-live="polite" style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "0.82rem", color: "#4ade80", padding: "0.8rem 1rem", background: colors.greenAlpha, border: "1px solid rgba(22,163,74,0.20)", borderRadius: "12px" }}>
                 ✓ {t("home.footer.subscribed", "تم الاشتراك!")}
               </div>
             ) : (
@@ -1106,11 +1163,11 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                   placeholder={t("home.footer.newsletter_placeholder")}
                   aria-label={t("home.footer.newsletter_placeholder")}
                   className="lux-footer-input"
-                  style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", width: "100%", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, borderRadius: "12px", padding: "0.72rem 1rem", color: C.white, outline: "none", transition: "border-color 0.2s" }}
+                  style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", width: "100%", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, borderRadius: "12px", padding: "0.72rem 1rem", color: colors.white, outline: "none", transition: "border-color 0.2s" }}
                 />
                 <button
                   type="submit"
-                  style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: C.white, color: C.bg, width: "100%", padding: "0.72rem", borderRadius: "9999px", transition: "opacity 0.2s" }}
+                  style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: colors.white, color: colors.bg, width: "100%", padding: "0.72rem", borderRadius: "9999px", transition: "opacity 0.2s" }}
                 >
                   {t("home.footer.subscribe")} <ArrowLeft style={{ width: 13, height: 13 }} />
                 </button>
@@ -1121,7 +1178,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
 
         {/* ── Bottom bar ── */}
         <div className="lux-footer-bottom">
-          <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: "rgba(255,255,255,0.22)", margin: 0, flexShrink: 0 }}>
+          <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: colors.dimmed, margin: 0, flexShrink: 0 }}>
             {t("home.footer.copyright")}
           </p>
 
@@ -1129,7 +1186,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
             {LUX_PAYMENT_METHODS.map((method) => (
               <span
                 key={method}
-                style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "10px", letterSpacing: "0.05em", padding: "3px 10px", background: "rgba(255,255,255,0.04)", border: `1px solid ${C.border}`, color: "rgba(255,255,255,0.28)", borderRadius: "6px" }}
+                style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "10px", letterSpacing: "0.05em", padding: "3px 10px", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, color: colors.dimmed, borderRadius: "6px" }}
               >
                 {method}
               </span>
@@ -1142,7 +1199,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                 key={link.href}
                 href={link.href}
                 className="lux-footer-link"
-                style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: "rgba(255,255,255,0.26)", textDecoration: "none", transition: "color 0.2s" }}
+                style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.75rem", color: colors.dimmed, textDecoration: "none", transition: "color 0.2s" }}
               >
                 {t(link.labelKey)}
               </Link>
@@ -1160,6 +1217,10 @@ const LuxFooterBar = memo(function LuxFooterBar() {
 ═══════════════════════════════════════════════════════════════════════════*/
 export default function LuxuryLandingPage() {
   const reduced = useReducedMotion() ?? false;
+
+  /* ── Theme — resolvedTheme accounts for "system" setting via OS preference ── */
+  const { resolvedTheme } = useTheme();
+  const colors: ColorTokens = resolvedTheme === "dark" ? C : CL;
 
   /* Hero carousel state */
   const [leftIdx,  setLeftIdx]  = useState(0);
@@ -1222,7 +1283,7 @@ export default function LuxuryLandingPage() {
 
 
   return (
-    <>
+    <LuxColorCtx.Provider value={colors}>
       <style>{FONT_CSS}</style>
       <style>{SECTION_CSS}</style>
       {/* Spinner keyframe for cart button */}
@@ -1233,15 +1294,15 @@ export default function LuxuryLandingPage() {
         dir="rtl"
         lang="ar"
         style={{
-          background: C.bg,
+          background: colors.bg,
           minHeight: "100dvh",
           fontFamily: F.sans,
           scrollbarWidth: "thin",
-          scrollbarColor: `${C.border} transparent`,
+          scrollbarColor: `${colors.border} transparent`,
         }}
       >
         {/* ── Navbar spacer — fixed header is out of flow; this reserves 3.75rem ── */}
-        <div style={{ height: "3.75rem", background: C.bg, flexShrink: 0 }}>
+        <div style={{ height: "3.75rem", background: colors.bg, flexShrink: 0 }}>
           <LuxuryNavbar />
         </div>
 
@@ -1267,7 +1328,7 @@ export default function LuxuryLandingPage() {
               <motion.div
                 layout
                 transition={{ layout: { duration: 0.45, ease: "easeOut" } }}
-                style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
+                style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: colors.card, minHeight: 0 }}
               >
                 {!splitTriggered ? (
                   <AnimatePresence mode="popLayout" initial={false}>
@@ -1291,7 +1352,7 @@ export default function LuxuryLandingPage() {
                     initial={{ y: "100%", opacity: 0, filter: "blur(8px)" }}
                     animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
+                    style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: colors.card, minHeight: 0 }}
                   >
                     <div style={{ position: "absolute", inset: 0 }}>
                       <ProductCard item={nextLeftItem} />
@@ -1302,7 +1363,7 @@ export default function LuxuryLandingPage() {
             </motion.div>
 
             {/* CENTER — entrance: slides down; unchanged in phase 2 */}
-            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
+            <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: colors.card }}>
               <CenterCard reduced={reduced} />
             </motion.div>
 
@@ -1316,7 +1377,7 @@ export default function LuxuryLandingPage() {
                     initial={{ y: "-100%", opacity: 0, filter: "blur(8px)" }}
                     animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
+                    style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: colors.card, minHeight: 0 }}
                   >
                     <div style={{ position: "absolute", inset: 0 }}>
                       <ProductCard item={nextRightItem} />
@@ -1328,7 +1389,7 @@ export default function LuxuryLandingPage() {
               <motion.div
                 layout
                 transition={{ layout: { duration: 0.45, ease: "easeOut" } }}
-                style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card, minHeight: 0 }}
+                style={{ flex: "1 1 0", position: "relative", borderRadius: "24px", overflow: "hidden", background: colors.card, minHeight: 0 }}
               >
                 {!splitTriggered ? (
                   <AnimatePresence mode="popLayout" initial={false}>
@@ -1356,6 +1417,6 @@ export default function LuxuryLandingPage() {
         <LuxJoinSection />
         <LuxFooterBar />
       </div>
-    </>
+    </LuxColorCtx.Provider>
   );
 }
