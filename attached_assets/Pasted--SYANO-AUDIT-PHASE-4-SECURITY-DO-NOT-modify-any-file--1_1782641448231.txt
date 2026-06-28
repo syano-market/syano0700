@@ -1,0 +1,251 @@
+# SYANO AUDIT — PHASE 4: SECURITY
+# ══════════════════════════════════
+# ⛔ DO NOT modify any file
+# ⛔ DO NOT run any command
+# ⛔ DO NOT log, print, or expose any secret values found
+# ✅ READ files only
+# ✅ Create ONE file: docs/audit/phase4-security.md
+# ⚠️ If you find an actual secret value → write REDACTED, never print it
+
+# ══════════════════════════════════════════
+# SYANO SECURITY CONTEXT
+# ══════════════════════════════════════════
+# Auth: JWT HS256 signed with SESSION_SECRET (env var)
+# JWT storage: localStorage (web) + AsyncStorage (mobile)
+# CORS: isReplitOrigin() must allow *.replit.dev + *.replit.app
+# Rate limit: 10 attempts / 15 min per IP (in-memory)
+# Turnstile: TURNSTILE_SECRET_KEY must stay in Replit Secrets only
+# No CSRF protection (JWT Bearer headers, not cookies — acceptable)
+
+# ══════════════════════════════════════════
+# KNOWN SAFE PUBLIC VALUES — DO NOT FLAG
+# ══════════════════════════════════════════
+# GOOGLE_CLIENT_ID: 345038238714-... → public OAuth ID, safe in code
+# TURNSTILE_SITE_KEY: 0x4AAAAAADokmlEQVP2R17Wx → public site key, safe
+# VAPID_PUBLIC_KEY: BFoem7Sa... → public key by design, safe
+# REPLIT_DEV_DOMAIN → Replit env var, not a secret
+
+# ══════════════════════════════════
+# TASK 1 — HARDCODED SECRETS
+# ══════════════════════════════════
+Scan EVERY file in the entire project including:
+- artifacts/marketplace/src/
+- artifacts/api-server/src/
+- artifacts/mobile/
+- lib/
+- Root config files (.env.example, replit.nix, etc.)
+- Any .json config files
+
+Find any hardcoded value that looks like:
+- JWT secret or signing key (random-looking string 32+ chars)
+- Database password embedded in a connection string in code
+- Private API keys (not the known-safe public values above)
+- SESSION_SECRET value hardcoded instead of process.env.SESSION_SECRET
+- TURNSTILE_SECRET_KEY value hardcoded (the secret, not the site key)
+- RESEND_API_KEY hardcoded
+- Any password string that looks real (not a demo placeholder)
+
+DEMO PASSWORDS ARE OK — Do not flag these known demo passwords:
+- 00Amer00, Seller@2026, Courier@2026 — these are demo accounts documented
+
+For each finding:
+---
+SEVERITY: CRITICAL
+TYPE: HARDCODED_SECRET
+FILE: path/to/file.ts
+LINE: 23
+FOUND: SESSION_SECRET = [REDACTED — value present in source code]
+RISK: Secret exposed in version control
+FIX: Use process.env.SESSION_SECRET instead
+---
+
+# ══════════════════════════════════
+# TASK 2 — XSS VULNERABILITIES
+# ══════════════════════════════════
+Scan artifacts/marketplace/src/ and artifacts/mobile/src/
+
+Find:
+A) dangerouslySetInnerHTML usage:
+   Every single instance must be flagged regardless of context
+
+B) Direct DOM manipulation that bypasses React:
+   - document.getElementById('x').innerHTML = userInput
+   - element.innerHTML = someVariable
+   - document.write()
+
+C) URLs from user input used in href or src:
+   Pattern: <a href={userProvidedUrl}> or <img src={userProvidedUrl}>
+   Risk: javascript: protocol XSS if URL not sanitized
+
+D) eval() or new Function() usage anywhere
+
+E) User content rendered from API response without sanitization:
+   Product descriptions, seller descriptions, user names
+   rendered directly without escaping
+   (React auto-escapes JSX text, but dangerouslySetInnerHTML bypasses this)
+
+For each finding:
+---
+SEVERITY: CRITICAL / HIGH
+TYPE: DANGEROUS_INNER_HTML / DOM_INJECT / UNSAFE_URL / EVAL
+FILE: path/to/component.tsx
+LINE: 67
+CODE: <div dangerouslySetInnerHTML={{ __html: product.description }} />
+RISK: XSS if product description contains malicious HTML
+FIX: Use DOMPurify to sanitize before rendering, or render as text
+---
+
+# ══════════════════════════════════
+# TASK 3 — JWT SECURITY
+# ══════════════════════════════════
+Scan artifacts/marketplace/src/ and artifacts/api-server/src/
+
+A) JWT tokens logged to console:
+   console.log with token, jwt, accessToken, or Authorization header
+   CRITICAL — exposes auth tokens in browser console
+
+B) JWT decoded on frontend without verification:
+   Decoding JWT payload (base64 split) to extract user role
+   and making access decisions based on it
+   Risk: Roles can be spoofed by tampering with the decoded payload
+   Note: Frontend CAN decode for display purposes, but
+   backend MUST re-verify the token on every protected route
+
+C) Admin role checks on frontend only:
+   Pattern: if (user.role === 'admin') { showAdminPanel() }
+   with NO corresponding backend check on the API route
+
+D) Token expiry not checked:
+   Auth token stored in localStorage used directly without
+   checking exp claim before making requests
+
+E) In api-server: verify every admin route has auth middleware:
+   Routes in artifacts/api-server/src/routes/admin* that
+   do NOT call the auth verification middleware first
+
+For each finding:
+---
+SEVERITY: CRITICAL / HIGH
+TYPE: JWT_LOGGED / FRONTEND_ONLY_AUTH / MISSING_BACKEND_AUTH
+FILE: path/to/file.ts
+LINE: 45
+CODE: console.log('token:', localStorage.getItem('token'))
+RISK: JWT token exposed in browser developer console
+FIX: Remove console.log containing auth tokens
+---
+
+# ══════════════════════════════════
+# TASK 4 — API INPUT VALIDATION
+# ══════════════════════════════════
+Scan artifacts/api-server/src/routes/
+
+SYANO uses Zod for input validation. Find:
+
+A) Express routes reading req.body WITHOUT Zod parse/safeParse:
+   Pattern: const { name, price } = req.body without validation
+   Risk: Unvalidated user input reaches the database
+
+B) Route params used directly in queries:
+   Pattern: req.params.id used in a DB query without:
+   - parseInt() for numeric IDs
+   - UUID format validation
+   - Or Zod validation
+   Risk: Type confusion attacks
+
+C) File upload routes (if any) without:
+   - File size limits
+   - File type validation (MIME type check)
+   - File extension whitelist
+
+D) Rate limiter bypass risk:
+   SYANO rate limiter is in-memory (10 attempts / 15 min per IP)
+   Find: Any auth route (login, register, password reset) NOT behind
+   the rate limiter middleware
+
+For each finding:
+---
+SEVERITY: HIGH / MEDIUM
+TYPE: MISSING_ZOD_VALIDATION / UNSAFE_PARAM / MISSING_RATE_LIMIT
+FILE: artifacts/api-server/src/routes/auth.ts
+LINE: 89
+CODE: const { email, password } = req.body
+ISSUE: req.body destructured without Zod validation
+RISK: Malformed input reaches auth logic without type checking
+FIX: Add Zod schema.parse(req.body) before destructuring
+---
+
+# ══════════════════════════════════
+# TASK 5 — ENVIRONMENT VARIABLE SECURITY
+# ══════════════════════════════════
+CRITICAL RULE: VITE_* vars are exposed to the browser bundle.
+Non-VITE_ vars are server-only.
+
+A) Scan artifacts/marketplace/src/ for:
+   - import.meta.env.VITE_* usage (these are OK — public by design)
+   - process.env.* usage (WRONG in Vite frontend — must use import.meta.env)
+   - import.meta.env.SESSION_SECRET or any non-VITE_ secret accessed in frontend
+     CRITICAL — server secrets exposed to browser bundle
+
+B) Scan artifacts/api-server/src/ for:
+   - process.env.SESSION_SECRET referenced (GOOD — correct usage)
+   - import.meta.env.* referenced (WRONG — api-server is Node.js, not Vite)
+
+C) Check for PORT env var being set anywhere:
+   SYANO docs: PORT must NOT be set — causes API to bind on 5000
+   Find any file that sets or references process.env.PORT
+   (API_PORT=8080 is correct, PORT= is forbidden)
+
+For each finding:
+---
+SEVERITY: CRITICAL / HIGH / MEDIUM
+TYPE: SECRET_IN_FRONTEND / WRONG_ENV_API / FORBIDDEN_PORT_VAR
+FILE: path/to/file.ts
+LINE: 12
+CODE: const secret = import.meta.env.SESSION_SECRET
+RISK: Server secret exposed in browser JavaScript bundle
+FIX: SESSION_SECRET must only be in api-server, never in marketplace
+---
+
+# ══════════════════════════════════
+# OUTPUT FORMAT
+# ══════════════════════════════════
+Save to: docs/audit/phase4-security.md
+
+# Phase 4 — Security Audit
+
+## 🚨 Critical Findings (Fix Immediately)
+[All CRITICAL severity findings listed first]
+
+## Summary
+| Task | Critical | High | Medium |
+|------|----------|------|--------|
+| Hardcoded Secrets | X | X | X |
+| XSS Vulnerabilities | X | X | X |
+| JWT Security | X | X | X |
+| Input Validation | X | X | X |
+| Env Var Security | X | X | X |
+| TOTAL | X | X | X |
+
+## Task 1 — Hardcoded Secrets
+[findings — all secret VALUES written as REDACTED]
+
+## Task 2 — XSS Vulnerabilities
+[findings]
+
+## Task 3 — JWT Security
+[findings]
+
+## Task 4 — Input Validation
+[findings]
+
+## Task 5 — Environment Variables
+[findings]
+
+# ════════════════════════════════
+# ANTI-HALLUCINATION RULES
+# ════════════════════════════════
+- NEVER write a secret value in the report — always REDACTED
+- NEVER flag the known-safe public values listed above
+- Only flag what you ACTUALLY see in the code
+- If unsure whether something is a real secret → flag as UNCERTAIN
+- One real security finding is worth more than ten guessed ones
