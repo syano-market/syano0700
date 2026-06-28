@@ -8,7 +8,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "wouter";
@@ -314,7 +314,6 @@ const PHASE1_END_MS =
 ═══════════════════════════════════════════════════════════════════════════*/
 
 function ProductCard({ item }: { item: StackItem }) {
-  const { t } = useTranslation();
   return (
     <div style={{ position: "absolute", inset: 0, borderRadius: "inherit", overflow: "hidden" }}>
       <img src={item.imageUrl} alt="" aria-hidden="true" fetchPriority="high" decoding="async"
@@ -322,21 +321,11 @@ function ProductCard({ item }: { item: StackItem }) {
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 38%)", borderRadius: "inherit" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 42%, transparent 72%)", borderRadius: "inherit" }} />
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 70% 40% at 50% 0%, ${item.accent}22 0%, transparent 65%)`, pointerEvents: "none", borderRadius: "inherit" }} />
-      <div style={{ position: "absolute", top: "clamp(0.75rem,2vw,1.25rem)", insetInlineStart: "clamp(0.75rem,2vw,1.25rem)" }}>
-        <span style={{ fontFamily: F.sans, fontSize: "0.68rem", fontWeight: 500, padding: "0.3rem 0.85rem", borderRadius: "9999px", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", color: C.white, border: "1px solid rgba(255,255,255,0.25)", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
-          {t(item.badge)}
-        </span>
-      </div>
-      <div style={{ position: "absolute", bottom: "clamp(0.75rem,2vw,1.25rem)", insetInlineStart: "clamp(0.75rem,2vw,1.25rem)", insetInlineEnd: "clamp(0.75rem,2vw,1.25rem)" }}>
-        <p style={{ fontFamily: F.naskh, fontSize: "clamp(0.9rem,1.6vw,1.15rem)", fontWeight: 700, color: C.white, lineHeight: 1.4, margin: 0, textShadow: "0 1px 8px rgba(0,0,0,0.6)" }}>{t(item.label)}</p>
-        <p style={{ fontFamily: F.sans, fontSize: "clamp(0.62rem,1vw,0.78rem)", color: "rgba(255,255,255,0.72)", lineHeight: 1.5, margin: 0, marginTop: "0.2rem" }}>{t(item.sublabel)}</p>
-      </div>
     </div>
   );
 }
 
-const CenterCard = memo(function CenterCard({ reduced, onShop, onSell }: { reduced: boolean; onShop: () => void; onSell: () => void }) {
-  const { t } = useTranslation();
+const CenterCard = memo(function CenterCard({ reduced }: { reduced: boolean }) {
   const [imgIdx, setImgIdx] = useState(0);
 
   useEffect(() => {
@@ -346,7 +335,7 @@ const CenterCard = memo(function CenterCard({ reduced, onShop, onSell }: { reduc
   }, [reduced]);
 
   return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "clamp(1.25rem,3vw,2rem)", borderRadius: "inherit" }}>
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", borderRadius: "inherit" }}>
 
       {/* Cinematic background image cross-fade */}
       <AnimatePresence>
@@ -365,48 +354,11 @@ const CenterCard = memo(function CenterCard({ reduced, onShop, onSell }: { reduc
         />
       </AnimatePresence>
 
-      {/* Dark cinematic gradient — locks text contrast */}
+      {/* Dark cinematic gradient */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(8,3,24,0.56) 44%, rgba(4,1,14,0.90) 100%)", pointerEvents: "none", borderRadius: "inherit" }} />
 
       {/* Purple spectral glow */}
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 72% 52% at 50% 40%, ${C.purpleGlow} 0%, transparent 66%)`, pointerEvents: "none", borderRadius: "inherit", opacity: 0.44 }} />
-
-      {/* Badge */}
-      <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>
-        <span style={{ fontFamily: F.sans, fontSize: "0.7rem", fontWeight: 500, padding: "0.35rem 1rem", borderRadius: "9999px", background: C.purpleAlpha, color: "#C4B5FD", border: `1px solid ${C.purple}42` }}>
-          🇸🇾 {t("lux.center.badge")}
-        </span>
-      </div>
-
-      {/* Title + tagline + slide indicator dots */}
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "1rem" }}>
-        <motion.h1
-          animate={reduced ? {} : { scale: [1, 1.025, 1] }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          style={{ fontFamily: F.naskh, fontSize: "clamp(2rem,4.5vw,4rem)", fontWeight: 700, color: C.white, lineHeight: 1.15, textShadow: `0 0 90px ${C.purple}80`, margin: 0, willChange: "transform" }}>
-          {t("lux.center.title")}
-        </motion.h1>
-        <p style={{ fontFamily: F.sans, fontSize: "clamp(0.7rem,1.1vw,0.9rem)", color: C.muted, maxWidth: "26ch", lineHeight: 1.75, margin: 0 }}>
-          {t("lux.center.tagline")}
-        </p>
-        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          {CENTER_SLIDE_IMAGES.map((_, i) => (
-            <div key={i} style={{ width: i === imgIdx ? 22 : 7, height: 2, borderRadius: 9999, background: i === imgIdx ? C.purple : C.dimmed, transition: "width 0.4s ease" }} />
-          ))}
-        </div>
-      </div>
-
-      {/* CTA buttons */}
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.65rem" }}>
-        <motion.button onClick={onShop} whileHover={reduced ? {} : { scale: 1.04 }} whileTap={reduced ? {} : { scale: 0.96 }}
-          style={{ fontFamily: F.sans, fontSize: "0.85rem", fontWeight: 600, padding: "0.75rem 2rem", borderRadius: "9999px", background: C.green, color: C.white, width: "100%", maxWidth: "220px" }}>
-          {t("lux.center.cta_shop")}
-        </motion.button>
-        <motion.button onClick={onSell} whileHover={reduced ? {} : { scale: 1.03 }} whileTap={reduced ? {} : { scale: 0.97 }}
-          style={{ fontFamily: F.sans, fontSize: "0.82rem", fontWeight: 500, padding: "0.65rem 1.75rem", borderRadius: "9999px", background: "transparent", color: C.dimmed, border: `1px solid ${C.border}`, width: "100%", maxWidth: "220px" }}>
-          {t("lux.center.cta_sell")}
-        </motion.button>
-      </div>
     </div>
   );
 });
@@ -1208,7 +1160,6 @@ const LuxFooterBar = memo(function LuxFooterBar() {
 ═══════════════════════════════════════════════════════════════════════════*/
 export default function LuxuryLandingPage() {
   const reduced = useReducedMotion() ?? false;
-  const [, navigate] = useLocation();
 
   /* Hero carousel state */
   const [leftIdx,  setLeftIdx]  = useState(0);
@@ -1269,8 +1220,6 @@ export default function LuxuryLandingPage() {
   const nextLeftItem  = LEFT_STACK[(leftIdx + 1) % LEFT_STACK.length];
   const nextRightItem = RIGHT_STACK[(rightIdx + 1) % RIGHT_STACK.length];
 
-  const onShop = useCallback(() => navigate("/shop"),         [navigate]);
-  const onSell = useCallback(() => navigate("/seller/apply"), [navigate]);
 
   return (
     <>
@@ -1352,7 +1301,7 @@ export default function LuxuryLandingPage() {
 
             {/* CENTER — entrance: slides down; unchanged in phase 2 */}
             <motion.div variants={bannerVariant} style={{ position: "relative", borderRadius: "24px", overflow: "hidden", background: C.card }}>
-              <CenterCard reduced={reduced} onShop={onShop} onSell={onSell} />
+              <CenterCard reduced={reduced} />
             </motion.div>
 
             {/* RIGHT — phase 1: slides down; phase 2: real flex split into two independent cards */}

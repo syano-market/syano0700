@@ -1,0 +1,231 @@
+# SYANO HOMEPAGE HERO CLEANUP + SIMPLIFICATION
+
+# ═══════════════════════════════════════════════
+
+# IMPORTANT RULES
+
+# ⛔ Do NOT redesign the homepage
+
+# ⛔ Do NOT change spacing, layout, sizes, animations, colors, images, cards, grid or responsiveness
+
+# ⛔ Do NOT modify navbar, category strips, products, trust bars or any section below the hero
+
+# ⛔ Do NOT create new hero components
+
+# ⛔ Do NOT migrate to another hero implementation
+
+# ✅ Modify ONLY the currently active homepage hero
+
+# ✅ Keep exact same visual layout except for removing overlay content
+
+# ═══════════════════════════════════════════════
+
+# STEP 1 — FIND THE REAL ACTIVE HOMEPAGE
+
+# ═══════════════════════════════════════════════
+
+Locate the exact component currently rendered on route "/".
+
+Trace:
+App.tsx
+→ homepage route
+→ imported component
+→ actual rendered component
+
+The expected active component is:
+
+LuxuryLanding.tsx
+
+Verify this before making any change.
+
+If another component is actually used, STOP and report it.
+
+# ═══════════════════════════════════════════════
+
+# STEP 2 — REMOVE DEAD HERO COMPONENTS
+
+# ═══════════════════════════════════════════════
+
+Find all hero components that are no longer used anywhere in the project.
+
+Examples may include:
+
+* HeroV1
+* HeroV2
+* HeroV3
+* HeroV4
+* HeroSection
+* MarketplaceHero
+* LegacyLanding
+* Any old homepage variants
+
+For every candidate:
+
+1. Verify using project-wide import search.
+2. Verify it is not imported dynamically.
+3. Verify it is not referenced by lazy() imports.
+4. Verify it is not used by mobile.
+5. Verify it is not referenced by Storybook/tests.
+
+If usage count = 0:
+→ delete it completely.
+
+Output:
+
+UNUSED COMPONENT:
+path/to/component.tsx
+IMPORT COUNT: 0
+ACTION: Deleted
+
+Do NOT delete LuxuryLanding.tsx.
+
+# ═══════════════════════════════════════════════
+
+# STEP 3 — HERO CONTENT REMOVAL
+
+# ═══════════════════════════════════════════════
+
+Inside LuxuryLanding.tsx:
+
+Remove ALL overlay content rendered above hero banners/images.
+
+Remove:
+
+* Titles
+* Headlines
+* Subtitles
+* Descriptions
+* CTA buttons
+* Shop buttons
+* Start Shopping buttons
+* Join Seller buttons
+* Platform labels
+* Category badges
+* Country badges
+* City badges
+* Slide indicators
+* Pagination dots
+* Statistics
+* Floating labels
+* Chips
+* Any text rendered over images
+
+The final result:
+
+Image only.
+Pure photography.
+No text.
+No buttons.
+No overlays.
+
+# ═══════════════════════════════════════════════
+
+# EXPECTED VISUAL RESULT
+
+# ═══════════════════════════════════════════════
+
+Current:
+
+[Image]
+SYANO Platform
+Industrial luxury...
+[Start Shopping]
+[Become Seller]
+[pagination dots]
+
+Desired:
+
+[Image only]
+
+Current side cards:
+
+[Image]
+Damascus Textiles
+natural silk...
+[Silk badge]
+
+Desired:
+
+[Image only]
+
+Current perfume card:
+
+[Image]
+Oriental Perfumes
+oud & rose
+[Syria badge]
+
+Desired:
+
+[Image only]
+
+Every banner becomes:
+
+ONLY IMAGE
+NOTHING ELSE
+
+# ═══════════════════════════════════════════════
+
+# STEP 4 — PRESERVE EVERYTHING ELSE
+
+# ═══════════════════════════════════════════════
+
+Do NOT change:
+
+* Card positions
+* Card sizes
+* Border radius
+* Aspect ratios
+* Animations
+* Hover effects
+* Image loading
+* Carousel timing
+* Grid layout
+* Responsive behavior
+* Mobile layout
+* Performance optimizations
+* Lazy loading
+
+Only remove overlay content.
+
+# ═══════════════════════════════════════════════
+
+# STEP 5 — VALIDATION
+
+# ═══════════════════════════════════════════════
+
+After changes verify:
+
+Desktop:
+✅ Hero renders correctly
+✅ No text remains
+✅ No buttons remain
+✅ No empty containers remain
+✅ No layout shifts
+✅ No spacing gaps
+
+Mobile:
+✅ Hero still responsive
+✅ No overflow
+✅ No clipping
+✅ Grid intact
+
+Build:
+✅ TypeScript passes
+✅ No unused imports remain
+✅ No compile errors
+✅ No dead code remains
+
+# ═══════════════════════════════════════════════
+
+# FINAL OUTPUT
+
+# ═══════════════════════════════════════════════
+
+Provide:
+
+1. Active homepage component path
+2. Deleted unused hero components
+3. Elements removed from LuxuryLanding.tsx
+4. Confirmation that only overlays were removed
+5. Confirmation that no layout or styling changed
