@@ -1,0 +1,59 @@
+TASK: Change the navbar background on the homepage ("luxury-landing.tsx") to use the site's primary green accent color (not the page background) — in both light and dark mode. The page background itself (separate from the navbar) must still match the rest of the site, per the prior task's work — that part is unchanged here.
+
+STRICT RULE: Do not add any new UI control. Do not invent any new color value. The green used must be the exact existing token already established as the site's PRIMARY accent/brand color (not just any green found somewhere, and not a new shade) — re-verify this is genuinely "the" primary green, not a secondary/hover-only variant.
+
+═══════════════════════════════════════
+STEP 1 — CONFIRM THE SITE'S PAGE-BACKGROUND TOKENS (BOTH THEMES) — UNCHANGED FROM PRIOR TASK, RE-VERIFY ONLY
+═══════════════════════════════════════
+1. Open 2-3 pages outside the homepage and record the exact page background color/token used in dark mode and light mode, with file + line references, cross-checked against the global CSS file (e.g. index.css :root tokens) and/or Tailwind config.
+2. Confirm the homepage's `C.bg` (dark) and `CL.bg` (light) already match these (per the prior task) — if they've drifted or were not actually applied correctly, fix that first before proceeding.
+
+═══════════════════════════════════════
+STEP 2 — CONFIRM WHICH GREEN IS THE SITE'S ACTUAL "PRIMARY" COLOR
+═══════════════════════════════════════
+1. From the green token(s) already identified in earlier tasks, determine specifically which one functions as the site's PRIMARY brand/accent color (typically used for main CTAs, primary buttons, key brand moments) as opposed to a secondary, hover-only, or subtle-highlight shade. Check at least 2-3 other pages to see which green appears on their main call-to-action buttons or most prominent brand element — that is the primary one to use here.
+2. Record this token's exact value/name with file + line reference.
+3. IMPORTANT — CHECK FOR A CONSISTENCY CONFLICT: check whether the navbar (or header/topbar) on those same other pages outside the homepage already uses this primary green as ITS background, or whether those other navbars use a different background (e.g. the page background, as the homepage navbar was just changed to in the prior task). Report this clearly:
+   - If other pages' navbars are ALSO already green-background: this change makes the homepage consistent with them — proceed normally.
+   - If other pages' navbars are NOT green-background (e.g. they use the page background or some other color): explicitly flag that this change will make the homepage's navbar visually DIFFERENT from the rest of the site's navbars, which contradicts the consistency goal from the prior task. State this clearly in your report as a known tradeoff, but proceed with the green navbar as explicitly requested for the homepage specifically — this is a deliberate homepage-only design choice, not a site-wide consistency fix.
+
+═══════════════════════════════════════
+STEP 3 — APPLY THE PRIMARY GREEN TO THE NAVBAR BACKGROUND
+═══════════════════════════════════════
+1. Find every place the navbar's background was set to match the page background (per the prior task) — both the dark-mode (`C`) and light-mode (`CL`) navbar background values — and replace both with the primary green token from Step 2.
+2. Determine whether this green should be IDENTICAL in both light and dark mode (a fixed brand color that doesn't change with theme) or whether the site's existing primary green already has distinct light/dark variants elsewhere — check Step 2's source pages for this and follow whatever pattern already exists there, rather than assuming.
+3. Update the navbar's text, icon, and CTA-button colors as needed so they remain legible against this new solid green background, in both themes — reuse whatever existing token combination (e.g. white text/icons) is already used elsewhere on the site wherever a green background appears with text on top of it (check those same reference pages for this exact pairing rather than choosing a new one).
+
+═══════════════════════════════════════
+STEP 4 — RE-CHECK HERO-IMAGERY LEGIBILITY WITH THE NEW SOLID GREEN NAVBAR
+═══════════════════════════════════════
+1. Since the navbar will now have a solid, opaque green background (no longer blending with the page or relying on the hero's image overlay), confirm whether this resolves the earlier legibility concern raised in the prior task about the navbar sitting over hero imagery — a solid green bar should no longer need the hero's dark gradient overlay for the navbar specifically (the overlay may still be needed for OTHER text directly on the hero images, just not for the navbar itself anymore). Confirm this clearly rather than assuming.
+2. Confirm WCAG AA contrast (4.5:1 text, 3:1 icons/large elements) for the navbar's logo, icon buttons, and CTA button against the new green background, in both themes.
+
+═══════════════════════════════════════
+STEP 5 — RESPONSIVENESS + VISUAL VERIFICATION
+═══════════════════════════════════════
+1. Check the full homepage at 375px, 768px, 1024px, 1440px, in both dark and light mode (8 total checks).
+2. At each combination, confirm: the navbar shows the correct solid primary-green background with no leftover old background bleeding through at any breakpoint, all navbar elements remain legible and properly contrasted, the page background below the navbar is correctly unaffected by this change (still matching the rest of the site per the prior task), no visual regression elsewhere from this change.
+3. Take screenshots at each of the 8 combinations, review them yourself, and fix any issue found before declaring success.
+
+═══════════════════════════════════════
+CONSTRAINTS
+═══════════════════════════════════════
+- Scope entirely to the web marketplace homepage (artifacts/marketplace) — do not modify artifacts/mobile.
+- Do not change the light/dark mode mechanism (`LuxColorCtx`, `useTheme().resolvedTheme`) — only the navbar background color VALUE and any text/icon colors needed for legibility against it.
+- Do not change the hero animation's timing/choreography — color-only changes.
+- Do not add any new UI element/control.
+- Do not modify SYANO_MASTER_RECOVERY.md in this task.
+- Run the marketplace TypeScript check (npx tsc --noEmit -p artifacts/marketplace/tsconfig.json) and confirm 0 errors before finishing.
+
+When finished, report:
+1. The exact primary-green token confirmed in Step 2, with file/line reference, and how it was distinguished from any secondary/hover-only green.
+2. Whether a consistency conflict was found (other pages' navbars NOT being green) — stated clearly either way.
+3. Whether the green is fixed across both themes or has theme-specific variants, and which pattern was followed.
+4. Confirmation of text/icon color choices for legibility, with the existing reference pairing they were copied from.
+5. Confirmation the hero-imagery overlay concern from the prior task is now resolved by the solid navbar background (or not, if still relevant for other elements).
+6. Contrast-ratio confirmation for navbar elements against the new green, both themes.
+7. The 8 responsiveness screenshots' results — any issues found and how fixed.
+8. TypeScript check result.
+9. Commit with a clear message.
