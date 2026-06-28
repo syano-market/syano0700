@@ -1,0 +1,256 @@
+# SYANO AUDIT — PHASE 3: PERFORMANCE
+# ════════════════════════════════════
+# ⛔ DO NOT modify any file
+# ⛔ DO NOT run any command
+# ✅ READ files only
+# ✅ Create ONE file: docs/audit/phase3-performance.md
+
+# ══════════════════════════════════════════
+# SYANO PERFORMANCE CONTEXT
+# ══════════════════════════════════════════
+# Framework: React 19 + Vite 7
+# State: TanStack Query v5 (useQuery, useMutation)
+# Router: Wouter
+# Products: 42 items rendered in grids
+# Search: 13-step NLP pipeline with LRU 500-entry cache
+# Maps: Leaflet (auto-protected — skip map components)
+# Mobile: Expo 54 + React Native
+
+# ══════════════════════════════════
+# AUTO-SKIP THESE FILES
+# ══════════════════════════════════
+# TrackingMap.tsx, LocationMapModal.tsx, CourierMapClustered.tsx
+# sw.js, map-hardening.ts
+# All files in lib/, embedding-service/
+
+# ══════════════════════════════════
+# TASK 1 — RE-RENDER CAUSES
+# ══════════════════════════════════
+Scan artifacts/marketplace/src/components/ and pages/
+
+Find:
+
+A) Inline object creation in JSX props:
+   Pattern: style={{ padding: 16, color: 'red' }} inside render function
+   Why bad: Creates new object reference every render → child re-renders
+   EXCEPT: One-off static pages where no children receive this as prop
+
+B) Inline array creation in JSX props:
+   Pattern: items={[a, b, c]} or tabs={['Home', 'Shop']} inside render
+   Why bad: New array reference every render
+
+C) Inline callback functions passed as props:
+   Pattern: onClick={() => handleClick(item.id)} inside a list of items
+   Why bad: New function every render → breaks React.memo on children
+   ONLY flag when inside a list rendering 10+ items (product grids etc.)
+
+D) Context providers creating new value objects every render:
+   Pattern: <MyContext.Provider value={{ user, setUser, isLoading }}>
+   Why bad: Every consumer re-renders on every parent render
+   Look for this in: AuthContext, ThemeContext, CartContext, any Provider
+
+E) Components in product/order lists not wrapped in React.memo:
+   SYANO renders 42 products in grids — list item components
+   that are NOT React.memo wrapped cause full list re-renders
+
+For each finding:
+---
+TYPE: INLINE_OBJECT / INLINE_ARRAY / INLINE_CALLBACK / CONTEXT_VALUE / MISSING_MEMO
+FILE: artifacts/marketplace/src/components/ProductGrid.tsx
+LINE: 34
+CODE: <ProductCard style={{ margin: 8 }} onClick={() => nav(id)} />
+ISSUE: Inline object + inline callback inside 42-item list
+IMPACT: Every product grid interaction re-renders all 42 cards
+FIX_DIRECTION: Extract style constant outside component,
+               wrap onClick in useCallback
+PRIORITY: HIGH
+---
+
+# ══════════════════════════════════
+# TASK 2 — TANSTACK QUERY PATTERNS
+# ══════════════════════════════════
+Scan all files using useQuery, useMutation, useQueryClient.
+
+A) Missing staleTime:
+   Pattern: useQuery({ queryKey: [...], queryFn: ... })
+            with NO staleTime configured
+   Why bad: Refetches on every window focus (user switches tabs → refetch)
+   SYANO impact: Products, categories, search all refetch unnecessarily
+
+B) useQuery inside a loop or conditional:
+   Pattern: items.map(item => useQuery(...)) — RULES OF HOOKS VIOLATION
+   Or: if (condition) { useQuery(...) } — also a violation
+
+C) Duplicate query keys:
+   Same queryKey used in 2+ different useQuery calls fetching different data
+   This causes cache collisions
+
+D) Mutations not invalidating cache:
+   Pattern: useMutation where onSuccess does NOT call
+            queryClient.invalidateQueries()
+   Why bad: UI shows stale data after mutation succeeds
+   Check especially: product create/edit, order status updates,
+                     seller application approve/reject
+
+E) Missing error handling on queries:
+   useQuery calls where isError state is not handled
+   (no error UI shown to user when query fails)
+
+For each finding:
+---
+TYPE: MISSING_STALETIME / HOOK_IN_LOOP / DUPLICATE_KEY /
+      MISSING_INVALIDATE / MISSING_ERROR_HANDLING
+FILE: path/to/file.tsx
+LINE: 56
+CODE: useQuery({ queryKey: ['products'], queryFn: getProducts })
+ISSUE: No staleTime — refetches on every window focus
+FIX_DIRECTION: Add staleTime: 60_000 (60 seconds minimum)
+PRIORITY: MEDIUM / HIGH
+---
+
+# ══════════════════════════════════
+# TASK 3 — BUNDLE BLOAT (VITE 7)
+# ══════════════════════════════════
+Scan artifacts/marketplace/src/
+
+A) Barrel imports from component folders:
+   Pattern: import { A, B, C } from '../components'
+            import { X, Y } from '../hooks'
+   Why bad: Vite cannot tree-shake barrel exports efficiently
+            Pulls entire folder into the chunk
+   Correct: import A from '../components/A'
+
+B) Full library imports when partial would work:
+   - import _ from 'lodash' (use import { debounce } from 'lodash')
+   - import * as Icons from 'lucide-react' (import individual icons)
+   - import moment from 'moment' (check if used for simple formatting)
+
+C) Heavy pages NOT using dynamic import (lazy loading):
+   These pages are large and should be lazy-loaded in Vite:
+   - /admin/* pages (admin panel)
+   - /seller/analytics
+   - /courier/dashboard
+   Pattern to find: direct import AdminPage from './pages/AdminPage'
+   Should be: const AdminPage = lazy(() => import('./pages/AdminPage'))
+
+D) Images imported as static assets in component files:
+   Pattern: import heroImage from '../assets/hero.png'
+   Why bad: Bundled into JS instead of Vite's optimized asset pipeline
+   Correct: Use public/ folder or Vite's ?url import syntax
+
+For each finding:
+---
+TYPE: BARREL_IMPORT / FULL_LIBRARY / MISSING_LAZY / STATIC_IMAGE
+FILE: artifacts/marketplace/src/App.tsx
+LINE: 15
+CODE: import AdminDashboard from './pages/admin/Dashboard'
+ISSUE: Heavy admin page not lazy-loaded — bloats initial bundle
+FIX_DIRECTION: const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+PRIORITY: MEDIUM
+---
+
+# ══════════════════════════════════
+# TASK 4 — SEARCH PERFORMANCE
+# ══════════════════════════════════
+SYANO has a 13-step NLP search pipeline with LRU 500-entry cache.
+Read: artifacts/api-server/src/lib/searchCache.ts
+
+Verify:
+- MAX_SIZE constant is 500 (as documented)
+- LRU eviction uses doubly-linked list + Map (O(1) operations)
+- NOT replaced with a plain Map or simple array
+
+Read: artifacts/marketplace/src/ search components
+Find:
+- Search input that triggers API call on EVERY keystroke (no debounce)
+  Correct: debounce of 300ms minimum before calling search API
+- Search state that causes the entire page to re-render on each keystroke
+- Missing loading state while search is in progress
+
+For each finding:
+---
+TYPE: MISSING_DEBOUNCE / SEARCH_RERENDER / CACHE_SIZE_WRONG
+FILE: path/to/SearchBar.tsx
+LINE: 45
+ISSUE: onChange calls search API immediately without debounce
+IMPACT: 13-step NLP pipeline triggered on every single keystroke
+FIX_DIRECTION: Wrap search call in debounce(300) or useDeferredValue
+PRIORITY: HIGH
+---
+
+# ══════════════════════════════════
+# TASK 5 — EXPO MOBILE PERFORMANCE
+# ══════════════════════════════════
+Scan artifacts/mobile/app/ and artifacts/mobile/src/
+
+A) ScrollView rendering full 42-product list:
+   Pattern: <ScrollView> containing a .map() over products array
+   Should be: <FlatList> with keyExtractor and renderItem
+   Why: ScrollView renders ALL items at once, FlatList virtualizes
+
+B) Missing keyExtractor on lists:
+   Pattern: <FlatList data={...} renderItem={...}> with no keyExtractor
+   Causes React Native warnings and slower reconciliation
+
+C) Unnecessary full re-renders on navigation:
+   Screen components not wrapped in React.memo where they receive
+   static props but re-render on every parent navigation event
+
+D) Heavy operations on the JS thread:
+   - Synchronous JSON.parse of large datasets in component body
+   - Image processing without InteractionManager.runAfterInteractions
+
+For each finding:
+---
+TYPE: SCROLLVIEW_INSTEAD_FLATLIST / MISSING_KEY /
+      MISSING_MEMO / JS_THREAD_BLOCK
+FILE: artifacts/mobile/app/screens/ProductList.tsx
+LINE: 23
+CODE: <ScrollView>{products.map(p => <ProductCard key={p.id} />)}</ScrollView>
+ISSUE: ScrollView renders all 42 products simultaneously
+FIX_DIRECTION: Replace with FlatList virtualizes rendering
+PRIORITY: HIGH
+---
+
+# ══════════════════════════════════
+# OUTPUT FORMAT
+# ══════════════════════════════════
+Save to: docs/audit/phase3-performance.md
+
+# Phase 3 — Performance Audit
+
+## Summary
+| Task | Findings | High | Medium | Low |
+|------|----------|------|--------|-----|
+| Re-render Causes | X | X | X | X |
+| TanStack Query | X | X | X | X |
+| Bundle Bloat | X | X | X | X |
+| Search Performance | X | X | X | X |
+| Mobile Performance | X | X | X | X |
+| TOTAL | X | X | X | X |
+
+## Top 5 Highest Impact Fixes
+[List top 5 findings by performance impact]
+
+## Task 1 — Re-render Causes
+[findings]
+
+## Task 2 — TanStack Query
+[findings]
+
+## Task 3 — Bundle Bloat
+[findings]
+
+## Task 4 — Search Performance
+[findings]
+
+## Task 5 — Mobile Performance
+[findings]
+
+# ════════════════════════════════
+# ANTI-HALLUCINATION RULES
+# ════════════════════════════════
+- Only report patterns you ACTUALLY see in the code
+- If you see useQuery but cannot read staleTime clearly → UNCERTAIN: skip
+- Never assume a component is missing React.memo without reading the file
+- Never assume an import is a barrel import without reading the index file
