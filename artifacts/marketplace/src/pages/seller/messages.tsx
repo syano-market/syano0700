@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { MessageCircle } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
+import { LuxuryNavbar } from "@/components/LuxuryNavbar";
 import { SellerNav } from "@/components/SellerNav";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,8 @@ export default function SellerMessagesPage() {
       className="flex flex-col overflow-hidden bg-background text-foreground"
       style={{ height: "100dvh" }}
     >
-      <Navbar />
+      <LuxuryNavbar />
+      <div style={{ height: "var(--navbar-height)", flexShrink: 0 }} aria-hidden="true" />
       <SellerNav />
       <main className="flex-1 overflow-hidden flex flex-col min-w-0 min-h-0">
         <div className="flex-1 overflow-hidden flex flex-col p-4 min-h-0 max-w-6xl mx-auto w-full">

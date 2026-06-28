@@ -1,0 +1,109 @@
+TASK: Replace the old Navbar with LuxuryNavbar across the entire web app.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 1 — FIND THE LAYOUT / APP ROOT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Open these files and find where <Navbar /> is rendered:
+  artifacts/marketplace/src/App.tsx
+  artifacts/marketplace/src/main.tsx
+  artifacts/marketplace/src/components/Layout.tsx  (if it exists)
+  artifacts/marketplace/src/pages/Layout.tsx        (if it exists)
+
+The old Navbar is imported like:
+  import { Navbar } from "@/components/Navbar"
+  or
+  import Navbar from "@/components/Navbar"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 2 — REPLACE THE IMPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+In every file found in STEP 1:
+
+REMOVE:
+  import { Navbar } from "@/components/Navbar"
+
+ADD:
+  import { LuxuryNavbar } from "@/components/LuxuryNavbar"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 3 — REPLACE THE JSX TAG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+In every file found in STEP 1:
+
+REMOVE:
+  <Navbar />
+
+ADD:
+  <LuxuryNavbar />
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 4 — SEARCH FOR ANY OTHER DIRECT IMPORT OF Navbar
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Run a search across the entire marketplace src folder:
+  grep -r "from.*components/Navbar" artifacts/marketplace/src/
+  grep -r "<Navbar" artifacts/marketplace/src/
+
+For every result found:
+  - Replace the import with LuxuryNavbar
+  - Replace the JSX tag <Navbar /> with <LuxuryNavbar />
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 5 — HANDLE THE SPACER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LuxuryNavbar is position: fixed — it floats above the page.
+Every page needs a top spacer so content doesn't hide under it.
+
+Check the layout wrapper that wraps all pages.
+If there is a single layout wrapper, add the spacer ONCE there:
+
+  <LuxuryNavbar />
+  <div style={{ height: "3.75rem" }} aria-hidden="true" />
+  <main>...</main>
+
+If pages manage their own layout (no shared wrapper),
+check if each page already has padding-top or a spacer.
+The homepage (luxury-landing.tsx) already has its spacer
+from the previous fix — do NOT add a second one there.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 6 — DELETE THE OLD NAVBAR FILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Only after confirming zero TypeScript errors:
+
+  Delete: artifacts/marketplace/src/components/Navbar.tsx
+
+If any file still imports from Navbar.tsx after deletion,
+TypeScript will throw an error — fix that import first,
+then delete.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STEP 7 — TYPESCRIPT CHECK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+After all changes:
+
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+
+Must return: 0 errors
+If errors appear → fix them before finishing.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DO NOT CHANGE:
+  - LuxuryNavbar.tsx logic or styles
+  - Any API routes or backend files
+  - Database schema
+  - The 4 workflows
+  - PORT or API_PORT environment variables
+  - Mobile app (artifacts/mobile/)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFY:
+  1. Open / (homepage)       → LuxuryNavbar visible, dark charcoal
+  2. Open /shop              → same LuxuryNavbar
+  3. Open /cart              → same LuxuryNavbar
+  4. Open /categories        → same LuxuryNavbar
+  5. Open /login             → same LuxuryNavbar
+  6. Open /seller/dashboard  → same LuxuryNavbar
+  7. Open /admin             → same LuxuryNavbar
+  8. No page shows the old green Navbar
+  9. No TypeScript errors
+  10. All navbar buttons work on all pages

@@ -107,7 +107,6 @@
    3.75rem = 60px at 16px root, ≈ 54px at 14.4px (1280px viewport).
    4rem    = 64px at 16px root, ≈ 57.6px at 14.4px (1280px viewport). */
 :root { --navbar-height: 3.75rem; }
-@media (min-width: 768px) { :root { --navbar-height: 4rem; } }
 
 /* ── Fluid small-label font sizes ────────────────────────────────────
    These clamp values ensure small badge/label text scales with the

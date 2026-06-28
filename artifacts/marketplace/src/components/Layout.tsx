@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Navbar } from "./Navbar";
+import { LuxuryNavbar } from "./LuxuryNavbar";
 import { HomeFooter } from "./HomeSections/HomeFooter";
 
 interface LayoutProps {
@@ -19,7 +19,7 @@ export function Layout({ children, hideFooter = false }: LayoutProps) {
       >
         {t("nav.skip_to_content")}
       </a>
-      <Navbar />
+      <LuxuryNavbar />
       <main id="main-content" role="main" tabIndex={-1} className="grow w-full min-w-0 overflow-x-hidden outline-none" style={{ paddingTop: "var(--navbar-height)" }}>
         {children}
       </main>

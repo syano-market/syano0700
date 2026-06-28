@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { MessageCircle, Bot, ChevronRight, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
-import { Navbar } from "@/components/Navbar";
+import { LuxuryNavbar } from "@/components/LuxuryNavbar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "wouter";
@@ -30,7 +30,8 @@ export default function MessagesPage() {
       className="flex flex-col overflow-hidden bg-background text-foreground"
       style={{ height: "100dvh" }}
     >
-      <Navbar />
+      <LuxuryNavbar />
+      <div style={{ height: "var(--navbar-height)", flexShrink: 0 }} aria-hidden="true" />
       <main className="flex-1 overflow-hidden flex flex-col min-w-0 min-h-0">
         <div className="flex-1 overflow-hidden flex flex-col p-4 min-h-0 max-w-6xl mx-auto w-full">
           <div className="flex items-center justify-between mb-3 shrink-0">
