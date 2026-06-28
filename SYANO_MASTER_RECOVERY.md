@@ -902,7 +902,7 @@ This section is permanent and must be kept current as dead ends are resolved or 
 | Location | Element | Status |
 |---|---|---|
 | `/loyalty` | "Join Now" for logged-in users | Links exist but no loyalty account is created |
-| `/wishlist` | Heart icon on product cards | localStorage only — **not synced to DB** for logged-in users. Clearing browser storage loses all items. `wishlists` table exists in DB but is not used by the web wishlist feature. |
+| `/wishlist` | Heart icon on product cards | ✅ DB-synced for logged-in users on web and mobile. Guest items stored in localStorage/AsyncStorage and merged to DB on login. |
 | `/payment-methods` | Credit Card / Mobile Payment cards | Dimmed, labelled "Coming Soon", no `onClick` — acceptable placeholder |
 
 ### Error boundary coverage gaps
@@ -919,7 +919,7 @@ This section is permanent and must be kept current as dead ends are resolved or 
 |---|---|---|---|
 | Loyalty points system | ❌ No table | ✅ Marketing page | ❌ None |
 | Credit card / mobile payment | — | ✅ "Coming Soon" | ❌ None |
-| Wishlist server sync | ✅ `wishlists` table (12 rows demo) | ✅ Heart icon | ❌ Not wired to `/api/wishlist` |
+| Wishlist server sync | ✅ `wishlists` table | ✅ Heart icon | ✅ Fully wired — web (`WishlistContext.tsx`) + mobile (`contexts/WishlistContext.tsx`); guest→DB merge on login |
 | Push notifications | ✅ `push_subscriptions` table | ⚠️ Partial SW wiring | ⚠️ Endpoint exists; end-to-end subscription flow needs verification |
 | Courier safety event reporting | ✅ `mission_safety_events` table | — | ✅ Route exists — verify any UI buttons are wired |
 

@@ -35,7 +35,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     if (isAuthenticated) {
       if (syncedRef.current) return;
       syncedRef.current = true;
-      fetch(`${getBaseUrl()}/wishlist/ids`, { headers: authHeaders(), credentials: "include" })
+      fetch(`${getBaseUrl()}/api/wishlist/ids`, { headers: authHeaders(), credentials: "include" })
         .then((r) => (r.ok ? r.json() : null))
         .then((data: number[] | null) => {
           if (data) setIds(data);
@@ -65,9 +65,9 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     try {
       if (isAuthenticated) {
         if (wasIn) {
-          await fetch(`${getBaseUrl()}/wishlist/${id}`, { method: "DELETE", headers: authHeaders(), credentials: "include" });
+          await fetch(`${getBaseUrl()}/api/wishlist/${id}`, { method: "DELETE", headers: authHeaders(), credentials: "include" });
         } else {
-          await fetch(`${getBaseUrl()}/wishlist`, { method: "POST", headers: authHeaders(), credentials: "include", body: JSON.stringify({ productId: id }) });
+          await fetch(`${getBaseUrl()}/api/wishlist`, { method: "POST", headers: authHeaders(), credentials: "include", body: JSON.stringify({ productId: id }) });
         }
       } else {
         const newIds = wasIn ? ids.filter((x) => x !== id) : [...ids, id];
