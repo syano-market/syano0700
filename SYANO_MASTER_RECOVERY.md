@@ -887,7 +887,7 @@ Admin   (all admin routes; can also access courier routes for monitoring)
 
 ## TECHNICAL DEBT & KNOWN DEAD ENDS
 
-**Last audited:** 2026-06-25 (full repository scan, Feature Freeze active)
+**Last audited:** 2026-06-28 (re-verified contact form fully wired; Feature Freeze active)
 
 This section is permanent and must be kept current as dead ends are resolved or new ones accumulate.
 
@@ -896,8 +896,9 @@ This section is permanent and must be kept current as dead ends are resolved or 
 |---|---|---|
 | `/loyalty` | Full 3-tier marketing page (Silver/Blue/Gold) | No `loyalty_points` table, no accrual on orders, no tier tracking. All content is static i18n copy. |
 | `/payment-methods` | COD card shows "Available"; Credit Card + Mobile show "Coming Soon" | No payment gateway integration. Only COD is wired end-to-end. |
-| `/contact` | Form UI renders a "Send Message" button | No `onSubmit` handler connected to an API. Button does nothing. |
 | `/syano-guarantee`, `/about/*`, `/help`, `/seller/center`, `/seller/faq`, `/shipping`, `/shipping/nationwide` | Purely informational | Correct for marketing pages; no interactive logic needed. |
+
+**`/contact` is fully wired** — form POSTs to `POST /api/contact`, validated server-side, Turnstile-verified, stored in `contact_submissions` table. Admin can view/delete via `GET /api/admin/contact-submissions` and `DELETE /api/admin/contact-submissions/:id` (route file: `artifacts/api-server/src/routes/contact-form.ts`).
 
 ### UI elements that exist but have no underlying logic
 | Location | Element | Status |
