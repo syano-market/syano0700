@@ -283,7 +283,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
       {enabled && data && (
         <div className="space-y-2">
           {/* Coords note */}
-          <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <MapPin className="w-3 h-3 shrink-0" />
             {data.usingFallbackCoords
               ? (isRtl
@@ -296,7 +296,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
 
           {/* Empty state */}
           {data.couriers.length === 0 && (
-            <div className="flex items-center gap-2 py-3 text-xs text-gray-500 italic">
+            <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground italic">
               <Ban className="w-3.5 h-3.5 text-rose-400" />
               {isRtl
                 ? "لا يوجد مندوبون متاحون الآن (يجب أن يكونوا متصلين وقابلين للتعيين)"
@@ -310,7 +310,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
             return (
               <div
                 key={c.courierId}
-                className="flex items-center gap-3 rounded-lg bg-gray-900/60 border border-gray-800/60 px-3 py-2.5 text-xs flex-wrap"
+                className="flex items-center gap-3 rounded-lg bg-card/60 border border-border/60 px-3 py-2.5 text-xs flex-wrap"
               >
                 {/* Rank */}
                 <span className="w-5 h-5 rounded-full bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-[10px] font-bold text-sky-300 shrink-0">
@@ -319,10 +319,10 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
 
                 {/* Name + vehicle */}
                 <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                  <VehicleIcon className="w-3 h-3 text-gray-500 shrink-0" />
-                  <span className="text-gray-200 font-medium truncate">{c.name}</span>
-                  <span className="text-gray-600">·</span>
-                  <span className="text-gray-500 capitalize">{c.vehicleType}</span>
+                  <VehicleIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-foreground font-medium truncate">{c.name}</span>
+                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground capitalize">{c.vehicleType}</span>
                 </div>
 
                 {/* Status badge */}
@@ -338,7 +338,7 @@ function NearestCouriersPanel({ missionId, token, isRtl }: {
                       {c.distanceKm.toFixed(2)} km
                     </span>
                   ) : (
-                    <span className="text-gray-600 italic">
+                    <span className="text-muted-foreground italic">
                       {isRtl ? "لا توجد إحداثيات" : "No location"}
                     </span>
                   )}
@@ -388,7 +388,7 @@ function MissionOffersPanel({ missionId, token, isRtl, onTrigger }: {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 text-gray-400 text-sm">
+      <div className="flex items-center gap-2 px-4 py-3 text-muted-foreground text-sm">
         <Loader2 className="w-3.5 h-3.5 animate-spin" />
         {isRtl ? "جارٍ تحميل العروض..." : "Loading offers..."}
       </div>
@@ -410,9 +410,9 @@ function MissionOffersPanel({ missionId, token, isRtl, onTrigger }: {
             { label: isRtl ? "منتهية" : "Expired",    val: summary.expired },
             { label: isRtl ? "ملغاة" : "Cancelled",   val: summary.cancelled },
           ].map(({ label, val }) => (
-            <div key={label} className="bg-gray-900/60 rounded-lg px-2 py-1.5 text-center">
-              <p className="text-white font-bold text-base">{val}</p>
-              <p className="text-gray-500 text-[10px] leading-tight">{label}</p>
+            <div key={label} className="bg-card/60 rounded-lg px-2 py-1.5 text-center">
+              <p className="text-foreground font-bold text-base">{val}</p>
+              <p className="text-muted-foreground text-[10px] leading-tight">{label}</p>
             </div>
           ))}
         </div>
@@ -430,7 +430,7 @@ function MissionOffersPanel({ missionId, token, isRtl, onTrigger }: {
         </button>
         <button
           onClick={() => refetch()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400 hover:text-gray-300 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted border border-border text-muted-foreground hover:text-foreground transition-colors"
         >
           <RefreshCw className="w-3 h-3" />
           {isRtl ? "تحديث" : "Refresh"}
@@ -439,7 +439,7 @@ function MissionOffersPanel({ missionId, token, isRtl, onTrigger }: {
 
       {/* Offer rows */}
       {offers.length === 0 ? (
-        <p className="text-gray-500 text-xs italic py-2">
+        <p className="text-muted-foreground text-xs italic py-2">
           {isRtl ? "لا توجد عروض بعد لهذه المهمة" : "No offers sent for this mission yet"}
         </p>
       ) : (
@@ -447,17 +447,17 @@ function MissionOffersPanel({ missionId, token, isRtl, onTrigger }: {
           {offers.map((o) => {
             const oCfg = OFFER_STATUS_CONFIG[o.status] ?? OFFER_STATUS_CONFIG.EXPIRED;
             return (
-              <div key={o.id} className="flex items-center gap-3 rounded-lg bg-gray-900/50 px-3 py-2 text-xs flex-wrap">
-                <span className="text-gray-500 font-mono w-5 text-center">R{o.round}</span>
+              <div key={o.id} className="flex items-center gap-3 rounded-lg bg-card/50 px-3 py-2 text-xs flex-wrap">
+                <span className="text-muted-foreground font-mono w-5 text-center">R{o.round}</span>
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <Truck className="w-3 h-3 text-gray-500 shrink-0" />
-                  <span className="text-gray-200 truncate max-w-[120px]">{o.courierName ?? `#${o.courierId}`}</span>
+                  <Truck className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <span className="text-foreground truncate max-w-[120px]">{o.courierName ?? `#${o.courierId}`}</span>
                 </div>
                 <span className={cn("px-1.5 py-0.5 rounded font-medium text-[10px]", oCfg.color)}>
                   {isRtl ? oCfg.labelAr : oCfg.label}
                 </span>
                 {o.respondedAt && (
-                  <span className="text-gray-600 text-[10px] ms-auto">
+                  <span className="text-muted-foreground text-[10px] ms-auto">
                     {new Date(o.respondedAt).toLocaleTimeString()}
                   </span>
                 )}
@@ -536,10 +536,10 @@ export default function AdminDeliveryMissions() {
             <ClipboardList className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold text-white">
+            <h1 className="text-xl font-semibold text-foreground">
               {isRtl ? "مهام التوصيل" : "Delivery Missions"}
             </h1>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground">
               {isRtl ? "سجل مهام التوصيل + مراقبة التعيين" : "Mission log + assignment monitoring"}
             </p>
           </div>
@@ -548,9 +548,9 @@ export default function AdminDeliveryMissions() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              className="pl-9 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500"
+              className="pl-9 bg-background border-border text-foreground placeholder:text-muted-foreground"
               placeholder={isRtl ? "بحث..." : "Search..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -563,7 +563,7 @@ export default function AdminDeliveryMissions() {
                 "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
                 !statusFilter
                   ? "bg-primary/20 border-primary/40 text-primary"
-                  : "bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-300",
+                  : "bg-muted/50 border-border text-muted-foreground hover:text-foreground",
               )}
             >
               {isRtl ? "الكل" : "All"}
@@ -576,7 +576,7 @@ export default function AdminDeliveryMissions() {
                   "px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors",
                   statusFilter === s
                     ? "bg-primary/20 border-primary/40 text-primary"
-                    : "bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-300",
+                    : "bg-muted/50 border-border text-muted-foreground hover:text-foreground",
                 )}
               >
                 {isRtl ? cfg.labelAr : cfg.label}
@@ -600,14 +600,14 @@ export default function AdminDeliveryMissions() {
                   "rounded-xl border p-2.5 text-center flex flex-col items-center gap-1 transition-all",
                   isActive
                     ? "border-primary/40 bg-primary/10"
-                    : "border-gray-800 bg-gray-900/60 hover:border-gray-700"
+                    : "border-border bg-card/60 hover:border-border/80"
                 )}
               >
                 <StatusIcon className={cn("w-3.5 h-3.5", cfg.color.split(" ")[0])} />
-                <p className={cn("text-base font-bold leading-none", isActive ? "text-primary" : cnt > 0 ? "text-white" : "text-gray-600")}>
+                <p className={cn("text-base font-bold leading-none", isActive ? "text-primary" : cnt > 0 ? "text-foreground" : "text-muted-foreground")}>
                   {cnt}
                 </p>
-                <p className="text-[9px] text-gray-500 leading-tight text-center">
+                <p className="text-[9px] text-muted-foreground leading-tight text-center">
                   {isRtl ? cfg.labelAr : cfg.label}
                 </p>
               </button>
@@ -619,16 +619,16 @@ export default function AdminDeliveryMissions() {
         <DispatchAlertsPanel token={token!} isRtl={isRtl} />
 
         {/* Stats summary */}
-        <div className="text-sm text-gray-400">
+        <div className="text-sm text-muted-foreground">
           {isRtl ? `${total} مهمة` : `${total} mission${total !== 1 ? "s" : ""}`}
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-gray-800 overflow-hidden">
+        <div className="rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-900/80">
-                <tr className="text-gray-400 text-left border-b border-gray-800">
+              <thead className="bg-muted/50">
+                <tr className="text-muted-foreground text-left border-b border-border">
                   <th className="px-4 py-3 font-medium whitespace-nowrap w-8"></th>
                   <th className="px-4 py-3 font-medium whitespace-nowrap">{isRtl ? "المعرّف" : "Mission ID"}</th>
                   <th className="px-4 py-3 font-medium whitespace-nowrap">{isRtl ? "الطلب" : "Order ID"}</th>
@@ -640,17 +640,17 @@ export default function AdminDeliveryMissions() {
                   <th className="px-4 py-3 font-medium whitespace-nowrap">{isRtl ? "تاريخ الإنشاء" : "Created"}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800">
+              <tbody className="divide-y divide-border">
                 {isLoading && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
                       {isRtl ? "جارٍ التحميل..." : "Loading..."}
                     </td>
                   </tr>
                 )}
                 {!isLoading && filtered.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-10 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
                       <ClipboardList className="w-8 h-8 mx-auto mb-2 opacity-30" />
                       <p>{isRtl ? "لا توجد مهام توصيل بعد" : "No delivery missions yet"}</p>
                     </td>
@@ -675,7 +675,7 @@ export default function AdminDeliveryMissions() {
                       <tr
                         key={m.id}
                         className={cn(
-                          "hover:bg-gray-900/40 transition-colors",
+                          "hover:bg-muted/20 transition-colors",
                           isSearching && "bg-sky-900/5",
                           isNoCourier && "bg-rose-900/5",
                         )}
@@ -683,7 +683,7 @@ export default function AdminDeliveryMissions() {
                         <td className="px-3 py-3">
                           <button
                             onClick={() => toggleExpand(m.id)}
-                            className="text-gray-500 hover:text-gray-300 transition-colors"
+                            className="text-muted-foreground hover:text-foreground transition-colors"
                             title={isRtl ? "عرض العروض" : "View offers"}
                           >
                             {isExpanded
@@ -693,24 +693,24 @@ export default function AdminDeliveryMissions() {
                           </button>
                         </td>
                         <td className="px-4 py-3 font-mono text-primary font-medium">#{m.id}</td>
-                        <td className="px-4 py-3 text-gray-300 font-mono">#{m.orderId}</td>
+                        <td className="px-4 py-3 text-foreground/80 font-mono">#{m.orderId}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <Store className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                            <span className="text-gray-200 truncate max-w-[120px]">{m.storeName ?? m.sellerName ?? "—"}</span>
+                            <Store className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-foreground truncate max-w-[120px]">{m.storeName ?? m.sellerName ?? "—"}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <User className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                            <span className="text-gray-200 truncate max-w-[120px]">{m.customerName ?? "—"}</span>
+                            <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                            <span className="text-foreground truncate max-w-[120px]">{m.customerName ?? "—"}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
                           {m.courierName ? (
                             <div className="flex items-center gap-2">
-                              <Truck className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                              <span className="text-gray-200 truncate max-w-[100px]">{m.courierName}</span>
+                              <Truck className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                              <span className="text-foreground truncate max-w-[100px]">{m.courierName}</span>
                             </div>
                           ) : isSearching ? (
                             <div className="flex items-center gap-1.5 text-sky-400">
@@ -718,7 +718,7 @@ export default function AdminDeliveryMissions() {
                               <span className="text-xs">{isRtl ? "جارٍ البحث..." : "Searching..."}</span>
                             </div>
                           ) : (
-                            <span className="text-gray-600 text-xs italic">{isRtl ? "غير معيّن" : "Unassigned"}</span>
+                            <span className="text-muted-foreground text-xs italic">{isRtl ? "غير معيّن" : "Unassigned"}</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -727,12 +727,12 @@ export default function AdminDeliveryMissions() {
                             {isRtl ? cfg.labelAr : cfg.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-xs">{isRtl ? sizeLabel.ar : sizeLabel.en}</td>
-                        <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{createdAt}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{isRtl ? sizeLabel.ar : sizeLabel.en}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{createdAt}</td>
                       </tr>
                       {showOfferPanel && (
-                        <tr key={`offers-${m.id}`} className="bg-gray-950/60">
-                          <td colSpan={9} className="border-t border-gray-800/60">
+                        <tr key={`offers-${m.id}`} className="bg-muted/10">
+                          <td colSpan={9} className="border-t border-border/60">
                             <div className="border-s-2 border-primary/30 ms-6">
                               <div className="px-4 pt-3 pb-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -762,7 +762,7 @@ export default function AdminDeliveryMissions() {
                                 }}
                               />
                               {/* Divider */}
-                              <div className="border-t border-gray-800/60 mx-4" />
+                              <div className="border-t border-border/60 mx-4" />
                               {/* Discovery Engine Test Panel */}
                               <NearestCouriersPanel
                                 missionId={m.id}
@@ -787,15 +787,15 @@ export default function AdminDeliveryMissions() {
             <button
               disabled={page <= 1}
               onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1.5 rounded-lg text-sm bg-gray-900 border border-gray-700 text-gray-300 disabled:opacity-40 hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm bg-muted border border-border text-foreground disabled:opacity-40 hover:bg-accent transition-colors"
             >
               {isRtl ? "السابق" : "Prev"}
             </button>
-            <span className="text-sm text-gray-400">{page} / {totalPages}</span>
+            <span className="text-sm text-muted-foreground">{page} / {totalPages}</span>
             <button
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1.5 rounded-lg text-sm bg-gray-900 border border-gray-700 text-gray-300 disabled:opacity-40 hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm bg-muted border border-border text-foreground disabled:opacity-40 hover:bg-accent transition-colors"
             >
               {isRtl ? "التالي" : "Next"}
             </button>

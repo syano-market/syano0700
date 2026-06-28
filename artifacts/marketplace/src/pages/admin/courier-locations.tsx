@@ -46,7 +46,7 @@ interface LiveLocationsResponse {
 
 const AVAIL_CONFIG = {
   ONLINE:  { label: "Online",  labelAr: "متاح",    color: "text-primary bg-primary/80/10 border-primary/30", dot: "bg-primary/80",  icon: Wifi },
-  OFFLINE: { label: "Offline", labelAr: "غير متاح", color: "text-gray-400 bg-gray-400/10 border-gray-500/30",         dot: "bg-gray-500",    icon: WifiOff },
+  OFFLINE: { label: "Offline", labelAr: "غير متاح", color: "text-muted-foreground bg-muted/40 border-border", dot: "bg-muted-foreground", icon: WifiOff },
   BUSY:    { label: "Busy",    labelAr: "مشغول",    color: "text-amber-400 bg-amber-400/10 border-amber-500/30",      dot: "bg-amber-400",   icon: Package },
 } as const;
 
@@ -190,10 +190,10 @@ export default function AdminCourierLocations() {
         {/* ── Summary strip ────────────────────────────────────────────── */}
         {data && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <SummaryCard label={isRtl ? "إجمالي" : "Total"} value={data.total} color="text-gray-400" icon={MapPin} />
+            <SummaryCard label={isRtl ? "إجمالي" : "Total"} value={data.total} color="text-muted-foreground" icon={MapPin} />
             <SummaryCard label={isRtl ? "متاح" : "Online"} value={data.online} color="text-primary" icon={Wifi} />
             <SummaryCard label={isRtl ? "مشغول" : "Busy"} value={data.busy} color="text-amber-400" icon={Package} />
-            <SummaryCard label={isRtl ? "غير متاح" : "Offline"} value={data.offline} color="text-gray-400" icon={WifiOff} />
+            <SummaryCard label={isRtl ? "غير متاح" : "Offline"} value={data.offline} color="text-muted-foreground" icon={WifiOff} />
             <SummaryCard label={isRtl ? "موقع حديث" : "Fresh GPS"} value={data.withFreshLocation} color="text-primary" icon={CheckCircle2} />
             <SummaryCard label={isRtl ? "بدون موقع" : "No Location"} value={data.withNoLocation} color="text-red-400" icon={AlertTriangle} />
           </div>
@@ -314,7 +314,7 @@ export default function AdminCourierLocations() {
 
                     {/* Freshness */}
                     {c.lat == null ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-500/10 border border-gray-500/20 text-xs text-gray-400">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted/40 border border-border text-xs text-muted-foreground">
                         <AlertTriangle className="w-3 h-3" />
                         {isRtl ? "لا يوجد" : "No GPS"}
                       </span>
