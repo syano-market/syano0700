@@ -1,0 +1,230 @@
+# SYANO AUDIT — PHASE 2: ARCHITECTURE + ROUTES
+# ══════════════════════════════════════════════
+# ⛔ DO NOT modify any file
+# ⛔ DO NOT run any command
+# ✅ READ files only
+# ✅ Create ONE file: docs/audit/phase2-architecture.md
+
+# ══════════════════════════════════════════
+# SYANO ARCHITECTURE FACTS — READ BEFORE START
+# ══════════════════════════════════════════
+# Router: Wouter (NOT React Router — different API)
+# Backend: Express 5 with 30 route files in artifacts/api-server/src/routes/
+# Shared hooks: lib/api-client-react/ (canonical API layer)
+# Web proxy: Vite proxies /api/* → localhost:8080 (in vite.config.ts)
+# Mobile API: getBaseUrl() returns https://$REPLIT_DEV_DOMAIN (never localhost)
+# Auth roles: Guest → Customer → Seller (inherits Customer) | Courier | Admin
+# ProtectedRoute: artifacts/marketplace/src/components/ProtectedRoute.tsx
+
+# ══════════════════════════════════════
+# TASK 1 — MAP ALL WEB ROUTES
+# ══════════════════════════════════════
+Read: artifacts/marketplace/src/App.tsx (or main router file)
+
+Extract and list EVERY route defined, with:
+- Path string (e.g. /admin/users)
+- Component it renders
+- Role protection (public / customer / seller / courier / admin / any-auth)
+
+Then read artifacts/marketplace/src/pages/ folder.
+List every .tsx file found there.
+
+Cross-reference:
+A) Page files with NO matching route → ORPHANED_PAGE
+B) Routes pointing to a component file that does NOT exist → BROKEN_ROUTE
+C) Routes where the role protection does not match SYANO role hierarchy:
+   - Seller should inherit Customer routes (canAccess seller includes customer)
+   - Courier should NOT access Customer routes like /checkout
+   - Admin should access Courier routes for monitoring
+   Flag any route where this logic appears violated in ProtectedRoute.tsx
+
+For each finding:
+---
+TYPE: ORPHANED_PAGE / BROKEN_ROUTE / ROLE_MISMATCH
+FILE: artifacts/marketplace/src/pages/OldPage.tsx
+ROUTE: None registered
+REASON: File exists but no route in App.tsx points to it
+RISK: REVIEW_FIRST
+---
+
+# ══════════════════════════════════════
+# TASK 2 — MAP ALL API ENDPOINTS
+# ══════════════════════════════════════
+Read ALL 30 route files in: artifacts/api-server/src/routes/
+
+For each file, extract every endpoint:
+- Method: GET / POST / PUT / PATCH / DELETE
+- Path: /api/products, /api/orders/:id, etc.
+- Auth required: YES / NO
+- Role required: admin / seller / courier / customer / any
+
+Produce a master list of all endpoints found.
+
+Then read all hooks in: lib/api-client-react/
+
+Cross-reference:
+A) API endpoints that have NO corresponding hook in lib/api-client-react/
+   → UNHOOKED_ENDPOINT (backend exists, no frontend abstraction)
+
+B) Hooks in lib/api-client-react/ calling endpoints that do NOT exist
+   in any route file → PHANTOM_HOOK (frontend calls ghost endpoint)
+
+C) Endpoints with NO auth check that should require auth:
+   - Any POST/PUT/DELETE that modifies data
+   - Any endpoint reading user-specific data (orders, profile, wallet)
+
+For each finding:
+---
+TYPE: UNHOOKED_ENDPOINT / PHANTOM_HOOK / MISSING_AUTH
+METHOD: POST
+PATH: /api/admin/courier-payouts/approve
+ROUTE_FILE: artifacts/api-server/src/routes/courier-payouts.ts (line 45)
+HOOK_EXISTS: NO
+RISK: REVIEW_FIRST
+---
+
+# ══════════════════════════════════════
+# TASK 3 — VITE PROXY VERIFICATION
+# ══════════════════════════════════════
+Read: artifacts/marketplace/vite.config.ts
+
+Verify:
+- /api/* is proxied to localhost:8080 (or process.env.API_PORT)
+- The proxy config has NOT been removed or modified
+- No other proxy rules conflict with the API proxy
+
+Also find:
+- Any fetch('/api/...') call in artifacts/marketplace/src/ that
+  uses a hardcoded port (e.g. fetch('http://localhost:8080/api/...')
+  instead of fetch('/api/...') — these bypass the Vite proxy
+
+For each finding:
+---
+TYPE: PROXY_MISSING / HARDCODED_PORT
+FILE: artifacts/marketplace/src/components/X.tsx
+LINE: 34
+CODE: fetch('http://localhost:8080/api/products')
+CORRECT: fetch('/api/products')
+RISK: HIGH — breaks in production
+---
+
+# ══════════════════════════════════════
+# TASK 4 — MOBILE API URL VERIFICATION
+# ══════════════════════════════════════
+Read: the mobile utility file that exports getBaseUrl()
+
+Verify getBaseUrl() returns: https://$REPLIT_DEV_DOMAIN
+(Never hardcoded localhost)
+
+Then scan artifacts/mobile/app/ and artifacts/mobile/src/ for:
+- Any fetch('http://localhost...') or fetch('http://127.0.0.1...')
+  that bypasses getBaseUrl()
+- Any hardcoded IP address used as API base
+- Any file that imports from the API without using getBaseUrl()
+
+For each finding:
+---
+TYPE: HARDCODED_LOCALHOST
+FILE: artifacts/mobile/app/screens/X.tsx
+LINE: 23
+CODE: fetch('http://localhost:8080/api/orders')
+CORRECT: fetch(`${getBaseUrl()}/api/orders`)
+RISK: HIGH — breaks on real device / Replit preview
+---
+
+# ══════════════════════════════════════
+# TASK 5 — CORS CRITICAL RULE CHECK
+# ══════════════════════════════════════
+Read: artifacts/api-server/src/app.ts
+
+Verify isReplitOrigin() function:
+- EXISTS in the file
+- Allows *.replit.dev domains
+- Allows *.replit.app domains
+- Is called in the CORS middleware configuration
+- Has NOT been removed, commented out, or bypassed
+
+If any of the above fail → flag as CRITICAL because
+removing this breaks ALL mobile logins.
+
+---
+TYPE: CORS_CRITICAL_CHECK
+STATUS: PASS / FAIL
+ISSUE: (describe exactly what is wrong if FAIL)
+RISK: CRITICAL if FAIL — breaks all mobile authentication
+---
+
+# ══════════════════════════════════════
+# TASK 6 — WOUTER USAGE CHECK
+# ══════════════════════════════════════
+SYANO uses Wouter for routing, NOT React Router.
+Wouter API: useLocation, useRoute, <Link href="">, <Route path="">
+
+Scan artifacts/marketplace/src/ for React Router imports:
+- import { useNavigate } from 'react-router-dom'
+- import { Link } from 'react-router-dom'
+- import { useParams } from 'react-router-dom'
+- import { Navigate } from 'react-router-dom'
+- import { BrowserRouter } from 'react-router-dom'
+
+Also find:
+- window.location.href = '...' used for navigation
+  (should use Wouter's useLocation setter instead)
+- window.location.replace() used for navigation
+
+For each finding:
+---
+TYPE: WRONG_ROUTER / DIRECT_NAVIGATION
+FILE: path/to/file.tsx
+LINE: 12
+CODE: import { useNavigate } from 'react-router-dom'
+CORRECT: import { useLocation } from 'wouter'
+RISK: REVIEW_FIRST
+---
+
+# ══════════════════════════════════════
+# OUTPUT FORMAT
+# ══════════════════════════════════════
+Save to: docs/audit/phase2-architecture.md
+
+# Phase 2 — Architecture + Routes Audit
+
+## Summary
+| Task | Findings | Critical | High | Review |
+|------|----------|----------|------|--------|
+| Web Routes | X | X | X | X |
+| API Endpoints | X | X | X | X |
+| Vite Proxy | X | X | X | X |
+| Mobile API URLs | X | X | X | X |
+| CORS Rule | PASS/FAIL | | | |
+| Wouter Usage | X | X | X | X |
+
+## Master API Endpoint List
+[Full list of all endpoints found with method, path, auth, role]
+
+## Task 1 — Web Routes
+[findings]
+
+## Task 2 — API Endpoints
+[findings]
+
+## Task 3 — Vite Proxy
+[findings]
+
+## Task 4 — Mobile API URLs
+[findings]
+
+## Task 5 — CORS Check
+[result]
+
+## Task 6 — Wouter Usage
+[findings]
+
+# ════════════════════════════════
+# ANTI-HALLUCINATION RULES
+# ════════════════════════════════
+- Read App.tsx FIRST before listing any route
+- Read each route file BEFORE listing any endpoint
+- If a file is not readable → write COULD_NOT_READ: path
+- NEVER guess an endpoint exists — only report what you read
+- NEVER guess a hook exists — only report what you read
