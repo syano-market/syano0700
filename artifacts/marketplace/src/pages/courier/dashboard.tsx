@@ -767,6 +767,14 @@ export default function CourierDashboard() {
           <p className="text-muted-foreground text-sm mt-0.5">{t("courier.dashboard_subtitle")}</p>
         </div>
 
+        {/* ── Assignment error banner ── */}
+        {assignmentsError && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 mb-5 flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            {t("courier.assignments_load_error", "Could not load assignment data — retrying…")}
+          </div>
+        )}
+
         {/* ── V3.3 Mission Offer Cards ─────────────────────────────────────────── */}
         {missionOffers.length > 0 && (
           <div className="space-y-3 mb-5">

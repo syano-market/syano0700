@@ -893,7 +893,7 @@ export default function CourierWorkspace() {
   });
 
   // ── Mission offers ─────────────────────────────────────────────────────────
-  const { data: missionOffers = [], refetch: refetchOffers } = useQuery<MissionOffer[]>({
+  const { data: missionOffers = [], isError: offersError, refetch: refetchOffers } = useQuery<MissionOffer[]>({
     queryKey: ["courier-mission-offers"],
     queryFn: async () => {
       const res = await fetch("/api/courier/missions/offers", { headers });
@@ -901,7 +901,9 @@ export default function CourierWorkspace() {
       return res.json();
     },
     enabled: !!token && profile?.status === "approved",
+    staleTime: 0,
     refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
   });
 
   // ── Active assignment (first one) ──────────────────────────────────────────
@@ -929,7 +931,9 @@ export default function CourierWorkspace() {
       return res.json();
     },
     enabled: !!token && !!missionId,
+    staleTime: 0,
     refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
   });
 
   const trail = trailRaw.map((p) => ({ lat: p.lat, lng: p.lng }));
@@ -1096,6 +1100,13 @@ export default function CourierWorkspace() {
       `}</style>
 
       <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
+
+        {/* ── Data error banner ── */}
+        {(assignmentsError || offersError) && (
+          <div className="shrink-0 bg-destructive/90 text-destructive-foreground text-xs font-semibold text-center py-2 px-4">
+            {t("courier.workspace_load_error", "Could not load workspace data — retrying…")}
+          </div>
+        )}
 
         {/* ── MAP — fills all space above the bottom nav ── */}
         <div className="relative flex-1 min-h-0">

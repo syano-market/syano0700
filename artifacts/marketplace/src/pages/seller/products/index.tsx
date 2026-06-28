@@ -138,7 +138,26 @@ export default function SellerProducts() {
       <SellerNav />
       <div className="container py-6 md:py-10 max-w-6xl">
 
-        {/* ── Data Quality Banner ── */}
+        {/* ── Data Quality Error Banner (fetch failed) ── */}
+        {!qualityDismissed && qualityError && (
+          <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 mb-6 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-foreground">{t("seller.quality.fetch_error", "Product quality report unavailable")}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("seller.quality.fetch_error_desc", "We couldn't load your quality report. Refresh the page to try again.")}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              onClick={() => setQualityDismissed(true)}
+            >
+              ✕
+            </Button>
+          </div>
+        )}
+
+        {/* ── Data Quality Banner (flagged items) ── */}
         {!qualityDismissed && qualityReport && qualityReport.flagged_count > 0 && (
           <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 mb-6 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 shrink-0" />

@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   LayoutChangeEvent,
   Platform,
   Pressable,
@@ -16,6 +15,7 @@ import {
   View,
   ViewToken,
 } from "react-native";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   useAddToCart,
@@ -409,7 +409,7 @@ export default function ProductDetailScreen() {
               viewabilityConfig={viewabilityConfig.current}
               renderItem={({ item }) => (
                 <View style={[styles.gallerySlide, { backgroundColor: colors.muted }]}>
-                  <Image source={{ uri: item }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                  <Image source={{ uri: item }} style={StyleSheet.absoluteFill} contentFit="cover" />
                 </View>
               )}
             />
@@ -439,7 +439,7 @@ export default function ProductDetailScreen() {
         ) : (
           <View style={[styles.heroImage, { backgroundColor: colors.muted }]}>
             {galleryImages[0] ? (
-              <Image source={{ uri: galleryImages[0] }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+              <Image source={{ uri: galleryImages[0] }} style={StyleSheet.absoluteFill} contentFit="cover" />
             ) : (
               <Ionicons name="cube-outline" size={80} color={colors.mutedForeground} />
             )}
@@ -611,7 +611,7 @@ export default function ProductDetailScreen() {
             <View style={styles.sellerCardTop}>
               <View style={[styles.sellerAvatar, { backgroundColor: colors.muted }]}>
                 {storePreview?.storeLogo ? (
-                  <Image source={{ uri: storePreview.storeLogo }} style={styles.sellerLogoImg} resizeMode="cover" />
+                  <Image source={{ uri: storePreview.storeLogo }} style={styles.sellerLogoImg} contentFit="cover" />
                 ) : (
                   <Ionicons name="storefront-outline" size={22} color={colors.mutedForeground} />
                 )}
@@ -727,7 +727,7 @@ export default function ProductDetailScreen() {
                   >
                     <View style={[styles.relatedImage, { backgroundColor: colors.muted }]}>
                       {item.imageUrl ? (
-                        <Image source={{ uri: item.imageUrl }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                        <Image source={{ uri: item.imageUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
                       ) : (
                         <Ionicons name="cube-outline" size={28} color={colors.mutedForeground} />
                       )}

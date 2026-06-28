@@ -3,12 +3,12 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
 import {
-  Image,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import type { Product } from "@workspace/api-client-react";
 import { useColors } from "@/hooks/useColors";
 import { useWishlist } from "@/contexts/WishlistContext";
@@ -51,7 +51,7 @@ export const ProductCard = React.memo(function ProductCard({ product, onAddToCar
           <Image
             source={{ uri: product.imageUrl }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
           />
         ) : (
           <Ionicons name="cube-outline" size={40} color={colors.mutedForeground} />

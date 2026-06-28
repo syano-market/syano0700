@@ -6,7 +6,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -20,6 +19,7 @@ import {
   View,
   useColorScheme,
 } from "react-native";
+import { Image } from "expo-image";
 import {
   useAddToCart,
   useGetSellerDashboard,
@@ -218,7 +218,7 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
       {/* ── IMAGE CAROUSEL CARD (bottom — web flex-col order: image second at 390px) ── */}
       <View style={heroV2.imageCardWrap}>
         <View style={[heroV2.imageCard, { borderColor: colors.border }]}>
-          <Image source={{ uri: HERO_IMAGES[slideIdx] }} style={heroV2.fillImg} resizeMode="cover" />
+          <Image source={{ uri: HERO_IMAGES[slideIdx] }} style={heroV2.fillImg} contentFit="cover" />
           <View style={[heroV2.overlay]} />
 
           {/* Discount badge — top start */}
@@ -229,7 +229,7 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
           {/* Floating product card — top end */}
           <View style={[heroV2.floatCard, isAr ? { top: 24, left: 24 } : { top: 24, right: 24 }, { backgroundColor: colors.card + "D0", borderColor: colors.border }]}>
             <View style={heroV2.floatCardRow}>
-              <Image source={{ uri: card.img }} style={[heroV2.floatCardImg, { borderColor: colors.border }]} resizeMode="cover" />
+              <Image source={{ uri: card.img }} style={[heroV2.floatCardImg, { borderColor: colors.border }]} contentFit="cover" />
               <View style={heroV2.floatCardInfo}>
                 <Text style={[heroV2.floatCardName, { color: colors.foreground }]} numberOfLines={2}>{card.name}</Text>
                 <Text style={[heroV2.floatCardPrice, { color: colors.primary }]}>{card.price.toLocaleString()} ل.س</Text>
@@ -299,7 +299,7 @@ function CategoryGridSection({ colors, onSelectCategory }: CategoryGridProps) {
             style={({ pressed }) => [catGridStyles.cell, { opacity: pressed ? 0.88 : 1 }]}
             onPress={() => { onSelectCategory(cat.slug); void Haptics.selectionAsync(); }}
           >
-            <Image source={{ uri: cat.img }} style={catGridStyles.img} resizeMode="cover" />
+            <Image source={{ uri: cat.img }} style={catGridStyles.img} contentFit="cover" />
             <View style={catGridStyles.overlay} />
             <View style={[catGridStyles.colorBar, { backgroundColor: cat.color }]} />
             <View style={catGridStyles.textWrap}>
@@ -392,7 +392,7 @@ function DealMiniCard({ product, colors, onAddToCart, gridMode = false }: DealMi
       {/* ── Image (aspect-square) ── */}
       <View style={pcStyles.imgWrap}>
         {img ? (
-          <Image source={{ uri: img }} style={pcStyles.img} resizeMode="cover" />
+          <Image source={{ uri: img }} style={pcStyles.img} contentFit="cover" />
         ) : (
           <View style={[pcStyles.img, { backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }]}>
             <Ionicons name="image-outline" size={24} color={colors.mutedForeground} />
@@ -500,11 +500,14 @@ function FeaturedDealsSection({ products, colors, onAddToCart }: FeaturedDealsSe
         />
         <CountdownTimer colors={colors} />
       </View>
-      <View style={dealStyles.grid}>
-        {deals.map((p) => (
-          <DealMiniCard key={p.id} product={p} colors={colors} onAddToCart={onAddToCart} gridMode />
-        ))}
-      </View>
+      <FlatList
+        data={deals}
+        keyExtractor={(p) => String(p.id)}
+        renderItem={({ item }) => <DealMiniCard product={item} colors={colors} onAddToCart={onAddToCart} gridMode />}
+        numColumns={2}
+        scrollEnabled={false}
+        columnWrapperStyle={{ gap: 8 }}
+      />
     </View>
   );
 }
@@ -539,7 +542,7 @@ function FeaturedStoresSection({ colors }: { colors: ReturnType<typeof useColors
             onPress={() => router.push("/store-directory" as any)}
           >
             <View style={storeStyles.coverWrap}>
-              <Image source={{ uri: store.coverImg }} style={storeStyles.cover} resizeMode="cover" />
+              <Image source={{ uri: store.coverImg }} style={storeStyles.cover} contentFit="cover" />
               <View style={storeStyles.coverOverlay} />
               {store.verified && (
                 <View style={[storeStyles.verifiedBadge, { backgroundColor: colors.primary + "22", borderColor: colors.primary + "44" }]}>
@@ -789,11 +792,14 @@ function TrendingProductsSection({ products, isLoading, colors, onAddToCart, onS
           <ActivityIndicator size="small" color={colors.primary} />
         </View>
       ) : (
-        <View style={dealStyles.grid}>
-          {items.map((p) => (
-            <DealMiniCard key={p.id} product={p} colors={colors} onAddToCart={onAddToCart} gridMode />
-          ))}
-        </View>
+        <FlatList
+          data={items}
+          keyExtractor={(p) => String(p.id)}
+          renderItem={({ item }) => <DealMiniCard product={item} colors={colors} onAddToCart={onAddToCart} gridMode />}
+          numColumns={2}
+          scrollEnabled={false}
+          columnWrapperStyle={{ gap: 8 }}
+        />
       )}
     </View>
   );
@@ -815,7 +821,7 @@ function NewArrivalCard({ product, large, colors }: {
       onPress={() => router.push(`/product/${product.id}` as any)}
     >
       {img ? (
-        <Image source={{ uri: img }} style={arriStyles.img} resizeMode="cover" />
+        <Image source={{ uri: img }} style={arriStyles.img} contentFit="cover" />
       ) : (
         <View style={[arriStyles.img, { backgroundColor: colors.secondary }]} />
       )}
@@ -853,9 +859,13 @@ function NewArrivalsSection({ products, isLoading, colors, onAddToCart, onSeeAll
       ) : (
         <View style={{ gap: 12 }}>
           {main && <NewArrivalCard product={main} large colors={colors} onAddToCart={onAddToCart} />}
-          {rest.map((p) => (
-            <NewArrivalCard key={p.id} product={p} colors={colors} onAddToCart={onAddToCart} />
-          ))}
+          <FlatList
+            data={rest}
+            keyExtractor={(p) => String(p.id)}
+            renderItem={({ item }) => <NewArrivalCard product={item} colors={colors} onAddToCart={onAddToCart} />}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          />
         </View>
       )}
     </View>
@@ -878,7 +888,7 @@ function MiniProductCard({ product, colors, onAddToCart, style }: { product: Pro
     >
       <View style={miniStyles.imgWrap}>
         {img ? (
-          <Image source={{ uri: img }} style={miniStyles.img} resizeMode="cover" />
+          <Image source={{ uri: img }} style={miniStyles.img} contentFit="cover" />
         ) : (
           <View style={[miniStyles.img, { backgroundColor: colors.secondary }]} />
         )}
