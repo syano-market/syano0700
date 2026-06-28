@@ -1,0 +1,166 @@
+# SYANO UI UPDATE — HERO VISUAL MODE
+
+# ═══════════════════════════════════════════════
+
+# OBJECTIVE:
+
+# Convert the homepage hero section into a pure visual showcase.
+
+# Remove ALL text and interactive overlays from the hero banners and keep ONLY images.
+
+# IMPORTANT:
+
+# This is NOT a redesign.
+
+# This is NOT a layout rewrite.
+
+# This is NOT a hero replacement.
+
+# Keep the exact same structure, sizing, animations, spacing, responsiveness,
+
+# aspect ratios, image loading behavior, transitions, carousel behavior,
+
+# masonry/grid layout and visual hierarchy.
+
+# ONLY remove textual and button overlays.
+
+# ═══════════════════════════════════════════════
+
+# RULES
+
+# ═══════════════════════════════════════════════
+
+## KEEP:
+
+* Hero layout exactly as it is now
+* Same image positions
+* Same grid structure
+* Same image aspect ratios
+* Same hover effects
+* Same animations
+* Same carousel transitions
+* Same autoplay behavior
+* Same responsiveness
+* Same dark overlays if required for visual consistency
+* Same rounded corners
+* Same shadows
+* Same glassmorphism effects if applied to image containers
+* Same loading behavior and skeletons
+
+## REMOVE:
+
+Remove every visible UI element rendered above hero images:
+
+### Center Hero:
+
+REMOVE:
+
+* "SYANO Platform"
+* subtitle text
+* slide indicators if they only serve text slides
+* Start Shopping button
+* Join as Factory Owner button
+* any badges or labels
+* any CTA containers
+* any marketing copy
+
+### Side Hero Cards:
+
+REMOVE:
+
+* product/store titles
+* category names
+* city labels
+* badges
+* tags
+* descriptions
+* subtitles
+* overlay texts
+* overlay buttons
+
+Examples:
+REMOVE:
+
+* Damascus Textiles
+* Oriental Perfumes
+* Halabi Apparel
+* Damascus Brassware
+* Silk
+* Copper
+* Aleppo
+* Syria
+* any similar labels
+
+# Final result:
+
+Every hero card should display:
+IMAGE ONLY
+
+No visible text.
+No visible buttons.
+No visible badges.
+
+# ═══════════════════════════════════════════════
+
+# IMPLEMENTATION REQUIREMENTS
+
+# ═══════════════════════════════════════════════
+
+* Prefer removing JSX nodes entirely rather than hiding them with CSS.
+* Do NOT use display:none unless removal would break layout calculations.
+* Do NOT leave empty containers occupying space.
+* Do NOT leave invisible buttons in the DOM.
+* Do NOT leave hidden overlays intercepting mouse events.
+
+After cleanup:
+
+* Verify image containers still occupy identical dimensions.
+* Verify no spacing collapse occurs.
+* Verify CLS (layout shift) does not appear.
+* Verify mobile layout remains unchanged except for removed content.
+
+# ═══════════════════════════════════════════════
+
+# STRICTLY FORBIDDEN
+
+# ═══════════════════════════════════════════════
+
+DO NOT:
+
+* change navbar
+* change search bar
+* change delivery selector
+* change header height
+* change image sources
+* change image sizes
+* change breakpoints
+* change paddings
+* change margins
+* change animations
+* change transition timing
+* replace the hero section
+* redesign the homepage
+* introduce new components
+* move sections
+* alter product sections below hero
+
+# ═══════════════════════════════════════════════
+
+# SUCCESS CRITERIA
+
+# ═══════════════════════════════════════════════
+
+Before:
+Image + Text + Buttons + Labels
+
+After:
+Image only.
+
+The homepage should feel like:
+
+* Luxury marketplace
+* Editorial magazine
+* Premium fashion landing page
+* Visual-first experience
+
+The result should look like a premium image gallery integrated into the existing SYANO homepage without changing the underlying architecture.
