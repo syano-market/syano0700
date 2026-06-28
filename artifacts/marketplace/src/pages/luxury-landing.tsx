@@ -49,7 +49,7 @@ const FONT_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
   .lux-root *, .lux-root { box-sizing: border-box; }
   .lux-root button { cursor: pointer; border: none; outline: none; }
-  .lux-root button:focus-visible { outline: 2px solid rgba(124,58,237,0.7); outline-offset: 2px; border-radius: 9999px; }
+  .lux-root button:focus-visible { outline: 2px solid rgba(22,163,74,0.75); outline-offset: 2px; border-radius: 9999px; }
 `;
 
 /* ─── Responsive section grid rules ─────────────────────────────────────────*/
@@ -153,63 +153,58 @@ const SECTION_CSS = `
   .lux-social-icon:hover { background: rgba(255,255,255,0.10) !important; border-color: rgba(255,255,255,0.18) !important; color: rgba(255,255,255,0.80) !important; }
   .lux-footer-input:focus { border-color: rgba(255,255,255,0.20) !important; }
 
-  /* ── Light mode overrides ─────────────────────────────────────────────────
-     Applied when html does NOT carry the .dark class (next-themes light/system-light).
-     Only hover/focus interactive states need CSS overrides; other colors are
-     driven by the LuxColorCtx React context. */
+  /* ── Light mode CSS overrides ─────────────────────────────────────────────
+     Hover/focus interactive states that cannot be driven by React context.   */
   html:not(.dark) .lux-footer-bottom { border-top-color: rgba(17,24,39,0.08); }
   html:not(.dark) .lux-footer-link:hover { color: rgba(17,24,39,0.75) !important; }
   html:not(.dark) .lux-social-icon:hover { background: rgba(17,24,39,0.06) !important; border-color: rgba(17,24,39,0.14) !important; color: rgba(17,24,39,0.60) !important; }
-  html:not(.dark) .lux-footer-input:focus { border-color: rgba(17,24,39,0.20) !important; }
+  html:not(.dark) .lux-footer-input:focus { border-color: rgba(22,163,74,0.35) !important; }
 
   .lux-root { text-rendering: optimizeSpeed; }
   .lux-gpu-layer { transform: translateZ(0); backface-visibility: hidden; }
 `;
 
 /* ─── Brand tokens — DARK (default) ──────────────────────────────────────────
-   All rgba(255,255,255,…) values are for dark surfaces.
-   C is the single source of truth for dark mode.                            */
+   Site-wide green accent: #16A34A (confirmed in LuxuryNavbar GREEN constant
+   and throughout badges/icons/interactive elements site-wide).
+   greenAlpha / greenGlow are alpha variants of the same hue.                */
 const C = {
-  bg:          "#0B0B0C",
-  card:        "#111113",
-  card2:       "#141416",
-  white:       "#FFFFFF",
-  offWhite:    "#F2F2F0",
-  muted:       "rgba(255,255,255,0.52)",
-  dimmed:      "rgba(255,255,255,0.28)",
-  border:      "rgba(255,255,255,0.08)",
-  borderHov:   "rgba(255,255,255,0.16)",
-  purple:      "#7C3AED",
-  purpleAlpha: "rgba(124,58,237,0.18)",
-  purpleGlow:  "rgba(124,58,237,0.40)",
-  green:       "#16A34A",
-  greenAlpha:  "rgba(22,163,74,0.16)",
+  bg:         "#0B0B0C",
+  card:       "#111113",
+  card2:      "#141416",
+  white:      "#FFFFFF",
+  offWhite:   "#F2F2F0",
+  muted:      "rgba(255,255,255,0.52)",
+  dimmed:     "rgba(255,255,255,0.28)",
+  border:     "rgba(255,255,255,0.08)",
+  borderHov:  "rgba(255,255,255,0.16)",
+  green:      "#16A34A",
+  greenAlpha: "rgba(22,163,74,0.16)",
+  greenGlow:  "rgba(22,163,74,0.28)",
 } as const;
 
 /* ─── Brand tokens — LIGHT ────────────────────────────────────────────────────
-   Every value is traceable to an existing site-wide token in index.css :root.
-   background  hsl(210 20% 98%) ≈ #F8FAFC         (--background light)
-   card        hsl(0 0% 100%)   = #FFFFFF           (--card light)
-   card2       hsl(220 22% 96%) ≈ #EEF0F7           (--section-alt light)
-   foreground  hsl(221 39% 11%) ≈ #111827           (--foreground light)
-   muted-fg    hsl(220 13% 32%) ≈ #3D4554           (--muted-foreground light)
-   border      hsl(220 13% 84%) ≈ #D1D4E0           (--border light)
-   purple / green unchanged — brand accents readable on both surfaces.       */
+   Every value traceable to existing site-wide tokens in index.css :root.
+   background  hsl(210 20% 98%) ≈ #F8FAFC
+   card        hsl(0 0% 100%)   = #FFFFFF
+   card2       hsl(220 22% 96%) ≈ #EEF0F7 (--section-alt)
+   foreground  hsl(221 39% 11%) ≈ #111827 (--foreground)
+   muted-fg    hsl(220 13% 32%) ≈ #3D4554 (--muted-foreground)
+   border      hsl(220 13% 84%) ≈ #D1D4E0 (--border)
+   green / greenAlpha / greenGlow — site-wide accent, unchanged.             */
 const CL = {
-  bg:          "#F8FAFC",
-  card:        "#FFFFFF",
-  card2:       "#EEF0F7",
-  white:       "#111827",
-  offWhite:    "#111827",
-  muted:       "#3D4554",
-  dimmed:      "rgba(17,24,39,0.50)",
-  border:      "#D1D4E0",
-  borderHov:   "rgba(17,24,39,0.22)",
-  purple:      "#7C3AED",
-  purpleAlpha: "rgba(124,58,237,0.10)",
-  purpleGlow:  "rgba(124,58,237,0.18)",
-  green:       "#16A34A",
-  greenAlpha:  "rgba(22,163,74,0.10)",
+  bg:         "#F8FAFC",
+  card:       "#FFFFFF",
+  card2:      "#EEF0F7",
+  white:      "#111827",
+  offWhite:   "#111827",
+  muted:      "#3D4554",
+  dimmed:     "rgba(17,24,39,0.50)",
+  border:     "#D1D4E0",
+  borderHov:  "rgba(17,24,39,0.22)",
+  green:      "#16A34A",
+  greenAlpha: "rgba(22,163,74,0.10)",
+  greenGlow:  "rgba(22,163,74,0.14)",
 } as const;
 
 /* ─── Color token type — string-valued so both C (dark) and CL (light) fit ─*/
@@ -274,17 +269,19 @@ interface FeaturedStoreAPI {
   reviewsCount:  number;
 }
 
-/* ─── Hero card stacks ────────────────────────────────────────────────────────*/
+/* ─── Hero card stacks ────────────────────────────────────────────────────────
+   Accents are per-card image overlay tints. All purple-family entries
+   replaced with green-family or blue tones to eliminate purple from UI.     */
 const LEFT_STACK: StackItem[] = [
   { id: "l0", label: "lux.left.l0.label", sublabel: "lux.left.l0.sublabel", badge: "lux.left.l0.badge",
     imageUrl: "https://images.pexels.com/photos/2220329/pexels-photo-2220329.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
-    accent: "#A78BFA" },
+    accent: "#4ade80" },                    /* was #A78BFA (light purple) → light green */
   { id: "l1", label: "lux.left.l1.label", sublabel: "lux.left.l1.sublabel", badge: "lux.left.l1.badge",
     imageUrl: "https://images.pexels.com/photos/267320/pexels-photo-267320.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
-    accent: "#FBBF24" },
+    accent: "#FBBF24" },                    /* amber — unchanged */
   { id: "l2", label: "lux.left.l2.label", sublabel: "lux.left.l2.sublabel", badge: "lux.left.l2.badge",
     imageUrl: "https://images.pexels.com/photos/755992/pexels-photo-755992.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
-    accent: "#818CF8" },
+    accent: "#60a5fa" },                    /* was #818CF8 (indigo-purple) → blue-400 */
 ];
 
 const RIGHT_STACK: StackItem[] = [
@@ -307,23 +304,25 @@ const CENTER_SLIDE_IMAGES = [
   "https://images.pexels.com/photos/4215110/pexels-photo-4215110.jpeg?auto=compress&cs=tinysrgb&w=600&h=900&fit=crop",
 ];
 
-/* ─── Category definitions ────────────────────────────────────────────────────*/
+/* ─── Category definitions ────────────────────────────────────────────────────
+   home_decor accent was #8b5cf6 (violet) → replaced with #22c55e (green-500). */
 const CATEGORY_DEFS = [
   { nameKey: "home.categories.electronics", countKey: "home.categories.count_electronics", img: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=500&h=360&fit=crop&auto=format&q=85", accent: "#3b82f6", slug: "Electronics" },
   { nameKey: "home.categories.fashion",     countKey: "home.categories.count_fashion",     img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=500&h=360&fit=crop&auto=format&q=85", accent: "#ec4899", slug: "Fashion" },
   { nameKey: "home.categories.beauty",      countKey: "home.categories.count_beauty",      img: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&h=360&fit=crop&auto=format&q=85", accent: "#f59e0b", slug: "Beauty & Personal Care" },
-  { nameKey: "home.categories.home_decor",  countKey: "home.categories.count_home_decor",  img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=360&fit=crop&auto=format&q=85", accent: "#8b5cf6", slug: "Home & Kitchen" },
+  { nameKey: "home.categories.home_decor",  countKey: "home.categories.count_home_decor",  img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=360&fit=crop&auto=format&q=85", accent: "#22c55e", slug: "Home & Kitchen" },
   { nameKey: "home.categories.sports",      countKey: "home.categories.count_sports",      img: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=500&h=360&fit=crop&auto=format&q=85", accent: "#276221", slug: "Sports & Fitness" },
   { nameKey: "home.categories.watches",     countKey: "home.categories.count_watches",     img: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=500&h=360&fit=crop&auto=format&q=85", accent: "#f97316", slug: "Accessories" },
   { nameKey: "home.categories.phones",      countKey: "home.categories.count_phones",      img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&h=360&fit=crop&auto=format&q=85", accent: "#06b6d4", slug: "Electronics" },
-  { nameKey: "home.categories.computers",   countKey: "home.categories.count_computers",   img: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=360&fit=crop&auto=format&q=85", accent: "#a855f7", slug: "Electronics" },
+  { nameKey: "home.categories.computers",   countKey: "home.categories.count_computers",   img: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=360&fit=crop&auto=format&q=85", accent: "#16a34a", slug: "Electronics" },
 ];
 
-/* ─── Static store fallback data ─────────────────────────────────────────────*/
+/* ─── Static store fallback data ─────────────────────────────────────────────
+   بيت الديكور logoColor was #8b5cf6 (violet) → replaced with #16A34A.      */
 const STATIC_STORES = [
   { id: 1, name: "تك ستور سوريا", taglineAr: "أحدث الإلكترونيات والأجهزة الذكية", categoryKey: "home.categories.electronics", rating: 4.9, reviews: 1840, productCount: 3240, coverImg: "https://images.unsplash.com/photo-1684395882817-030e24c0322a?w=700&h=220&fit=crop&auto=format&q=80", logoColor: "#3b82f6", logoInitial: "ت", verified: true, slug: null },
   { id: 2, name: "دار الأناقة",   taglineAr: "أزياء فاخرة وموضة معاصرة للجميع",   categoryKey: "home.categories.fashion",     rating: 4.8, reviews: 2210, productCount: 1890, coverImg: "https://images.unsplash.com/photo-1768745294179-693a07a3f054?w=700&h=220&fit=crop&auto=format&q=80", logoColor: "#ec4899", logoInitial: "د", verified: true, slug: null },
-  { id: 3, name: "بيت الديكور",   taglineAr: "أثاث عصري وإكسسوارات منزلية راقية",  categoryKey: "home.categories.home_decor",  rating: 4.7, reviews: 956,  productCount: 2140, coverImg: "https://images.unsplash.com/photo-1724582586529-62622e50c0b3?w=700&h=220&fit=crop&auto=format&q=80", logoColor: "#8b5cf6", logoInitial: "ب", verified: true, slug: null },
+  { id: 3, name: "بيت الديكور",   taglineAr: "أثاث عصري وإكسسوارات منزلية راقية",  categoryKey: "home.categories.home_decor",  rating: 4.7, reviews: 956,  productCount: 2140, coverImg: "https://images.unsplash.com/photo-1724582586529-62622e50c0b3?w=700&h=220&fit=crop&auto=format&q=80", logoColor: "#16A34A", logoInitial: "ب", verified: true, slug: null },
 ];
 
 /* ─── Motion spring ───────────────────────────────────────────────────────────*/
@@ -355,7 +354,7 @@ const PHASE1_END_MS =
   bannerVariant.visible.transition.duration * 1000; // = 650
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   HERO COMPONENTS (existing — unchanged)
+   HERO COMPONENTS
 ═══════════════════════════════════════════════════════════════════════════*/
 
 function ProductCard({ item }: { item: StackItem }) {
@@ -400,11 +399,11 @@ const CenterCard = memo(function CenterCard({ reduced }: { reduced: boolean }) {
         />
       </AnimatePresence>
 
-      {/* Dark cinematic gradient — kept in both modes to ensure tagline text contrast on image */}
+      {/* Dark cinematic gradient — kept in both modes to ensure text contrast on photo */}
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(8,3,24,0.56) 44%, rgba(4,1,14,0.90) 100%)", pointerEvents: "none", borderRadius: "inherit" }} />
 
-      {/* Purple spectral glow — toned for light mode via purpleGlow token */}
-      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 72% 52% at 50% 40%, ${colors.purpleGlow} 0%, transparent 66%)`, pointerEvents: "none", borderRadius: "inherit", opacity: 0.44 }} />
+      {/* Green spectral glow — toned per mode via greenGlow token */}
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 72% 52% at 50% 40%, ${colors.greenGlow} 0%, transparent 66%)`, pointerEvents: "none", borderRadius: "inherit", opacity: 0.44 }} />
     </div>
   );
 });
@@ -472,7 +471,7 @@ function LuxCountdownTimer() {
       <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
         {[pad(time.h), pad(time.m), pad(time.s)].map((val, i) => (
           <span key={i} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-            <span style={{ fontWeight: 700, fontSize: "0.78rem", fontVariantNumeric: "tabular-nums", color: colors.white, background: colors.purpleAlpha, border: `1px solid ${colors.border}`, padding: "2px 8px", borderRadius: "6px", minWidth: "2rem", textAlign: "center", letterSpacing: "0.04em" }}>
+            <span style={{ fontWeight: 700, fontSize: "0.78rem", fontVariantNumeric: "tabular-nums", color: colors.white, background: colors.greenAlpha, border: `1px solid ${colors.border}`, padding: "2px 8px", borderRadius: "6px", minWidth: "2rem", textAlign: "center", letterSpacing: "0.04em" }}>
               {val}
             </span>
             {i < 2 && <span style={{ color: colors.dimmed, fontWeight: 700, fontSize: "0.8rem" }}>:</span>}
@@ -483,7 +482,7 @@ function LuxCountdownTimer() {
   );
 }
 
-/* ─── Luxury deal card (needs cart hooks → separate component) ────────────────*/
+/* ─── Luxury deal card ────────────────────────────────────────────────────────*/
 const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData; index: number }) {
   const { t } = useTranslation();
   const { format } = useCurrency();
@@ -565,7 +564,7 @@ const LuxDealCard = memo(function LuxDealCard({ deal, index }: { deal: DealData;
           <button
             onClick={handleAdd}
             disabled={adding}
-            style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.75rem", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, color: colors.muted, padding: "12px 14px", borderRadius: "9999px", flexShrink: 0, opacity: adding ? 0.5 : 1 }}>
+            style={{ display: "flex", alignItems: "center", gap: "5px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.75rem", background: colors.greenAlpha, border: `1px solid ${colors.border}`, color: colors.muted, padding: "12px 14px", borderRadius: "9999px", flexShrink: 0, opacity: adding ? 0.5 : 1 }}>
             {adding
               ? <div style={{ width: 12, height: 12, border: `1.5px solid ${colors.muted}`, borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
               : <ShoppingCart style={{ width: 12, height: 12 }} />}
@@ -785,7 +784,8 @@ const LuxTrendingSection = memo(function LuxTrendingSection({ products }: { prod
                   <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 55%)" }} />
                   {isTrending && (
                     <div style={{ position: "absolute", top: "10px", insetInlineStart: "10px" }}>
-                      <span style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "10px", background: colors.purpleAlpha, border: `1px solid rgba(124,58,237,0.40)`, color: "#c4b5fd", padding: "3px 9px", borderRadius: "9999px", letterSpacing: "0.04em" }}>
+                      {/* Trending badge — green accent: bg=greenAlpha, border=green at 40% opacity, text=#4ade80 (light green) */}
+                      <span style={{ fontFamily: F.sans, fontWeight: 600, fontSize: "10px", background: colors.greenAlpha, border: `1px solid rgba(22,163,74,0.40)`, color: "#4ade80", padding: "3px 9px", borderRadius: "9999px", letterSpacing: "0.04em" }}>
                         {t("home.trending.trending_badge")}
                       </span>
                     </div>
@@ -914,13 +914,14 @@ const LuxJoinSection = memo(function LuxJoinSection() {
           {/* Background glows */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
             <div style={{ position: "absolute", inset: 0, opacity: 0.035, backgroundImage: `linear-gradient(${colors.border} 1px, transparent 1px), linear-gradient(90deg, ${colors.border} 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
-            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "600px", height: "280px", borderRadius: "50%", background: colors.purpleGlow, filter: "blur(100px)" }} />
+            {/* Green ambient blur — replaces former purple glow */}
+            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "600px", height: "280px", borderRadius: "50%", background: colors.greenGlow, filter: "blur(100px)" }} />
           </div>
 
           <div style={{ position: "relative", zIndex: 1, padding: "4rem 2rem" }}>
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6, ease: fadeEase }}
               style={{ textAlign: "center", marginBottom: "3rem" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.72rem", letterSpacing: "0.1em", color: colors.muted, textTransform: "uppercase", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, padding: "5px 14px", borderRadius: "9999px", marginBottom: "1.25rem" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontFamily: F.sans, fontWeight: 600, fontSize: "0.72rem", letterSpacing: "0.1em", color: colors.muted, textTransform: "uppercase", background: colors.greenAlpha, border: `1px solid ${colors.border}`, padding: "5px 14px", borderRadius: "9999px", marginBottom: "1.25rem" }}>
                 {t("home.join.badge")}
               </span>
               <h2 style={{ fontFamily: F.naskh, fontWeight: 700, fontSize: "clamp(1.5rem,3.5vw,2.75rem)", letterSpacing: "-0.02em", lineHeight: 1.2, color: colors.white, margin: "0 0 1rem" }}>
@@ -932,21 +933,21 @@ const LuxJoinSection = memo(function LuxJoinSection() {
             </motion.div>
 
             <div className="lux-join-grid">
-              {/* Seller card */}
+              {/* Seller card — green accent border + icon */}
               <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: 0.1, ease: fadeEase }}
                 onClick={handleOpenYourStore}
                 onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenYourStore(); } }}
                 role="button"
                 tabIndex={0}
-                style={{ background: colors.card2, border: `1px solid ${colors.purpleAlpha}`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer", position: "relative", overflow: "hidden" }}>
-                <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 110%, ${colors.purpleAlpha} 0%, transparent 70%)`, pointerEvents: "none" }} />
+                style={{ background: colors.card2, border: `1px solid rgba(22,163,74,0.22)`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse 80% 60% at 50% 110%, ${colors.greenAlpha} 0%, transparent 70%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative", zIndex: 1 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "14px", background: colors.purpleAlpha, border: `1px solid rgba(124,58,237,0.25)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
-                    <Store style={{ width: 22, height: 22, color: "#a78bfa" }} />
+                  <div style={{ width: 48, height: 48, borderRadius: "14px", background: colors.greenAlpha, border: `1px solid rgba(22,163,74,0.25)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                    <Store style={{ width: 22, height: 22, color: "#4ade80" }} />
                   </div>
                   <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.2rem", color: colors.white, margin: "0 0 0.5rem" }}>{t("home.join.seller_title")}</h3>
                   <p style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.85rem", lineHeight: 1.65, color: colors.muted, margin: "0 0 1.25rem" }}>{t("home.join.seller_desc")}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#c4b5fd" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#4ade80" }}>
                     <span style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "0.85rem" }}>{t("home.join.seller_cta")}</span>
                     <ArrowLeft style={{ width: 14, height: 14 }} />
                   </div>
@@ -960,7 +961,7 @@ const LuxJoinSection = memo(function LuxJoinSection() {
                 role="button"
                 tabIndex={0}
                 style={{ background: colors.card2, border: `1px solid ${colors.border}`, borderRadius: "18px", padding: "1.75rem", cursor: "pointer" }}>
-                <div style={{ width: 48, height: 48, borderRadius: "14px", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "14px", background: colors.greenAlpha, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.25rem" }}>
                   <Bike style={{ width: 22, height: 22, color: colors.muted }} />
                 </div>
                 <h3 style={{ fontFamily: F.naskh, fontWeight: 800, fontSize: "1.2rem", color: colors.white, margin: "0 0 0.5rem" }}>{t("home.join.courier_title")}</h3>
@@ -1113,7 +1114,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="lux-social-icon"
-                  style={{ width: 36, height: 36, borderRadius: "10px", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: colors.dimmed, textDecoration: "none", transition: "background 0.2s, color 0.2s, border-color 0.2s" }}
+                  style={{ width: 36, height: 36, borderRadius: "10px", background: colors.greenAlpha, border: `1px solid ${colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: colors.dimmed, textDecoration: "none", transition: "background 0.2s, color 0.2s, border-color 0.2s" }}
                 >
                   <Icon style={{ width: 15, height: 15 }} />
                 </a>
@@ -1163,7 +1164,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
                   placeholder={t("home.footer.newsletter_placeholder")}
                   aria-label={t("home.footer.newsletter_placeholder")}
                   className="lux-footer-input"
-                  style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", width: "100%", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, borderRadius: "12px", padding: "0.72rem 1rem", color: colors.white, outline: "none", transition: "border-color 0.2s" }}
+                  style={{ fontFamily: F.sans, fontWeight: 400, fontSize: "0.8rem", width: "100%", background: colors.greenAlpha, border: `1px solid ${colors.border}`, borderRadius: "12px", padding: "0.72rem 1rem", color: colors.white, outline: "none", transition: "border-color 0.2s" }}
                 />
                 <button
                   type="submit"
@@ -1186,7 +1187,7 @@ const LuxFooterBar = memo(function LuxFooterBar() {
             {LUX_PAYMENT_METHODS.map((method) => (
               <span
                 key={method}
-                style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "10px", letterSpacing: "0.05em", padding: "3px 10px", background: colors.purpleAlpha, border: `1px solid ${colors.border}`, color: colors.dimmed, borderRadius: "6px" }}
+                style={{ fontFamily: F.sans, fontWeight: 700, fontSize: "10px", letterSpacing: "0.05em", padding: "3px 10px", background: colors.greenAlpha, border: `1px solid ${colors.border}`, color: colors.dimmed, borderRadius: "6px" }}
               >
                 {method}
               </span>
@@ -1242,8 +1243,6 @@ export default function LuxuryLandingPage() {
 
   useEffect(() => {
     if (reduced) return;
-    // PHASE1_END_MS = 650ms (right banner drop-in completes at mount + 650ms).
-    // Wait an additional 4000ms after that → total 4650ms from mount.
     const id = setTimeout(() => setSplitTriggered(true), PHASE1_END_MS + 4000);
     return () => clearTimeout(id);
   }, [reduced]);
@@ -1280,7 +1279,6 @@ export default function LuxuryLandingPage() {
   const rightItem     = RIGHT_STACK[rightIdx];
   const nextLeftItem  = LEFT_STACK[(leftIdx + 1) % LEFT_STACK.length];
   const nextRightItem = RIGHT_STACK[(rightIdx + 1) % RIGHT_STACK.length];
-
 
   return (
     <LuxColorCtx.Provider value={colors}>

@@ -1,0 +1,58 @@
+TASK: Replace the purple accent color with the site's actual green accent color across the homepage component ("luxury-landing.tsx") and its navbar, in BOTH light and dark mode, and verify the navbar is fully responsive in both themes with colors matching the rest of the site exactly.
+
+CONTEXT: The homepage currently has both a purple and a green color defined as "brand accents" (per the prior light-mode task). The rest of the site uses green as its actual accent color. The homepage's purple is a leftover/inconsistency that must be eliminated — every place currently using purple should use the same green token the rest of the site uses instead. Do not invent a new green — use the exact one already established site-wide.
+
+STRICT RULE: Do not add any new UI control. Do not invent any new color value. Every color change must map to a token/value already confirmed in use elsewhere in this codebase.
+
+═══════════════════════════════════════
+STEP 1 — FIND EVERY USE OF PURPLE IN THE HOMEPAGE/NAVBAR
+═══════════════════════════════════════
+1. Open luxury-landing.tsx and every component it renders (hero panels in all states, category row, product cards, trust strip, footer, and the navbar markup/styling used on this page). Find every single place purple is used — in the `C` (dark) color object, the `CL` (light) color object built in the prior task, inline styles, CSS-in-SECTION_CSS rules, gradients, borders, hover states, focus rings, icons — everywhere, not just the main palette object.
+2. For each instance found, record: file + line number, what UI element it affects (e.g. "CTA button background", "hover underline on nav link", "category card border"), and whether it appears in dark mode, light mode, or both.
+3. Do the same for every existing use of green already in this same scope, so you know what's already correctly using green vs. what still needs to be migrated from purple.
+
+═══════════════════════════════════════
+STEP 2 — CONFIRM THE SITE'S ACTUAL GREEN TOKEN
+═══════════════════════════════════════
+1. Open the global CSS file (e.g. index.css :root tokens, the same source the prior task traced the light-mode palette from) and/or the Tailwind config, and identify the exact green token(s) used site-wide — there may be more than one shade (e.g. a primary green and a hover/darker variant) — record exact hex/variable names.
+2. Cross-check this against 2-3 other existing pages/components outside the homepage (e.g. shop/product listing, a CTA button elsewhere, the shared site-wide Navbar if one exists separately) to confirm which exact green shade is used for which purpose (primary action vs. hover vs. subtle accent/highlight) — green may not be used identically in every context, so map purpose-to-shade carefully rather than assuming one single green replaces every purple instance uniformly.
+
+═══════════════════════════════════════
+STEP 3 — REPLACE PURPLE WITH THE CORRECT GREEN, PRESERVING PURPOSE
+═══════════════════════════════════════
+1. For every purple instance found in Step 1, replace it with the green token from Step 2 that matches the same FUNCTIONAL purpose (e.g. if purple was used as a primary CTA background, use the site's primary-action green; if purple was a subtle hover underline, use whatever shade green is used for subtle hovers elsewhere) — do not mechanically find-and-replace one single green value everywhere regardless of context.
+2. Apply this consistently in both the `C` (dark) and `CL` (light) color objects from the prior task, and in any place-specific CSS overrides (the `html:not(.dark)` rules mentioned in the prior task's report) that reference purple.
+3. Re-verify WCAG AA contrast (4.5:1 body text, 3:1 large text) for every text/background pairing that now uses green instead of purple, in both light and dark mode — green and purple often have different luminance even at "equivalent" saturation, so a pairing that passed contrast with purple is not guaranteed to still pass with green.
+
+═══════════════════════════════════════
+STEP 4 — NAVBAR-SPECIFIC COLOR PARITY WITH THE REST OF THE SITE
+═══════════════════════════════════════
+1. Open the navbar component(s) used on the homepage and compare them directly against the navbar (or header/topbar) markup used on at least 2 other pages of the site outside the homepage.
+2. Confirm every navbar color — background, text, icon colors, hover states, active/current-page indicator if any, the CTA button inside the navbar — matches those other pages' navbar exactly, in BOTH light and dark mode. Fix any remaining mismatch (including any leftover purple, any homepage-specific one-off shade that isn't actually used elsewhere).
+3. If the homepage's navbar is a separate component from the site-wide navbar (rather than the actual shared Navbar component being reused), explicitly flag this architectural fact in your report — it's worth knowing whether this is "two navbars styled to look the same" vs. "one shared navbar component," since the former is more likely to drift out of sync again in the future.
+
+═══════════════════════════════════════
+STEP 5 — NAVBAR RESPONSIVENESS CHECK, BOTH THEMES
+═══════════════════════════════════════
+1. Check the navbar's rendered appearance at 375px, 768px, 1024px, 1440px viewport widths, in both dark and light mode (8 total checks).
+2. At each combination, confirm: logo, icon buttons, and CTA button all remain visible, properly spaced, and not overlapping or clipped; any mobile menu/hamburger behavior (if one exists) opens and closes correctly and uses the correct theme colors when open; the now-green accent renders with correct contrast against the navbar background at every size in both modes.
+3. Take screenshots at each of the 8 combinations, review them yourself, and fix any issue found before declaring success.
+
+═══════════════════════════════════════
+CONSTRAINTS
+═══════════════════════════════════════
+- Scope entirely to the web marketplace homepage (artifacts/marketplace) — do not modify artifacts/mobile.
+- Do not change the existing light/dark mode mechanism built in the prior task (the `LuxColorCtx` context, `useTheme().resolvedTheme` logic) — only the color VALUES being fed into it.
+- Do not change the hero animation's timing/choreography — color-only changes.
+- Do not add any new UI element/control.
+- Do not modify SYANO_MASTER_RECOVERY.md in this task.
+- Run the marketplace TypeScript check (npx tsc --noEmit -p artifacts/marketplace/tsconfig.json) and confirm 0 errors before finishing.
+
+When finished, report:
+1. The full list of purple instances found in Step 1 (file/line + what they affected), and which green shade each was replaced with and why (matched by functional purpose).
+2. The exact green token(s) confirmed from Step 2, with source file/line references.
+3. Contrast-ratio confirmation for any text/background pairing affected by the purple→green change.
+4. Whether the homepage navbar is the same shared component as the rest of the site or a separate look-alike — flagged clearly either way.
+5. The 8 responsiveness screenshots' results — any issues found and how fixed.
+6. TypeScript check result.
+7. Commit with a clear message.
