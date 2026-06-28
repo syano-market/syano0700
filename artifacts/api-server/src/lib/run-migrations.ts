@@ -745,6 +745,18 @@ export async function runMigrations(): Promise<void> {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS facebook_id TEXT;
       CREATE UNIQUE INDEX IF NOT EXISTS users_facebook_id_unique
         ON users(facebook_id) WHERE facebook_id IS NOT NULL;
+
+      -- Contact form submissions (public, no auth required)
+      CREATE TABLE IF NOT EXISTS contact_submissions (
+        id         SERIAL PRIMARY KEY,
+        name       TEXT NOT NULL,
+        email      TEXT NOT NULL,
+        subject    TEXT NOT NULL,
+        message    TEXT NOT NULL,
+        source_ip  TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_contact_submissions_created_at ON contact_submissions(created_at DESC);
     `);
 
     logger.info("Migrations complete: delivery system, courier enums, order delivery, user settings, messaging-v2 columns, AI support tickets, V3.3 mission assignment engine (mission_offers + dispatch_alerts + courier lat/lng + A3 GPS telemetry + A4 tracking_sessions + tracking_positions + tracking_events + A9 courier_wallets + courier_payout_requests) ready");

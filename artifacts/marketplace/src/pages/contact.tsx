@@ -5,6 +5,8 @@ import { useSEO } from "@/hooks/useSEO";
 import { Mail, Phone, MapPin, MessageSquare, Store } from "lucide-react";
 import TurnstileWidget, { type TurnstileHandle } from "@/components/TurnstileWidget";
 
+const BASE = import.meta.env.BASE_URL ?? "/";
+
 export default function ContactPage() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
@@ -18,6 +20,8 @@ export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [networkError, setNetworkError] = useState("");
   const [tsToken, setTsToken] = useState("");
   const tsRef = useRef<TurnstileHandle>(null);
 
@@ -27,10 +31,12 @@ export default function ContactPage() {
     if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = t("contact.err_email");
     if (!form.subject.trim()) e.subject = t("contact.err_subject");
     if (!form.message.trim() || form.message.trim().length < 10) e.message = t("contact.err_message");
+    const turnstileEnabled = import.meta.env.VITE_TURNSTILE_ENABLED !== "false";
+    if (turnstileEnabled && !tsToken) e.turnstile = t("contact.err_turnstile");
     return e;
   }
 
-  function handleSubmit(ev: React.FormEvent) {
+  async function handleSubmit(ev: React.FormEvent) {
     ev.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -38,7 +44,33 @@ export default function ContactPage() {
       return;
     }
     setErrors({});
-    setSubmitted(true);
+    setNetworkError("");
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${BASE}api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, tsToken }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (data.error === "turnstile_failed") {
+          setErrors({ turnstile: t("contact.err_turnstile") });
+          tsRef.current?.reset();
+          setTsToken("");
+        } else {
+          setNetworkError(t("contact.err_network"));
+          tsRef.current?.reset();
+          setTsToken("");
+        }
+      }
+    } catch {
+      setNetworkError(t("contact.err_network"));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const channels = [
@@ -157,6 +189,7 @@ export default function ContactPage() {
                         onChange={e => { setForm(f => ({ ...f, [field]: e.target.value })); setErrors(er => ({ ...er, [field]: "" })); }}
                         placeholder={t(`contact.placeholder_${field}`)}
                         className={`${inputBase} ${errors[field] ? "border-destructive" : "border-border"}`}
+                        disabled={submitting}
                       />
                       {errors[field] && <p className="text-xs mt-1 text-destructive">{errors[field]}</p>}
                     </div>
@@ -171,20 +204,29 @@ export default function ContactPage() {
                       onChange={e => { setForm(f => ({ ...f, message: e.target.value })); setErrors(er => ({ ...er, message: "" })); }}
                       placeholder={t("contact.placeholder_message")}
                       className={`${inputBase} resize-none ${errors.message ? "border-destructive" : "border-border"}`}
+                      disabled={submitting}
                     />
                     {errors.message && <p className="text-xs mt-1 text-destructive">{errors.message}</p>}
                   </div>
                   <TurnstileWidget
                     ref={tsRef}
                     containerId="ts-contact"
-                    onVerify={setTsToken}
+                    onVerify={token => { setTsToken(token); setErrors(er => ({ ...er, turnstile: "" })); }}
                     onExpire={() => setTsToken("")}
                   />
+                  {errors.turnstile && <p className="text-xs text-destructive">{errors.turnstile}</p>}
+                  {networkError && (
+                    <p className="text-xs text-destructive">{networkError}</p>
+                  )}
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-lg font-semibold text-sm transition-opacity duration-150 hover:opacity-90 bg-primary text-white"
+                    disabled={submitting}
+                    className="w-full py-3 rounded-lg font-semibold text-sm transition-opacity duration-150 hover:opacity-90 bg-primary text-white disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {t("contact.submit_btn")}
+                    {submitting && (
+                      <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    )}
+                    {submitting ? t("contact.submitting") : t("contact.submit_btn")}
                   </button>
                 </form>
               )}

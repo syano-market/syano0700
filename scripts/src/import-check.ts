@@ -204,15 +204,15 @@ try {
   process.exit(1);
 }
 
-// Table count — must be exactly 44
+// Table count — must be exactly 45
 const tableCountRes = await client.query<{ count: string }>(
   `SELECT COUNT(*)::text AS count FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'`
 );
 const tableCount = parseInt(tableCountRes.rows[0]?.count ?? "0", 10);
-if (tableCount === 44)      ok(`Table count: ${tableCount}/44 ✓`);
-else if (tableCount >= 40)  wa(`Table count: ${tableCount}/44 — restart API to apply remaining migrations`);
-else if (tableCount >= 27)  no(`Table count: ${tableCount}/44 — run: cd lib/db && pnpm run push-force, then restart API`);
-else                        no(`Table count: ${tableCount}/44 — run: cd lib/db && pnpm run push-force`);
+if (tableCount === 45)      ok(`Table count: ${tableCount}/45 ✓`);
+else if (tableCount >= 41)  wa(`Table count: ${tableCount}/45 — restart API to apply remaining migrations`);
+else if (tableCount >= 27)  no(`Table count: ${tableCount}/45 — run: cd lib/db && pnpm run push-force, then restart API`);
+else                        no(`Table count: ${tableCount}/45 — run: cd lib/db && pnpm run push-force`);
 
 // pgvector extension
 try {

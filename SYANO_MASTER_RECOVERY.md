@@ -2,7 +2,7 @@
 ### سوق سوريا — Syrian Digital Marketplace
 
 **Certified:** 2026-06-22 · **Status:** ✅ FULLY OPERATIONAL  
-**Health:** `status=ok · tables=44 · products=42 · embeddings=42 · backend=sentence-transformers`
+**Health:** `status=ok · tables=45 · products=42 · embeddings=42 · backend=sentence-transformers`
 
 > This is the **only** file a future agent needs to fully recover SYANO.  
 > No other file contains recovery logic. Read this first. Read nothing else first.
@@ -10,7 +10,7 @@
 **One-command verification:**
 ```bash
 curl -s http://localhost:8080/api/healthz | python3 -m json.tool
-# Healthy: status=ok, tables=44, products=42, embeddings=42, embeddingBackend=sentence-transformers
+# Healthy: status=ok, tables=45, products=42, embeddings=42, embeddingBackend=sentence-transformers
 ```
 
 ---
@@ -38,7 +38,7 @@ artifacts/api-server/      Express API (30 route files, auto-migrations on boot)
 artifacts/marketplace/     Vite React web app
 artifacts/mobile/          Expo mobile app
 artifacts/embedding-service/  FastAPI Python embedding service
-lib/db/                    Drizzle schema + PostgreSQL client (44 tables)
+lib/db/                    Drizzle schema + PostgreSQL client (45 tables)
 lib/api-zod/               Shared Zod schemas + TypeScript types
 lib/api-client-react/      Shared React hooks
 ```
@@ -93,7 +93,7 @@ CREATE EXTENSION IF NOT EXISTS vector;   -- pgvector for semantic search (384-di
 CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- trigram similarity for full-text search
 ```
 
-**Expected table count: 44**
+**Expected table count: 45**
 
 | # | Table | Rows (certified 2026-06-22) |
 |---|---|---|
@@ -141,13 +141,14 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- trigram similarity for full-text sea
 | 42 | variant_images | 0 |
 | 43 | verification_audit_log | 0 |
 | 44 | wishlists | 12 |
+| 45 | contact_submissions | 0 |
 
 **Schema management:**
 ```bash
 # Build shared TS libraries FIRST (required before push)
 npx tsc --build lib/db lib/api-zod lib/api-client-react
 
-# Push schema — fresh database only (skip if 44 tables already exist)
+# Push schema — fresh database only (skip if 45 tables already exist)
 cd lib/db && pnpm run push-force
 ```
 
@@ -632,7 +633,7 @@ This is required before any TypeScript checks or DB schema push. Skipping it cau
 ### STEP 5 — Database schema (fresh DB only)
 ```bash
 # Only run if the database has no tables (fresh import with blank DB)
-# Skip if psql $DATABASE_URL -c "\dt" shows 44 tables
+# Skip if psql $DATABASE_URL -c "\dt" shows 45 tables
 cd lib/db && pnpm run push-force
 ```
 
@@ -645,7 +646,7 @@ cd lib/db && pnpm run push-force
 ### STEP 7 — Verify API
 ```bash
 curl -s http://localhost:8080/api/healthz | python3 -m json.tool
-# Expected: status=ok, tables=44, products=42, embeddings=42, embeddingBackend=sentence-transformers
+# Expected: status=ok, tables=45, products=42, embeddings=42, embeddingBackend=sentence-transformers
 ```
 
 ### STEP 8 — Verify embeddings
@@ -679,7 +680,7 @@ pnpm import:check   # Expected: PASS
 | Every mobile login fails (generic error) | CORS not allowing Replit domains | Verify `healthz.auth.corsReplitDomainsAllowed=true`; restore `isReplitOrigin()` in `artifacts/api-server/src/app.ts` |
 | `TS6305: Output file has not been built` | Shared lib dist files missing | `npx tsc --build lib/db lib/api-zod lib/api-client-react` |
 | "Port in use" / duplicate workflows | Extra manual workflows exist | Delete any workflow not in the approved list of 4 |
-| Tables < 44 after API boot | Migrations failed or incomplete | Restart API workflow (migrations auto-run on boot) |
+| Tables < 45 after API boot | Migrations failed or incomplete | Restart API workflow (migrations auto-run on boot) |
 | `pnpm install` times out | pnpm store cache incomplete | Re-run: `pnpm install --no-frozen-lockfile` |
 | Embedding service torch install fails | uv/pyproject resolution conflict or Nix PEP 668 block | Use `pip install --user` (not `python3 -m pip`) with `--index-url https://download.pytorch.org/whl/cpu` |
 
@@ -711,7 +712,7 @@ npx tsc --noEmit -p artifacts/mobile/tsconfig.json
 | System | Status | Detail |
 |---|---|---|
 | API Server | ✅ Running | Port 8080, Express 5, 30 route files |
-| Database | ✅ 44/44 tables | PostgreSQL 16 + pgvector + pg_trgm |
+| Database | ✅ 45/45 tables | PostgreSQL 16 + pgvector + pg_trgm |
 | Products | ✅ 42/42 embedded | With semantic vectors |
 | Embedding Service | ✅ Running | FastAPI port 8000, sentence-transformers, load_ms≈40549 |
 | Marketplace Web | ✅ Running | Vite 7, React 19, Tailwind v4 |
@@ -743,7 +744,7 @@ After recovery, an agent must verify every item before declaring the system heal
 
 ```
 [ ] curl http://localhost:8080/api/healthz → status=ok
-[ ] healthz.database.tables = 44
+[ ] healthz.database.tables = 45
 [ ] healthz.database.products = 42
 [ ] healthz.database.embeddings = 42
 [ ] healthz.services.embeddingBackend = "sentence-transformers"

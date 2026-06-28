@@ -1,0 +1,49 @@
+load the needed skills then fix thes:
+
+There is a Navbar visibility bug in artifacts/marketplace/src/ — Web only (not mobile).
+
+**Exact behavior:**
+
+- When the user is at the top of the page: Navbar works perfectly
+
+- After scrolling down: Navbar is visible BUT clicking any button inside it causes the Navbar to instantly disappear. The page stays in the same scroll position (no scroll-to-top). No modal or overlay opens. The Navbar just vanishes.
+
+**Root cause to find:**
+
+The Navbar has a scroll event listener that tracks scroll position and toggles CSS classes or state (e.g. isScrolled, isVisible, showNav, opacity, transform: translateY, hidden, invisible). When the user clicks a Navbar button after scrolling, something triggers a state update that re-evaluates the scroll condition incorrectly and hides the Navbar.
+
+**Files to investigate in this exact order:**
+
+1. artifacts/marketplace/src/components/Navbar.tsx
+
+   - Find every useState and useEffect related to scroll
+
+   - Find every onScroll, window.addEventListener('scroll'), or IntersectionObserver
+
+   - Find every className that conditionally applies: hidden, invisible, opacity-0, -translate-y-full, or pointer-events-none based on scroll state
+
+   - Find if any button onClick causes a state change that accidentally resets or conflicts with the scroll state
+
+2. artifacts/marketplace/src/components/HeroBanner.tsx
+
+   - Check if it has an IntersectionObserver or scroll listener that sends signals to the Navbar
+
+**The fix:**
+
+- The Navbar must ALWAYS remain visible after the user has scrolled down — clicking any button must never hide it
+
+- If there is a "hide on scroll down, show on scroll up" behavior: make sure clicking a Navbar button does NOT trigger the hide condition
+
+- If the Navbar uses isScrolled state: ensure clicking buttons does not reset this state to false
+
+- Preserve all existing visual behavior (background change on scroll, shadow, etc.) — only fix the disappearing bug
+
+**Hard constraints:**
+
+- Do NOT modify any backend files
+
+- Do NOT modify LocationMapModal.tsx search logic or auth logic
+
+- Do NOT change any colors, spacing, or visual design
+
+- Surgical fix only — minimum lines changed

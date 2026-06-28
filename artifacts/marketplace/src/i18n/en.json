@@ -1878,6 +1878,9 @@
     "err_email": "Please enter a valid email address",
     "err_subject": "Subject is required",
     "err_message": "Message must be at least 10 characters",
+    "err_turnstile": "Please complete the security check",
+    "err_network": "Failed to send. Please try again.",
+    "submitting": "Sending...",
     "phone_placeholder": "Coming soon"
   },
   "how_to_sell": {
