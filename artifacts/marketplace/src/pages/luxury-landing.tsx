@@ -1241,7 +1241,7 @@ export default function LuxuryLandingPage() {
         }}
       >
         {/* ── Sticky navbar ──────────────────────────────────────────────── */}
-        <div style={{ position: "sticky", top: 0, zIndex: 1000, background: C.bg }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 1000, background: C.bg, transform: "translateZ(0)", isolation: "isolate" }}>
           <LuxuryNavbar />
         </div>
 
@@ -1251,6 +1251,8 @@ export default function LuxuryLandingPage() {
           initial={reduced ? false : "hidden"}
           animate="visible"
           style={{
+            position: "relative",
+            zIndex: 0,
             height: "calc(100dvh - 3.75rem)",
             display: "grid",
             gridTemplateColumns: "1fr 1.48fr 1fr",
