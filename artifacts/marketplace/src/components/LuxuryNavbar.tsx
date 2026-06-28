@@ -80,8 +80,8 @@ const MobLink = React.memo(function MobLink({ href, icon: Icon, label, loc, onCl
       <div className={cn(
         "flex items-center gap-3 px-3 rounded-xl text-sm font-medium transition-colors min-h-[44px]",
         active
-          ? "bg-white/[0.08] text-white"
-          : "text-white/55 hover:text-white hover:bg-white/[0.05]",
+          ? "dark:bg-white/[0.08] dark:text-white bg-black/[0.06] text-gray-900"
+          : "dark:text-white/55 dark:hover:text-white dark:hover:bg-white/[0.05] text-gray-500 hover:text-gray-900 hover:bg-black/[0.05]",
       )}
         style={{ fontFamily: F_SANS }}
       >
@@ -981,18 +981,18 @@ export function LuxuryNavbar() {
           <SheetContent
             side={isRtl ? "right" : "left"}
             className="w-[min(300px,78vw)] p-0 flex flex-col"
-            style={{ background: "#0C0C0E", borderColor: BORDER }}
+            style={{ background: isDark ? "#0C0C0E" : "#FFFFFF", borderColor: sPanelSep }}
             aria-describedby={undefined}
           >
             <SheetTitle className="sr-only">Menu</SheetTitle>
 
             {/* Header */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "2.5rem", paddingBottom: "1.75rem", borderBottom: `1px solid ${BORDER}`, position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "1.5rem", left: "50%", transform: "translateX(-50%)", height: 80, width: 80, borderRadius: "50%", background: "rgba(255,255,255,0.04)", filter: "blur(20px)", pointerEvents: "none" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: "2.5rem", paddingBottom: "1.75rem", borderBottom: `1px solid ${sPanelSep}`, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "1.5rem", left: "50%", transform: "translateX(-50%)", height: 80, width: 80, borderRadius: "50%", background: isDark ? "rgba(255,255,255,0.04)" : "rgba(22,163,74,0.10)", filter: "blur(20px)", pointerEvents: "none" }} />
               <img src="/syano-logo.png" alt="Syano" width={56} height={56}
-                style={{ position: "relative", height: 56, width: 56, objectFit: "contain", filter: "drop-shadow(0 0 16px rgba(255,255,255,0.12))" }} loading="eager" />
-              <p style={{ fontFamily: F_NASKH, fontWeight: 900, letterSpacing: "0.28em", fontSize: "1.125rem", color: WHITE, marginTop: "0.75rem" }}>SYANO</p>
-              <p style={{ fontFamily: F_SANS, fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.12em", color: DIMMED, textTransform: "uppercase", marginTop: "0.25rem" }}>سوق سوريا</p>
+                style={{ position: "relative", height: 56, width: 56, objectFit: "contain", filter: isDark ? "drop-shadow(0 0 16px rgba(255,255,255,0.12))" : "none" }} loading="eager" />
+              <p style={{ fontFamily: F_NASKH, fontWeight: 900, letterSpacing: "0.28em", fontSize: "1.125rem", color: aDropFg, marginTop: "0.75rem" }}>SYANO</p>
+              <p style={{ fontFamily: F_SANS, fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.12em", color: sPanelDim, textTransform: "uppercase", marginTop: "0.25rem" }}>سوق سوريا</p>
             </div>
 
             {/* Nav links */}
@@ -1021,18 +1021,18 @@ export function LuxuryNavbar() {
             </div>
 
             {/* Preferences */}
-            <div style={{ padding: "0.75rem", borderTop: `1px solid ${BORDER}` }}>
-              <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: DIMMED, textTransform: "uppercase", padding: "0.25rem 0.75rem 0.5rem" }}>
+            <div style={{ padding: "0.75rem", borderTop: `1px solid ${sPanelSep}` }}>
+              <p style={{ fontFamily: F_SANS, fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", color: sPanelDim, textTransform: "uppercase", padding: "0.25rem 0.75rem 0.5rem" }}>
                 {isRtl ? "التفضيلات" : "Preferences"}
               </p>
               {/* Language */}
               <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: "0.75rem", padding: "0.375rem 0.75rem", minHeight: 44 }}>
-                <Globe style={{ height: 16, width: 16, color: DIMMED }} />
-                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 500, color: MUTED }}>{isRtl ? "اللغة" : "Language"}</span>
+                <Globe style={{ height: 16, width: 16, color: sPanelDim }} />
+                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 500, color: aDropSub }}>{isRtl ? "اللغة" : "Language"}</span>
                 <div style={{ display: "flex", gap: "0.25rem" }}>
                   {["en", "ar"].map(l => (
                     <button key={l} onClick={() => switchLang(l)}
-                      style={{ fontFamily: F_SANS, fontSize: "11px", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: 6, border: "none", cursor: "pointer", background: lang === l ? WHITE : "rgba(255,255,255,0.07)", color: lang === l ? BG : MUTED, transition: "background 0.15s" }}>
+                      style={{ fontFamily: F_SANS, fontSize: "11px", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: 6, border: "none", cursor: "pointer", background: lang === l ? sBtnSelBg : sBtnUnsBg, color: lang === l ? sBtnSelFg : sBtnUnsFg, transition: "background 0.15s" }}>
                       {l.toUpperCase()}
                     </button>
                   ))}
@@ -1040,12 +1040,12 @@ export function LuxuryNavbar() {
               </div>
               {/* Currency */}
               <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: "0.75rem", padding: "0.375rem 0.75rem", minHeight: 44 }}>
-                <DollarSign style={{ height: 16, width: 16, color: DIMMED }} />
-                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 500, color: MUTED }}>{isRtl ? "العملة" : "Currency"}</span>
+                <DollarSign style={{ height: 16, width: 16, color: sPanelDim }} />
+                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 500, color: aDropSub }}>{isRtl ? "العملة" : "Currency"}</span>
                 <div style={{ display: "flex", gap: "0.25rem" }}>
                   {(["USD", "SYP"] as const).map(c => (
                     <button key={c} onClick={() => setCurrency(c)}
-                      style={{ fontFamily: F_SANS, fontSize: "11px", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: 6, border: "none", cursor: "pointer", background: currency === c ? WHITE : "rgba(255,255,255,0.07)", color: currency === c ? BG : MUTED, transition: "background 0.15s" }}>
+                      style={{ fontFamily: F_SANS, fontSize: "11px", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: 6, border: "none", cursor: "pointer", background: currency === c ? sBtnSelBg : sBtnUnsBg, color: currency === c ? sBtnSelFg : sBtnUnsFg, transition: "background 0.15s" }}>
                       {c}
                     </button>
                   ))}
@@ -1053,12 +1053,12 @@ export function LuxuryNavbar() {
               </div>
               {/* Theme */}
               <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: "0.75rem", padding: "0.375rem 0.75rem", minHeight: 44 }}>
-                {theme === "dark" ? <Moon style={{ height: 16, width: 16, color: DIMMED }} /> : <Sun style={{ height: 16, width: 16, color: DIMMED }} />}
-                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 500, color: MUTED }}>{isRtl ? "المظهر" : "Theme"}</span>
+                {theme === "dark" ? <Moon style={{ height: 16, width: 16, color: sPanelDim }} /> : <Sun style={{ height: 16, width: 16, color: sPanelDim }} />}
+                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 500, color: aDropSub }}>{isRtl ? "المظهر" : "Theme"}</span>
                 <div style={{ display: "flex", gap: "0.25rem" }}>
                   {(["light", "dark", "system"] as const).map(tm => (
                     <button key={tm} onClick={() => setTheme(tm)}
-                      style={{ fontFamily: F_SANS, fontSize: "10px", fontWeight: 700, padding: "0.2rem 0.4rem", borderRadius: 6, border: "none", cursor: "pointer", background: theme === tm ? WHITE : "rgba(255,255,255,0.07)", color: theme === tm ? BG : MUTED, transition: "background 0.15s" }}>
+                      style={{ fontFamily: F_SANS, fontSize: "10px", fontWeight: 700, padding: "0.2rem 0.4rem", borderRadius: 6, border: "none", cursor: "pointer", background: theme === tm ? sBtnSelBg : sBtnUnsBg, color: theme === tm ? sBtnSelFg : sBtnUnsFg, transition: "background 0.15s" }}>
                       {tm[0].toUpperCase()}
                     </button>
                   ))}
@@ -1067,23 +1067,23 @@ export function LuxuryNavbar() {
             </div>
 
             {/* Auth footer */}
-            <div style={{ padding: "0.75rem", borderTop: `1px solid ${BORDER}` }}>
+            <div style={{ padding: "0.75rem", borderTop: `1px solid ${sPanelSep}` }}>
               {isAuthenticated ? (
                 <>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.5rem 0.75rem 0.75rem" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.10)", border: `1px solid ${BORDER_H}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontFamily: F_NASKH, fontSize: "14px", fontWeight: 900, color: WHITE }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)", border: `1px solid ${sPanelSep}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontFamily: F_NASKH, fontSize: "14px", fontWeight: 900, color: aDropFg }}>
                         {user?.name?.charAt(0)?.toUpperCase() ?? "U"}
                       </span>
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <p style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 600, color: WHITE, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name}</p>
-                      <p style={{ fontFamily: F_SANS, fontSize: "11px", color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} translate="no">{user?.email}</p>
+                      <p style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 600, color: aDropFg, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.name}</p>
+                      <p style={{ fontFamily: F_SANS, fontSize: "11px", color: aDropSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} translate="no">{user?.email}</p>
                     </div>
                   </div>
                   <button onClick={() => { logout(); closeMobile(); }}
-                    style={{ fontFamily: F_SANS, display: "flex", alignItems: "center", gap: "0.75rem", width: "100%", padding: "0.625rem 0.75rem", borderRadius: 12, background: "none", border: "none", fontSize: "0.875rem", fontWeight: 600, color: "#f87171", cursor: "pointer", minHeight: 44, transition: "background 0.15s" }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(248,113,113,0.08)"; }}
+                    style={{ fontFamily: F_SANS, display: "flex", alignItems: "center", gap: "0.75rem", width: "100%", padding: "0.625rem 0.75rem", borderRadius: 12, background: "none", border: "none", fontSize: "0.875rem", fontWeight: 600, color: aDropDang, cursor: "pointer", minHeight: 44, transition: "background 0.15s" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(220,38,38,0.08)"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "none"; }}>
                     <LogOut style={{ height: 17, width: 17 }} />
                     {t("nav.logout")}
@@ -1091,7 +1091,7 @@ export function LuxuryNavbar() {
                 </>
               ) : (
                 <button onClick={() => { closeMobile(); openLogin(); }}
-                  style={{ fontFamily: F_SANS, fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: 44, borderRadius: 12, background: WHITE, color: BG, border: "none", cursor: "pointer" }}>
+                  style={{ fontFamily: F_SANS, fontWeight: 700, fontSize: "0.875rem", display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: 44, borderRadius: 12, background: isDark ? WHITE : "#276221", color: isDark ? BG : WHITE, border: "none", cursor: "pointer" }}>
                   {t("nav.login")}
                 </button>
               )}
@@ -1115,28 +1115,28 @@ export function LuxuryNavbar() {
             >
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={() => { setSearchOpen(false); setSearchQuery(""); }} aria-hidden="true" />
-              <div className="lnav-panel relative" style={{ background: "#0C0C0E", boxShadow: "0 8px 40px rgba(0,0,0,0.8)" }}>
+              <div className="lnav-panel relative" style={{ background: isDark ? "#0C0C0E" : "#FFFFFF", boxShadow: "0 8px 40px rgba(0,0,0,0.8)" }}>
                 <div aria-hidden="true" style={{ height: "env(safe-area-inset-top, 0px)" }} />
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0 0.75rem", height: "3.75rem" }}>
-                  <form onSubmit={handleSearchSubmit} style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,0.08)", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "0 0.75rem", height: 40 }}>
-                    <Search style={{ height: 15, width: 15, color: MUTED, flexShrink: 0 }} />
+                  <form onSubmit={handleSearchSubmit} style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.5rem", background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", border: `1px solid ${sPanelSep}`, borderRadius: 12, padding: "0 0.75rem", height: 40 }}>
+                    <Search style={{ height: 15, width: 15, color: aDropSub, flexShrink: 0 }} />
                     <input
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       onKeyDown={handleSearchKD}
                       placeholder={isRtl ? "ابحث عن منتجات، متاجر..." : "Search products, stores..."}
-                      style={{ fontFamily: F_SANS, fontSize: "0.875rem", flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: WHITE }}
+                      style={{ fontFamily: F_SANS, fontSize: "0.875rem", flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: aDropFg }}
                       autoFocus autoComplete="off" spellCheck={false}
                     />
                     {searchQuery && (
                       <button type="button" aria-label={t("a11y.close")} onClick={() => setSearchQuery("")}
-                        style={{ color: MUTED, background: "none", border: "none", cursor: "pointer", display: "flex" }}>
+                        style={{ color: aDropSub, background: "none", border: "none", cursor: "pointer", display: "flex" }}>
                         <X style={{ height: 14, width: 14 }} />
                       </button>
                     )}
                   </form>
                   <button onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
-                    style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 600, color: MUTED, background: "none", border: "none", cursor: "pointer", minHeight: 44, padding: "0 0.25rem", display: "flex", alignItems: "center" }}>
+                    style={{ fontFamily: F_SANS, fontSize: "0.875rem", fontWeight: 600, color: aDropSub, background: "none", border: "none", cursor: "pointer", minHeight: 44, padding: "0 0.25rem", display: "flex", alignItems: "center" }}>
                     {isRtl ? "إلغاء" : "Cancel"}
                   </button>
                 </div>
@@ -1146,13 +1146,13 @@ export function LuxuryNavbar() {
                       <div style={{ padding: "0.5rem 0" }}>
                         {[0, 1, 2, 3].map(i => (
                           <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1rem" }}>
-                            <div style={{ height: 13, width: 13, borderRadius: "50%", background: BORDER }} />
-                            <div style={{ height: 10, borderRadius: 6, background: BORDER, width: `${45 + i * 15}%` }} />
+                            <div style={{ height: 13, width: 13, borderRadius: "50%", background: sPanelSep }} />
+                            <div style={{ height: 10, borderRadius: 6, background: sPanelSep, width: `${45 + i * 15}%` }} />
                           </div>
                         ))}
                       </div>
                     ) : (suggestions.suggestions?.length ?? 0) === 0 && (suggestions.stores?.length ?? 0) === 0 ? (
-                      <div style={{ padding: "1.5rem", textAlign: "center", fontFamily: F_SANS, fontSize: "0.875rem", color: DIMMED }}>
+                      <div style={{ padding: "1.5rem", textAlign: "center", fontFamily: F_SANS, fontSize: "0.875rem", color: sPanelDim }}>
                         {isRtl ? "لا توجد نتائج" : "No results found"}
                       </div>
                     ) : (
@@ -1162,10 +1162,10 @@ export function LuxuryNavbar() {
                           return (
                             <button key={i} onClick={() => handleSuggClick(text)}
                               style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem 1rem", background: "none", border: "none", cursor: "pointer", textAlign: isRtl ? "right" : "left", transition: "background 0.12s" }}
-                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"; }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"; }}
                               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "none"; }}>
-                              <Search style={{ height: 14, width: 14, color: DIMMED, flexShrink: 0 }} />
-                              <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", color: "rgba(255,255,255,0.8)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{text}</span>
+                              <Search style={{ height: 14, width: 14, color: sPanelDim, flexShrink: 0 }} />
+                              <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", color: aDropItem, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{text}</span>
                             </button>
                           );
                         })}
@@ -1181,10 +1181,10 @@ export function LuxuryNavbar() {
                       {recentSearches.length > 0 && (
                         <>
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1rem 0.375rem" }}>
-                            <span style={{ fontFamily: F_SANS, fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", color: DIMMED, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                            <span style={{ fontFamily: F_SANS, fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", color: sPanelDim, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                               <Clock style={{ height: 12, width: 12 }} /> {isRtl ? "البحث السابق" : "Recent searches"}
                             </span>
-                            <button onClick={clearRecent} style={{ fontFamily: F_SANS, fontSize: "12px", color: MUTED, background: "none", border: "none", cursor: "pointer" }}>
+                            <button onClick={clearRecent} style={{ fontFamily: F_SANS, fontSize: "12px", color: aDropSub, background: "none", border: "none", cursor: "pointer" }}>
                               {isRtl ? "مسح الكل" : "Clear all"}
                             </button>
                           </div>
@@ -1192,10 +1192,10 @@ export function LuxuryNavbar() {
                             <div key={s} style={{ display: "flex", alignItems: "center" }}>
                               <button onClick={() => setSearchQuery(s)}
                                 style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 1rem", background: "none", border: "none", cursor: "pointer", textAlign: isRtl ? "right" : "left" }}>
-                                <Clock style={{ height: 14, width: 14, color: DIMMED, flexShrink: 0 }} />
-                                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s}</span>
+                                <Clock style={{ height: 14, width: 14, color: sPanelDim, flexShrink: 0 }} />
+                                <span style={{ fontFamily: F_SANS, fontSize: "0.875rem", color: aDropSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s}</span>
                               </button>
-                              <button onClick={() => removeRecent(s)} style={{ padding: "0.625rem 1rem", color: DIMMED, background: "none", border: "none", cursor: "pointer" }}>
+                              <button onClick={() => removeRecent(s)} style={{ padding: "0.625rem 1rem", color: sPanelDim, background: "none", border: "none", cursor: "pointer" }}>
                                 <X style={{ height: 13, width: 13 }} />
                               </button>
                             </div>
@@ -1204,9 +1204,9 @@ export function LuxuryNavbar() {
                       )}
                       {trending.length > 0 && (
                         <>
-                          <div style={{ padding: "0.75rem 1rem 0.375rem", borderTop: recentSearches.length > 0 ? `1px solid ${BORDER}` : "none", display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                            <TrendingUp style={{ height: 12, width: 12, color: DIMMED }} />
-                            <span style={{ fontFamily: F_SANS, fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", color: DIMMED, textTransform: "uppercase" }}>
+                          <div style={{ padding: "0.75rem 1rem 0.375rem", borderTop: recentSearches.length > 0 ? `1px solid ${sPanelSep}` : "none", display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                            <TrendingUp style={{ height: 12, width: 12, color: sPanelDim }} />
+                            <span style={{ fontFamily: F_SANS, fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", color: sPanelDim, textTransform: "uppercase" }}>
                               {isRtl ? "الأكثر بحثاً" : "Popular searches"}
                             </span>
                           </div>
@@ -1214,7 +1214,7 @@ export function LuxuryNavbar() {
                             {trending.slice(0, 10).map(tr => (
                               <button key={tr.query}
                                 onClick={() => { navigate(`/shop?q=${encodeURIComponent(tr.query)}`); setSearchOpen(false); setSearchQuery(""); }}
-                                style={{ fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 500, padding: "0.3rem 0.875rem", borderRadius: 9999, background: "rgba(255,255,255,0.07)", border: `1px solid ${BORDER}`, color: "rgba(255,255,255,0.7)", cursor: "pointer" }}>
+                                style={{ fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 500, padding: "0.3rem 0.875rem", borderRadius: 9999, background: sBtnUnsBg, border: `1px solid ${sPanelSep}`, color: aDropItem, cursor: "pointer" }}>
                                 {tr.query}
                               </button>
                             ))}
