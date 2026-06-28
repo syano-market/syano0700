@@ -56,6 +56,10 @@ const BORDER    = "rgba(255,255,255,0.08)";
 const BORDER_H  = "rgba(255,255,255,0.16)";
 const GREEN     = "#16A34A";
 const DROP_BG   = "rgba(14,14,16,0.98)";
+/* ── Navbar background — site primary (CSS --primary: 114 50% 26%).
+   Fixed across both light and dark themes (--primary is theme-invariant).
+   White text on this green = 6.45:1 → WCAG AA all sizes. ─────────────────*/
+const NAV_GREEN = "hsl(114, 50%, 26%)";
 
 /* ── Fonts ────────────────────────────────────────────────────────────────────*/
 const F_NASKH = "'Noto Naskh Arabic', serif";
@@ -340,7 +344,7 @@ export function LuxuryNavbar() {
           width: "100%",
           zIndex: 1000,
           fontFamily: F_SANS,
-          background: BG,
+          background: NAV_GREEN,
         }}
       >
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
