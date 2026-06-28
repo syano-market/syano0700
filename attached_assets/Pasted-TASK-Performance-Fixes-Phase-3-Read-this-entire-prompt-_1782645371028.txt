@@ -1,0 +1,424 @@
+TASK: Performance Fixes — Phase 3
+Read this entire prompt before touching any file.
+
+════════════════════════════════════════
+CONTEXT
+════════════════════════════════════════
+SYANO monorepo. Stack: React 19 + Vite 7 + Wouter + TanStack Query v5 + Expo 54.
+Global TanStack QueryClient staleTime = 5 * 60 * 1000 (5 min) — set in App.tsx.
+0 TypeScript errors must be maintained at all times across ALL packages.
+
+Before starting, run:
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Confirm 0 errors. Do NOT proceed if there are existing errors — report them first.
+
+════════════════════════════════════════
+RULES
+════════════════════════════════════════
+1. Open and read the actual file before editing it. Never edit from memory.
+2. Edit ONE logical unit at a time. Run tsc after each file.
+3. Never change business logic — only fix re-render causes, staleTime, cache invalidation, and list virtualization.
+4. Never remove any useQuery or useMutation — only add/modify options on existing ones.
+5. React.memo wrapping must preserve the component's display name for React DevTools.
+6. All useMemo/useCallback additions must list the correct dependency array — no empty [] unless the value truly never changes.
+7. After ALL edits, run the full tsc check and confirm 0 errors.
+
+════════════════════════════════════════
+TASK 1 — FIX LocationContext INLINE OBJECT (HIGH)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/contexts/LocationContext.tsx
+
+BACKGROUND:
+The Provider renders with an inline object literal:
+  <LocationContext.Provider value={{ location, setZoneName }}>
+This creates a new object reference on every render of LocationProvider.
+Every consumer of useLocation() re-renders even when location has not changed.
+LocationContext is consumed in Navbar, checkout, courier workspace, search page,
+and map components — all re-render unnecessarily on every parent render.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the useMemo import — if useMemo is not yet imported from "react", add it.
+STEP 3: Before the return statement of LocationProvider, add:
+  const value = useMemo(
+    () => ({ location, setZoneName }),
+    [location, setZoneName]
+  );
+STEP 4: Replace:
+  <LocationContext.Provider value={{ location, setZoneName }}>
+  WITH:
+  <LocationContext.Provider value={value}>
+STEP 5: Verify the dependency array is correct:
+  - location → must be in deps (it changes when user picks a zone)
+  - setZoneName → must be in deps (stable setter but required for correctness)
+STEP 6: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 2 — WRAP TrendingCard IN React.memo (HIGH)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/components/TrendingCard.tsx
+
+BACKGROUND:
+ProductCard is correctly wrapped in React.memo but TrendingCard is not.
+TrendingCard is used in homepage grids of 10–50+ cards.
+Any parent state change (notification badge, currency selector, search input)
+re-renders every card in the grid. This is the most-visited page.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the component export — currently:
+  export function TrendingCard({ product, ... }) { ... }
+STEP 3: Wrap in React.memo preserving the display name:
+  export const TrendingCard = React.memo(function TrendingCard({ product, ... }) {
+    ...
+  });
+STEP 4: Check all props passed to TrendingCard at every call site (grep for <TrendingCard):
+  grep -rn "<TrendingCard" artifacts/marketplace/src/ --include="*.tsx"
+  For each call site, verify that props are:
+  - Primitives (string, number, boolean) — always stable ✅
+  - Objects from server data (product object from useQuery) — stable between renders ✅
+  - Callback functions (onPress, onClick) — check if they are wrapped in useCallback at call site
+  If any callback prop is NOT wrapped in useCallback at the call site, wrap it there too.
+STEP 5: Also fix the inline star array in TrendingCard (see Task 3 below — do both together).
+STEP 6: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 3 — FIX INLINE ARRAY IN TrendingCard (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/components/TrendingCard.tsx
+(Do this in the same edit pass as Task 2 — same file)
+
+BACKGROUND:
+Line ~233 creates a new array on every render of every card:
+  {[...Array(5)].map((_, j) => <StarIcon key={j} ... />)}
+With 40+ cards and frequent parent re-renders, this allocates thousands of
+unnecessary arrays.
+
+STEP 1: At the TOP of the file, outside the component, add a module-level constant:
+  const STAR_INDICES = [0, 1, 2, 3, 4];
+STEP 2: Replace the inline array:
+  BEFORE: {[...Array(5)].map((_, j) => <StarIcon key={j} ... />)}
+  AFTER:  {STAR_INDICES.map((j) => <StarIcon key={j} ... />)}
+STEP 3: Confirm STAR_INDICES is defined BEFORE the component function, not inside it.
+STEP 4: Run tsc after saving (combined with Task 2 edit).
+
+════════════════════════════════════════
+TASK 4 — FIX FeaturedDeals DealCard RE-RENDER (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/components/HomeSections/FeaturedDeals.tsx
+
+BACKGROUND:
+FeaturedDeals has a countdown timer that fires a setState every second.
+DealCard is defined as a local function inside FeaturedDeals — not memoized.
+Every second, every DealCard re-renders even though deal data hasn't changed.
+On low-end devices (common in Aleppo/Syria), this adds measurable main-thread pressure.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the DealCard function definition — it is currently inside FeaturedDeals.
+STEP 3: EXTRACT DealCard to be a standalone component OUTSIDE FeaturedDeals:
+  - Move the function definition ABOVE the FeaturedDeals component
+  - Wrap it in React.memo:
+      const DealCard = React.memo(function DealCard({ deal, i }) {
+        ...
+      });
+STEP 4: Identify what props DealCard receives from FeaturedDeals:
+  - Only pass primitive deal fields (id, name, price, imageUrl, etc.) if possible
+  - If the whole deal object is passed, that is acceptable — it comes from stable query data
+  - Do NOT pass the countdown state or timer-derived values as props to DealCard
+    (the countdown should stay inside FeaturedDeals, not passed down)
+STEP 5: Verify DealCard does NOT reference any variable from FeaturedDeals closure
+  (this is the key reason to extract it — closure access defeats memoization).
+  If it does reference closure variables, those must become explicit props.
+STEP 6: Verify React and React.memo are imported at the top of the file.
+STEP 7: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 5 — FIX COURIER WORKSPACE staleTime (HIGH)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/pages/courier/workspace.tsx
+
+BACKGROUND:
+The courier workspace is a real-time operational view.
+Three queries inherit the global 5-min staleTime:
+  - ["mission-offers"] — new offers expire; missing one costs a courier their income
+  - ["courier-assignments"] — active assignment state must be live
+  - ["courier-trail"] — GPS trail for the active mission map
+A courier with an open tab may miss new mission offers for up to 5 minutes.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the three useQuery calls (around lines 886, 894, 910):
+  useQuery({ queryKey: ["courier-assignments"], queryFn: ... })
+  useQuery({ queryKey: ["mission-offers"], queryFn: ... })
+  useQuery({ queryKey: ["courier-trail"], queryFn: ... })
+STEP 3: Add these options to EACH of the three queries:
+  staleTime: 0,
+  refetchInterval: 15_000,
+  refetchIntervalInBackground: false,
+
+  Explanation:
+  - staleTime: 0 → data is always considered stale, refetch on every focus
+  - refetchInterval: 15_000 → poll every 15 seconds while tab is open
+  - refetchIntervalInBackground: false → pause polling when tab is hidden
+    (saves battery/bandwidth when courier minimizes the browser)
+
+STEP 4: Verify the existing queryFn, queryKey, and enabled options are NOT changed —
+  only staleTime, refetchInterval, refetchIntervalInBackground are added.
+STEP 5: Check if useQueryClient is already imported — if so, verify no conflicts.
+STEP 6: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 6 — FIX MISSING CACHE INVALIDATION IN seller/reviews (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/pages/seller/reviews.tsx
+
+BACKGROUND:
+usePatchSellerReviewReply mutation's onSuccess only shows a toast.
+After a seller posts a reply, the review card still shows "No reply yet"
+until the user navigates away and back. The cache is never invalidated.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Check if useQueryClient is imported from "@tanstack/react-query".
+  If not, add it to the import.
+STEP 3: Inside the component (at the top level, following hooks rules), add:
+  const queryClient = useQueryClient();
+  (Only if not already present)
+STEP 4: Find the usePatchSellerReviewReply call and its onSuccess handler.
+  Current state:
+    onSuccess: () => { toast(...) }
+  Required state:
+    onSuccess: () => {
+      toast(...);
+      queryClient.invalidateQueries({ queryKey: ["seller-reviews"] });
+    }
+STEP 5: Verify the queryKey string matches EXACTLY what is used in the useQuery
+  that fetches seller reviews in this file or in the shared hooks.
+  Run: grep -n "seller-reviews\|sellerReviews" artifacts/marketplace/src/pages/seller/reviews.tsx
+  Use the exact key string found.
+STEP 6: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 7 — ADD ERROR HANDLING TO SILENT-FAILURE QUERIES (MEDIUM)
+════════════════════════════════════════
+FILES:
+  - artifacts/marketplace/src/hooks/useNotifications.ts (lines ~49, ~61)
+  - artifacts/marketplace/src/components/AdminLayout.tsx (line ~123)
+  - artifacts/marketplace/src/pages/seller/products/index.tsx (line ~60)
+  - artifacts/marketplace/src/pages/courier/workspace.tsx (multiple queries)
+  - artifacts/marketplace/src/pages/courier/dashboard.tsx (multiple queries)
+
+BACKGROUND:
+These useQuery calls only destructure data. When a network request fails
+(common on mobile in Aleppo), the user sees a blank/empty state with no explanation.
+
+STEP 1: Open each file and read it fully before editing.
+STEP 2: For each useQuery that currently only destructures data:
+  BEFORE: const { data } = useQuery(...)
+  AFTER:  const { data, isError, error } = useQuery(...)
+
+STEP 3: For each file, add appropriate error UI:
+
+  PRIORITY ORDER (fix these first):
+  A) courier/workspace.tsx — blank workspace on error means courier sees nothing
+     Add a visible error banner at the top of the workspace when isError is true:
+       if (isError) return (
+         <View style={styles.errorContainer}>
+           <Text style={styles.errorText}>{t("courier.workspace_load_error")}</Text>
+         </View>
+       );
+     Use existing error styles if present, or add minimal inline styles.
+     If the i18n key doesn't exist, use a fallback string directly and note it needs i18n.
+
+  B) courier/dashboard.tsx — same pattern as workspace
+  
+  C) AdminLayout.tsx — admin sidebar badges fail silently
+     For the badge query: if isError, show nothing (null) rather than a stale or
+     incorrect badge count. Do not show an error UI for sidebar badges — just hide them.
+       const badgeCount = isError ? null : data?.count;
+
+  D) hooks/useNotifications.ts — notification badge fails silently
+     Expose isError in the hook's return value so consumers can handle it:
+       return { notifications: data, isError, isLoading };
+     Check all consumers of useNotifications and handle isError gracefully.
+
+  E) seller/products/index.tsx — quality report fails silently
+     If quality report fails, show a dismissible warning bar, not a full error screen.
+
+STEP 4: Do NOT change the queryKey, queryFn, or any other option.
+STEP 5: Run tsc after each file → 0 errors.
+
+════════════════════════════════════════
+TASK 8 — FIX NAVBAR SEARCH DEBOUNCE (LOW)
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/components/Navbar.tsx
+
+BACKGROUND:
+The navbar search debounces at 200ms — below the 300ms minimum.
+Arabic RTL composition can trigger 5–8 requests per word at 200ms.
+The search cache (LRU 500) absorbs repeated queries but the NLP pipeline
+still runs on every non-cached request.
+
+STEP 1: Open Navbar.tsx and read it fully.
+STEP 2: Find: useDebounce(searchQuery, 200)
+STEP 3: Change 200 → 300:
+  BEFORE: const debouncedSearch = useDebounce(searchQuery, 200);
+  AFTER:  const debouncedSearch = useDebounce(searchQuery, 300);
+STEP 4: Verify this is the ONLY debounce change needed — the SearchPage uses
+  useDebounce(query, 350) which is already correct, do not touch it.
+STEP 5: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 9 — MOBILE: REPLACE ScrollView+map WITH FlatList (HIGH)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/(tabs)/index.tsx
+
+BACKGROUND:
+Three product sections use .map() inside a ScrollView.
+ScrollView renders ALL items immediately and keeps them in memory.
+With 42 products across three sections = up to 126 cards mounted simultaneously.
+On low-end Android (common in Syria), this causes slow initial render and OOM risk.
+
+STEP 1: Open the file and read it fully — it is large, read ALL of it.
+STEP 2: Find the three sections using .map() (around lines 504, 793, 856):
+  Line ~504: {deals.map((p) => <DealMiniCard ... />)}
+  Line ~793: {items.map((p) => <DealMiniCard ... />)}
+  Line ~856: {rest.map((p) => <DealMiniCard ... />)}
+
+STEP 3: Check if FlatList is already imported from "react-native".
+  If not, add it to the import.
+
+STEP 4: For EACH of the three sections, replace .map() with FlatList:
+  BEFORE:
+    {deals.map((p) => <DealMiniCard key={p.id} product={p} ... />)}
+
+  AFTER:
+    <FlatList
+      data={deals}
+      keyExtractor={(p) => String(p.id)}
+      renderItem={({ item }) => <DealMiniCard product={item} ... />}
+      numColumns={2}
+      scrollEnabled={false}
+      columnWrapperStyle={{ gap: 8 }}
+    />
+
+  IMPORTANT RULES for each FlatList:
+  - scrollEnabled={false} is REQUIRED — the FlatList sits inside an outer ScrollView
+  - numColumns={2} — match the existing 2-column grid layout
+  - keyExtractor must use p.id cast to String
+  - columnWrapperStyle gap must match the existing gap between cards
+    (check the existing .map() wrapper's gap/margin and replicate it)
+  - Do NOT add nested VirtualizedList — scrollEnabled={false} prevents this warning
+  - Preserve all existing props passed to DealMiniCard
+
+STEP 5: After replacing all 3 sections, verify the outer ScrollView is still present
+  and wraps everything (the FlatLists nest inside it with scrollEnabled=false).
+
+STEP 6: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 10 — MOBILE: ADD useMemo TO orders FILTER (LOW)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/(tabs)/orders.tsx
+
+BACKGROUND:
+Line ~73: const filtered = orders.filter(o => o.status === activeTab);
+This recomputes on every render. The orders screen re-renders on every tab press.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Verify useMemo is imported from "react". If not, add it.
+STEP 3: Replace:
+  BEFORE:
+    const filtered = orders.filter(o => o.status === activeTab);
+  AFTER:
+    const filtered = useMemo(
+      () => orders?.filter(o => o.status === activeTab) ?? [],
+      [orders, activeTab]
+    );
+  Note: add the ?. optional chain in case orders is undefined during loading.
+STEP 4: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 11 — MOBILE: REPLACE react-native Image WITH expo-image (MEDIUM)
+════════════════════════════════════════
+FILES:
+  - artifacts/mobile/app/(tabs)/index.tsx
+  - artifacts/mobile/app/product/[id].tsx
+  - artifacts/mobile/src/components/ProductCard.tsx
+  - artifacts/mobile/src/components/OrderCard.tsx
+
+BACKGROUND:
+Standard react-native Image has no disk cache. Every scroll that offscreens
+and re-enters a product image triggers a network re-fetch.
+expo-image provides disk caching, memory caching, and faster decode.
+It is drop-in compatible with Expo 54 and uses the same props.
+
+STEP 1: Check if expo-image is already installed:
+  grep -n "expo-image" artifacts/mobile/package.json
+  If NOT found, install it:
+    pnpm --filter @workspace/mobile add expo-image
+  If already installed, skip install.
+
+STEP 2: For EACH of the 4 files:
+  a) Open and read the file fully.
+  b) Find: import { Image } from 'react-native';
+     or:    import { Image, ... } from 'react-native';
+  c) If Image is the ONLY import from react-native, replace:
+       BEFORE: import { Image } from 'react-native';
+       AFTER:  import { Image } from 'expo-image';
+  d) If Image is ONE OF MANY react-native imports:
+       BEFORE: import { Image, View, Text, ... } from 'react-native';
+       AFTER:  import { View, Text, ... } from 'react-native';
+               import { Image } from 'expo-image';
+  e) For each <Image /> usage, add the contentFit prop if resizeMode was used:
+       BEFORE: <Image source={{ uri: product.imageUrl }} resizeMode="cover" ... />
+       AFTER:  <Image source={{ uri: product.imageUrl }} contentFit="cover" ... />
+     expo-image uses contentFit instead of resizeMode — they are semantically identical.
+     If no resizeMode was set, no change needed beyond the import swap.
+
+STEP 3: After all 4 files are edited:
+  Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+EXECUTION ORDER
+════════════════════════════════════════
+Run tasks in this order to minimize re-work:
+
+1. Tasks 2 + 3 together (same file: TrendingCard.tsx)
+2. Task 1 (LocationContext.tsx)
+3. Task 4 (FeaturedDeals.tsx)
+4. Task 5 (courier/workspace.tsx) — HIGH priority
+5. Task 6 (seller/reviews.tsx)
+6. Task 8 (Navbar.tsx)
+7. Task 7 (error handling — multiple files, do one at a time)
+8. Task 9 (mobile index.tsx — largest change, do last on web)
+9. Tasks 10 + 11 (mobile — do together)
+
+════════════════════════════════════════
+FINAL VERIFICATION
+════════════════════════════════════════
+After ALL tasks are complete, run:
+
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Expected: 0 errors across all packages.
+
+Then provide a completion report in this exact format:
+
+  ✅ Task 1  — LocationContext useMemo: [what changed]
+  ✅ Task 2  — TrendingCard React.memo: [call sites checked, any useCallback added]
+  ✅ Task 3  — TrendingCard STAR_INDICES: [confirmed module-level]
+  ✅ Task 4  — FeaturedDeals DealCard extracted + memoized: [closure vars that became props]
+  ✅ Task 5  — Courier workspace staleTime: [3 queries updated, options added]
+  ✅ Task 6  — seller/reviews cache invalidation: [exact queryKey used]
+  ✅ Task 7  — Error handling: [list each file and what error UI was added]
+  ✅ Task 8  — Navbar debounce: 200 → 300ms
+  ✅ Task 9  — Mobile ScrollView→FlatList: [3 sections replaced, confirm scrollEnabled=false]
+  ✅ Task 10 — Mobile orders useMemo: [confirmed deps array]
+  ✅ Task 11 — expo-image: [installed Y/N, files updated, resizeMode→contentFit changes]
+  ✅ TypeScript: 0 errors confirmed across all 4 packages
+
+If any task could not be completed, explain exactly why and what was left.

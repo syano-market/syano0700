@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import { loadSavedCoords, loadSavedZoneId } from "@/lib/location-storage";
@@ -82,8 +83,13 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     setLocation((prev) => ({ ...prev, zoneName: name }));
   }, []);
 
+  const value = useMemo(
+    () => ({ location, setZoneName }),
+    [location, setZoneName]
+  );
+
   return (
-    <LocationContext.Provider value={{ location, setZoneName }}>
+    <LocationContext.Provider value={value}>
       {children}
     </LocationContext.Provider>
   );

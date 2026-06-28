@@ -120,7 +120,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
     applyDirection(l);
   };
 
-  const { data: badges } = useQuery({
+  const { data: badges, isError: badgesError } = useQuery({
     queryKey: ["admin-sidebar-badges"],
     queryFn: async () => {
       const h = { Authorization: `Bearer ${token}` };

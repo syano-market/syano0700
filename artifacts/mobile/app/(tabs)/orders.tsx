@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, type Href } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -70,11 +70,14 @@ export default function OrdersScreen() {
   const { data: orders = [], isLoading, refetch, isRefetching } = useListOrders();
   const updateStatus = useUpdateOrderStatus();
 
-  const filtered =
-    filter === "all"       ? orders :
-    filter === "active"    ? orders.filter((o: any) => ACTIVE_STATUSES.has(o.status)) :
-    filter === "delivered" ? orders.filter((o: any) => o.status === "delivered") :
-    orders.filter((o: any) => CANCELLED_STATUSES.has(o.status));
+  const filtered = useMemo(
+    () =>
+      filter === "all"       ? (orders ?? []) :
+      filter === "active"    ? (orders ?? []).filter((o: any) => ACTIVE_STATUSES.has(o.status)) :
+      filter === "delivered" ? (orders ?? []).filter((o: any) => o.status === "delivered") :
+      (orders ?? []).filter((o: any) => CANCELLED_STATUSES.has(o.status)),
+    [orders, filter]
+  );
 
   const handleAdvanceStatus = useCallback((order: Order) => {
     const next = STATUS_NEXT[order.status];

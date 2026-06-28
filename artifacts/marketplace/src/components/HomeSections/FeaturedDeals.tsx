@@ -1,6 +1,6 @@
 import { ArrowLeft, Timer, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,7 +53,7 @@ interface DealCardData {
   img: string;
 }
 
-function DealCard({ deal, i }: { deal: DealCardData; i: number }) {
+const DealCard = React.memo(function DealCard({ deal, i }: { deal: DealCardData; i: number }) {
   const [, navigate] = useLocation();
   const { t } = useTranslation();
   const { format } = useCurrency();
@@ -149,7 +149,7 @@ function DealCard({ deal, i }: { deal: DealCardData; i: number }) {
       </div>
     </motion.div>
   );
-}
+});
 
 export function FeaturedDeals({ hotDeals }: { hotDeals?: Product[] }) {
   const { t, i18n } = useTranslation();

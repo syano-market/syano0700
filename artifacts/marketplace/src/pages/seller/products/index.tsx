@@ -57,7 +57,7 @@ export default function SellerProducts() {
     }
   );
 
-  const { data: qualityReport } = useQuery<QualityReport>({
+  const { data: qualityReport, isError: qualityError } = useQuery<QualityReport>({
     queryKey: ["seller-product-quality", user?.id],
     queryFn: async () => {
       const res = await fetch("/api/seller/products/quality-report", {

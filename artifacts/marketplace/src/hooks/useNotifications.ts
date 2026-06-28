@@ -46,7 +46,7 @@ export function useNotifications() {
   const token = typeof window !== "undefined" ? (localStorage.getItem("token") ?? "") : "";
   const qc = useQueryClient();
 
-  const { data: notifications = [] } = useQuery<AppNotification[]>({
+  const { data: notifications = [], isError, isLoading } = useQuery<AppNotification[]>({
     queryKey: getListNotificationsQueryKey(),
     queryFn: async () => {
       const r = await apiCall("/notifications", token);
@@ -91,6 +91,8 @@ export function useNotifications() {
   return {
     notifications,
     unreadCount: countData?.unread ?? 0,
+    isError,
+    isLoading,
     markRead,
     markAllRead,
   };

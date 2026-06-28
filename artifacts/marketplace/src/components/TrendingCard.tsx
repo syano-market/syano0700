@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 
 const ease = [0.25, 0.46, 0.45, 0.94] as const;
 
+const STAR_INDICES = [0, 1, 2, 3, 4];
+
 export interface TrendingProductData {
   id: number;
   name: string;
@@ -51,7 +53,7 @@ export interface TrendingProductData {
   flashSaleEndsIn?: string;
 }
 
-export function TrendingCard({ product, i = 0, highlightQuery }: { product: TrendingProductData; i?: number; highlightQuery?: string }) {
+export const TrendingCard = React.memo(function TrendingCard({ product, i = 0, highlightQuery }: { product: TrendingProductData; i?: number; highlightQuery?: string }) {
   const [, navigate] = useLocation();
   const { t } = useTranslation();
   const { format } = useCurrency();
@@ -230,7 +232,7 @@ export function TrendingCard({ product, i = 0, highlightQuery }: { product: Tren
               role="img"
               aria-label={`${product.rating.toFixed(1)} ${t("product_detail.stars_out_of_5")}`}
             >
-              {[...Array(5)].map((_, j) => (
+              {STAR_INDICES.map((j) => (
                 <Star
                   key={j}
                   aria-hidden="true"
@@ -300,4 +302,4 @@ export function TrendingCard({ product, i = 0, highlightQuery }: { product: Tren
       </div>
     </motion.div>
   );
-}
+});

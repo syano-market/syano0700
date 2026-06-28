@@ -883,11 +883,13 @@ export default function CourierWorkspace() {
   });
 
   // ── Active assignments ─────────────────────────────────────────────────────
-  const { data: assignments = [], refetch: refetchAssignments } = useQuery<Assignment[]>({
+  const { data: assignments = [], isError: assignmentsError, refetch: refetchAssignments } = useQuery<Assignment[]>({
     queryKey: ["courier-assignments"],
     queryFn: () => fetch("/api/couriers/assignments", { headers }).then((r) => r.json()),
     enabled: !!token && profile?.status === "approved",
-    refetchInterval: 10_000,
+    staleTime: 0,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
   });
 
   // ── Mission offers ─────────────────────────────────────────────────────────

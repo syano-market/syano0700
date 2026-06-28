@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { StarRating } from "@/components/StarRating";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useGetSellerReviews,
   getSellerReviewsQueryKey,
@@ -48,6 +49,7 @@ function ReplyForm({
 }) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [text, setText] = useState(existingReply ?? "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const remaining = REPLY_MAX - text.length;
@@ -56,6 +58,7 @@ function ReplyForm({
   const { mutate, isPending } = usePatchSellerReviewReply(sellerId, {
     onSuccess: () => {
       toast({ title: t("seller_reviews.reply_success") });
+      queryClient.invalidateQueries({ queryKey: getSellerReviewsQueryKey(sellerId) });
       onDone();
     },
     onError: () => {

@@ -615,7 +615,7 @@ export default function CourierDashboard() {
     retry: false,
   });
 
-  const { data: assignments = [], refetch: refetchAssignments } = useQuery<Assignment[]>({
+  const { data: assignments = [], isError: assignmentsError, refetch: refetchAssignments } = useQuery<Assignment[]>({
     queryKey: ["courier-assignments"],
     queryFn: () => fetch("/api/couriers/assignments", { headers }).then((r) => r.json()),
     enabled: !!token && profile?.status === "approved",
