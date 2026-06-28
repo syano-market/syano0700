@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger";
+import { requireAuth, requireActiveAccount } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
@@ -81,5 +82,79 @@ router.post("/contact", async (req, res): Promise<void> => {
     res.status(500).json({ error: "server_error" });
   }
 });
+
+// GET /api/admin/contact-submissions — admin only
+router.get(
+  "/admin/contact-submissions",
+  requireAuth,
+  requireActiveAccount,
+  async (req, res): Promise<void> => {
+    if (req.user?.role !== "admin") {
+      res.status(403).json({ error: "forbidden" });
+      return;
+    }
+    const limit  = Math.min(Number(req.query["limit"]  ?? 50), 200);
+    const offset = Number(req.query["offset"] ?? 0);
+    try {
+      const client = await pool.connect();
+      try {
+        const [rows, countRow] = await Promise.all([
+          client.query<{
+            id: number; name: string; email: string; subject: string;
+            message: string; source_ip: string; created_at: string;
+          }>(
+            `SELECT id, name, email, subject, message, source_ip, created_at
+             FROM contact_submissions
+             ORDER BY created_at DESC
+             LIMIT $1 OFFSET $2`,
+            [limit, offset],
+          ),
+          client.query<{ total: string }>(
+            "SELECT COUNT(*)::text AS total FROM contact_submissions",
+          ),
+        ]);
+        res.json({
+          submissions: rows.rows,
+          total: Number(countRow.rows[0]?.total ?? 0),
+        });
+      } finally {
+        client.release();
+      }
+    } catch (err) {
+      logger.error({ err }, "[contact] Failed to fetch submissions");
+      res.status(500).json({ error: "server_error" });
+    }
+  },
+);
+
+// DELETE /api/admin/contact-submissions/:id — admin only
+router.delete(
+  "/admin/contact-submissions/:id",
+  requireAuth,
+  requireActiveAccount,
+  async (req, res): Promise<void> => {
+    if (req.user?.role !== "admin") {
+      res.status(403).json({ error: "forbidden" });
+      return;
+    }
+    const id = Number(req.params["id"]);
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ error: "invalid_id" });
+      return;
+    }
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query("DELETE FROM contact_submissions WHERE id = $1", [id]);
+      } finally {
+        client.release();
+      }
+      res.json({ ok: true });
+    } catch (err) {
+      logger.error({ err }, "[contact] Failed to delete submission");
+      res.status(500).json({ error: "server_error" });
+    }
+  },
+);
 
 export default router;

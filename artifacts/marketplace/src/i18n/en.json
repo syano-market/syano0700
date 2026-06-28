@@ -3290,7 +3290,17 @@
     "widget_ctx_delivery_product": "Delivery for this item",
     "widget_ctx_contact_seller": "Contact seller",
     "widget_ctx_seller_info": "Seller info",
-    "widget_ctx_shipping_policy": "Shipping policy"
+    "widget_ctx_shipping_policy": "Shipping policy",
+    "contact_tab": "Contact Messages",
+    "contact_total": "{{count}} message",
+    "contact_total_plural": "{{count}} messages",
+    "contact_empty": "No contact messages yet",
+    "contact_delete": "Delete",
+    "contact_deleting": "Deleting…",
+    "contact_deleted": "Message deleted",
+    "contact_delete_fail": "Failed to delete message",
+    "contact_from": "From",
+    "contact_ip": "IP"
   },
   "delivery_missions": {
     "nav": "Delivery Missions"
@@ -3649,32 +3659,56 @@
   },
   "lux": {
     "nav": {
-      "brand":   "SYANO Platform",
-      "search":  "Search",
-      "cart":    "Cart",
+      "brand": "SYANO Platform",
+      "search": "Search",
+      "cart": "Cart",
       "contact": "Contact Us"
     },
     "center": {
-      "badge":    "SYANO Platform",
-      "title":    "SYANO Platform",
-      "tagline":  "Syrian industrial luxury — direct from factory to you",
+      "badge": "SYANO Platform",
+      "title": "SYANO Platform",
+      "tagline": "Syrian industrial luxury — direct from factory to you",
       "cta_shop": "Start Shopping",
       "cta_sell": "Join as Factory Owner"
     },
     "strip": {
-      "brand":   "SYANO Platform",
+      "brand": "SYANO Platform",
       "tagline": "Thoughtfully crafted Syrian products made with passion and world-class craftsmanship, delivered to you daily.",
       "explore": "Explore More"
     },
     "left": {
-      "l0": { "label": "Halabi Apparel",        "sublabel": "Premium designs — Autumn Collection", "badge": "Aleppo"  },
-      "l1": { "label": "Damascus Leather Shoes", "sublabel": "Genuine leather — handcrafted",      "badge": "Damascus" },
-      "l2": { "label": "Oriental Perfumes",      "sublabel": "Oud & Syrian damask rose",            "badge": "Syria"   }
+      "l0": {
+        "label": "Halabi Apparel",
+        "sublabel": "Premium designs — Autumn Collection",
+        "badge": "Aleppo"
+      },
+      "l1": {
+        "label": "Damascus Leather Shoes",
+        "sublabel": "Genuine leather — handcrafted",
+        "badge": "Damascus"
+      },
+      "l2": {
+        "label": "Oriental Perfumes",
+        "sublabel": "Oud & Syrian damask rose",
+        "badge": "Syria"
+      }
     },
     "right": {
-      "r0": { "label": "Damascus Textiles",  "sublabel": "100% natural silk — local production", "badge": "Silk"    },
-      "r1": { "label": "Syrian Ceramics",    "sublabel": "Handmade pottery — heritage colors",   "badge": "Heritage" },
-      "r2": { "label": "Damascus Brassware", "sublabel": "Hand-engraved — authentic craft",       "badge": "Copper"  }
+      "r0": {
+        "label": "Damascus Textiles",
+        "sublabel": "100% natural silk — local production",
+        "badge": "Silk"
+      },
+      "r1": {
+        "label": "Syrian Ceramics",
+        "sublabel": "Handmade pottery — heritage colors",
+        "badge": "Heritage"
+      },
+      "r2": {
+        "label": "Damascus Brassware",
+        "sublabel": "Hand-engraved — authentic craft",
+        "badge": "Copper"
+      }
     }
   }
 }
