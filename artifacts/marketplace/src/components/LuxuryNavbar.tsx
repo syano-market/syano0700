@@ -330,13 +330,16 @@ export function LuxuryNavbar() {
 
   return (
     <>
-      {/* Floating header — solid matte charcoal black */}
+      {/* Floating header — fixed to viewport top */}
       <header
         style={{
-          position: "relative",
-          zIndex: 10,
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          width: "100%",
+          zIndex: 1000,
           fontFamily: F_SANS,
-          flexShrink: 0,
           background: BG,
         }}
       >

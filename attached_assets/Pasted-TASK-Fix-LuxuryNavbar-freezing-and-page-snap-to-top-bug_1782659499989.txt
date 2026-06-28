@@ -1,0 +1,94 @@
+TASK: Fix LuxuryNavbar freezing and page-snap-to-top bug.
+
+FILE: artifacts/marketplace/src/components/LuxuryNavbar.tsx
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 1 — The <header> element (line ~165 approx)
+
+FIND this style object on the <header> tag:
+  style={{
+    position: "relative",
+    zIndex: 10,
+    fontFamily: F_SANS,
+    flexShrink: 0,
+    background: BG,
+  }}
+
+REPLACE WITH:
+  style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    width: "100%",
+    zIndex: 1000,
+    fontFamily: F_SANS,
+    background: BG,
+  }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 2 — Offset the page content below the navbar
+
+The navbar is 3.75rem (60px) tall. Any page content
+directly below will be hidden under the fixed navbar.
+
+Find where LuxuryNavbar is rendered (likely App.tsx
+or a layout wrapper). Add a spacer immediately after
+the <LuxuryNavbar /> tag:
+
+  <LuxuryNavbar />
+  <div style={{ height: "3.75rem", flexShrink: 0 }} aria-hidden="true" />
+
+DO NOT add this spacer on pages that already handle
+their own top padding (the hero section likely does).
+Check if the homepage hero already accounts for
+navbar height. If yes, skip this step for that page.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 3 — Find and fix body overflow leak in homepage animation
+
+Search in:
+  artifacts/marketplace/src/pages/Home.tsx
+  and every component it imports
+
+Find every occurrence of:
+  document.body.style.overflow = 'hidden'
+  document.body.style.overflowY = 'hidden'
+  document.documentElement.style.overflow = 'hidden'
+
+Every single one MUST have this cleanup inside its useEffect:
+  return () => {
+    document.body.style.overflow = ''
+    document.documentElement.style.overflow = ''
+  }
+
+If any is missing the cleanup → add it.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIX 4 — Ensure scroll animation elements are below z-index 1000
+
+Search in Home.tsx and all animation components for:
+  zIndex, z-index, z-[anything]
+
+Every element in the hero/banner animation must have:
+  zIndex < 1000
+
+Any overlay div that covers the screen must have:
+  pointer-events: none   (so it never blocks navbar clicks)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DO NOT CHANGE:
+  - Any logic, hooks, or state in LuxuryNavbar
+  - Any API routes or database schema
+  - The 4 workflows
+  - PORT or API_PORT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFY after fix:
+  1. Scroll down the homepage
+  2. Navbar must remain visible and fixed at top
+  3. Click cart icon → must open cart page, no snap-to-top
+  4. Click login → must open login modal, no freeze
+  5. Scroll freely after clicking any navbar button
+  6. DevTools → Elements → <header> → Computed → 
+     position = fixed, z-index = 1000

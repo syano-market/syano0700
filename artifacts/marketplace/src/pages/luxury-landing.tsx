@@ -1240,8 +1240,8 @@ export default function LuxuryLandingPage() {
           scrollbarColor: `${C.border} transparent`,
         }}
       >
-        {/* ── Sticky navbar ──────────────────────────────────────────────── */}
-        <div style={{ position: "sticky", top: 0, zIndex: 1000, background: C.bg, transform: "translateZ(0)", isolation: "isolate" }}>
+        {/* ── Navbar spacer — fixed header is out of flow; this reserves 3.75rem ── */}
+        <div style={{ height: "3.75rem", background: C.bg, flexShrink: 0 }}>
           <LuxuryNavbar />
         </div>
 
