@@ -1,0 +1,270 @@
+# SYANO AUDIT — PHASE 5: MOBILE PARITY
+# ══════════════════════════════════════
+# ⛔ DO NOT modify any file
+# ⛔ DO NOT run any command
+# ✅ READ files only
+# ✅ Create ONE file: docs/audit/phase5-mobile-parity.md
+
+# ══════════════════════════════════════════
+# SYANO MOBILE CONTEXT
+# ══════════════════════════════════════════
+# Framework: Expo 54 + expo-router (file-system routing)
+# Screens: ~55 (documented claim)
+# Web parity: ~95% (documented claim)
+# i18n: artifacts/mobile/src/i18n/index.ts
+# API: getBaseUrl() → https://$REPLIT_DEV_DOMAIN
+# Auth: AsyncStorage JWT
+# Maps: NOT used in mobile (web-only Leaflet)
+# Touch targets: minimum 44pt (Apple HIG requirement)
+
+# ══════════════════════════════════════════
+# KNOWN WEB-ONLY FEATURES — DO NOT FLAG
+# ══════════════════════════════════════════
+# Leaflet maps — web only, intentional
+# Service Worker (sw.js) — web only, intentional
+# Vite HMR — web only, intentional
+
+# ══════════════════════════════════
+# TASK 1 — SCREEN INVENTORY
+# ══════════════════════════════════
+Read: artifacts/marketplace/src/App.tsx
+Extract: Every route path and its component
+
+Read: artifacts/mobile/app/ folder structure
+Extract: Every screen file (expo-router file = screen)
+
+Produce TWO lists side by side:
+
+WEB ROUTES (from App.tsx):
+/ · /login · /register · /shop · /products/:id
+/cart · /checkout · /orders · /orders/:id
+/customer/dashboard · /messages · /support
+/seller/dashboard · /seller/products · /seller/products/new
+/seller/products/:id/edit · /seller/orders · /seller/orders/:id
+/seller/analytics · /seller/reviews · /seller/store-settings
+/seller/inventory · /seller/messages · /seller/trust
+/courier · /courier/dashboard · /courier/history
+/courier/earnings · /courier/performance · /courier/wallet
+/courier/profile
+/admin · /admin/users · /admin/products · /admin/orders
+/admin/sellers · /admin/analytics · /admin/delivery
+/admin/delivery-missions · /admin/courier-applications
+/admin/courier-locations · /admin/dispatch-center
+/admin/routing · /admin/courier-payouts · /admin/hero-banners
+/admin/messages · /admin/support · /admin/verification
+/admin/search-analytics · /admin/logs · /admin/settings
+/store/:slug · /stores · /tracking/:missionId
+/wishlist · /search · /categories · /about · /contact
+
+MOBILE SCREENS (from artifacts/mobile/app/):
+[List every file found with its path]
+
+Cross-reference — for each web route:
+STATUS: ✅ Mobile screen exists | ❌ Missing | ⚠️ Partial
+
+---
+ROUTE: /admin/dispatch-center
+WEB_FILE: artifacts/marketplace/src/pages/admin/DispatchCenter.tsx
+MOBILE_STATUS: ❌ Missing
+IMPACT: Admin cannot access dispatch center on mobile
+PART_OF_MISSING_5_PERCENT: YES
+---
+
+# ══════════════════════════════════
+# TASK 2 — FEATURE GAP ANALYSIS
+# ══════════════════════════════════
+For screens that EXIST on BOTH web and mobile,
+read both versions and compare features:
+
+Check these critical screens:
+
+A) Home Screen (/ on web):
+   - Product grid visible? Web: Y/N | Mobile: Y/N
+   - Category browsing? Web: Y/N | Mobile: Y/N
+   - Hero banners? Web: Y/N | Mobile: Y/N
+   - Search bar? Web: Y/N | Mobile: Y/N
+
+B) Product Detail (/products/:id):
+   - Product images? Web: Y/N | Mobile: Y/N
+   - Add to cart button? Web: Y/N | Mobile: Y/N
+   - Reviews section? Web: Y/N | Mobile: Y/N
+   - Seller info? Web: Y/N | Mobile: Y/N
+   - Related products? Web: Y/N | Mobile: Y/N
+
+C) Cart (/cart):
+   - Item list? Web: Y/N | Mobile: Y/N
+   - Quantity adjust? Web: Y/N | Mobile: Y/N
+   - Total calculation? Web: Y/N | Mobile: Y/N
+   - Checkout button? Web: Y/N | Mobile: Y/N
+
+D) Seller Dashboard (/seller/dashboard):
+   - Revenue stats? Web: Y/N | Mobile: Y/N
+   - Order count? Web: Y/N | Mobile: Y/N
+   - Recent orders list? Web: Y/N | Mobile: Y/N
+   - Product management link? Web: Y/N | Mobile: Y/N
+
+E) Courier Workspace (/courier):
+   - Active mission display? Web: Y/N | Mobile: Y/N
+   - Map (web-only — expected)? Web: Y | Mobile: N (OK)
+   - Accept/reject mission? Web: Y/N | Mobile: Y/N
+   - Navigation to delivery address? Web: Y/N | Mobile: Y/N
+
+For each gap found:
+---
+SCREEN: Product Detail
+FEATURE: Related products section
+WEB: ✅ Present
+MOBILE: ❌ Missing
+IMPACT: Users cannot discover related products on mobile
+PRIORITY: MEDIUM
+---
+
+# ══════════════════════════════════
+# TASK 3 — MOBILE API CONSISTENCY
+# ══════════════════════════════════
+For screens that exist on both platforms,
+verify they call the same API endpoints.
+
+Read the web screen's useQuery calls.
+Read the mobile screen's fetch/useQuery calls.
+
+Find cases where:
+- Web uses /api/products?category=X but mobile uses /api/products only
+  (mobile missing filter params)
+- Web sends auth header, mobile does not (or vice versa)
+- Web uses pagination (page, limit params), mobile loads all at once
+- Web screen has optimistic updates on mutations, mobile does not
+
+For each finding:
+---
+TYPE: MISSING_FILTER / MISSING_AUTH / MISSING_PAGINATION / MISSING_OPTIMISTIC
+SCREEN: Product List
+WEB_CALL: GET /api/products?category=X&page=1&limit=20
+MOBILE_CALL: GET /api/products (no pagination, no filter)
+IMPACT: Mobile loads ALL products at once — performance issue
+PRIORITY: HIGH
+---
+
+# ══════════════════════════════════
+# TASK 4 — MOBILE UX ANTI-PATTERNS
+# ══════════════════════════════════
+Scan artifacts/mobile/app/ and artifacts/mobile/src/
+
+A) Touch target size violations (Apple HIG: 44pt minimum):
+   Find interactive elements with explicit small sizes:
+   - style={{ width: 20, height: 20 }} on a touchable element
+   - style={{ padding: 2 }} on a button
+   These are too small for reliable touch
+
+B) Missing TouchableOpacity/Pressable feedback:
+   Find <View onPress={...}> — Views do NOT provide touch feedback
+   Should be <TouchableOpacity> or <Pressable>
+
+C) Hardcoded localhost URLs (repeat check from Phase 2 focused on mobile):
+   Any fetch('http://localhost...') in mobile code
+
+D) Synchronous AsyncStorage access:
+   AsyncStorage is always async — find:
+   - AsyncStorage.getItem() called without await
+   - AsyncStorage used in a non-async function without .then()
+
+E) Missing loading states:
+   Screen components that make API calls with no loading indicator
+   (no ActivityIndicator or skeleton while data fetches)
+
+F) Navigation stack issues (expo-router specific):
+   - router.push() used where router.replace() should be
+     (e.g. after login → should replace, not push, so back button
+     doesn't return to login screen)
+   - Screens missing proper header back button handling
+
+For each finding:
+---
+TYPE: SMALL_TOUCH_TARGET / NO_FEEDBACK / LOCALHOST_URL /
+      ASYNC_STORAGE_SYNC / MISSING_LOADING / WRONG_NAVIGATION
+FILE: artifacts/mobile/app/screens/ProductCard.tsx
+LINE: 45
+CODE: <View style={{ width: 20 }} onPress={handleFav}>
+ISSUE: View has no touch feedback, 20px too small (min 44pt)
+FIX: <TouchableOpacity style={{ padding: 12 }} onPress={handleFav}>
+PRIORITY: MEDIUM
+---
+
+# ══════════════════════════════════
+# TASK 5 — MOBILE i18n PARITY
+# ══════════════════════════════════
+SYANO web i18n: artifacts/marketplace/src/i18n/en.json + ar.json
+SYANO mobile i18n: artifacts/mobile/src/i18n/index.ts
+
+A) Read all keys from en.json (web)
+   Read all keys from mobile i18n index
+   
+   Find keys that exist in web but NOT in mobile:
+   → Mobile shows untranslated text for these
+
+B) Find hardcoded strings in mobile screens
+   NOT going through mobile i18n:
+   - <Text>Loading...</Text>
+   - <Text>No results</Text>
+   - Any user-visible English string not using i18n
+
+C) Find RTL handling in mobile:
+   React Native has I18nManager for RTL
+   Verify: I18nManager.forceRTL(true) or isRTL check exists
+   for the Arabic locale
+
+For each finding:
+---
+TYPE: MISSING_I18N_KEY / HARDCODED_STRING / MISSING_RTL
+WEB_KEY: products.empty_state
+MOBILE_STATUS: ❌ Key missing from mobile i18n
+IMPACT: "products.empty_state" shown as literal text on mobile
+PRIORITY: MEDIUM
+---
+
+# ══════════════════════════════════
+# OUTPUT FORMAT
+# ══════════════════════════════════
+Save to: docs/audit/phase5-mobile-parity.md
+
+# Phase 5 — Mobile Parity Audit
+
+## Summary
+| Task | Web | Mobile | Gaps |
+|------|-----|--------|------|
+| Screen Count | X routes | X screens | X missing |
+| Feature Gaps | X features | X present | X missing |
+| API Consistency | X calls | X matching | X gaps |
+| UX Anti-patterns | — | X found | — |
+| i18n Parity | X keys | X present | X missing |
+
+## Missing Screens (❌)
+[List all web routes with no mobile equivalent]
+
+## Partial Screens (⚠️)
+[List screens that exist but have feature gaps]
+
+## Task 1 — Screen Inventory
+[Full comparison table]
+
+## Task 2 — Feature Gaps
+[findings]
+
+## Task 3 — API Consistency
+[findings]
+
+## Task 4 — Mobile UX Issues
+[findings]
+
+## Task 5 — Mobile i18n
+[findings]
+
+# ════════════════════════════════
+# ANTI-HALLUCINATION RULES
+# ════════════════════════════════
+- Read App.tsx BEFORE listing any web route
+- Read artifacts/mobile/app/ folder BEFORE listing any screen
+- If you cannot read a screen file → mark as COULD_NOT_READ
+- NEVER guess a feature exists on mobile without reading the file
+- If web and mobile files both exist but you cannot compare them
+  clearly → mark as UNCERTAIN
