@@ -11,10 +11,8 @@ createRoot(document.getElementById("root")!).render(
 
 import { onCLS, onFCP, onLCP, onTTFB, onINP } from "web-vitals";
 
-function reportWebVitals(metric: { name: string; value: number; rating: string }) {
-  if (import.meta.env.DEV) {
-    console.log(`[Web Vitals] ${metric.name}: ${Math.round(metric.value)}ms (${metric.rating})`);
-  }
+function reportWebVitals(_metric: { name: string; value: number; rating: string }) {
+  // intentionally empty — console output removed
 }
 
 onCLS(reportWebVitals);

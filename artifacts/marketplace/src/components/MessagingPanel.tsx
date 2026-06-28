@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   MessageCircle, Send, ArrowLeft, ArrowRight, Search, Archive,
   BellOff, Bell, Paperclip, X, Check, CheckCheck, Trash2,
-  Package, Store, ShieldAlert, MoreHorizontal, Image as ImageIcon,
+  Package, Store, MoreHorizontal, Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

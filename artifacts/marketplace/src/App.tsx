@@ -239,7 +239,7 @@ function ServiceWorkerRegistrar() {
     const swUrl = `${import.meta.env.BASE_URL}sw.js`;
     navigator.serviceWorker
       .register(swUrl, { scope: import.meta.env.BASE_URL || "/" })
-      .catch((err) => console.warn("[SW] Registration failed:", err));
+      .catch(() => {});
   }, []);
   return null;
 }

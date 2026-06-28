@@ -175,7 +175,6 @@ export default function TrackingScreen() {
     freshnessText:{ fontSize: 12, color: colors.mutedForeground },
     eventRow:     { flexDirection: "row", gap: 12, marginBottom: 0 },
     eventDot:     { width: 10, height: 10, borderRadius: 5, marginTop: 4 },
-    eventLine:    { width: 2, flex: 1, backgroundColor: colors.border, marginStart: 4, marginTop: 4 },
     eventLabel:   { fontSize: 14, fontWeight: "600", color: colors.text },
     eventTime:    { fontSize: 11, color: colors.mutedForeground, marginTop: 2 },
     center:       { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },

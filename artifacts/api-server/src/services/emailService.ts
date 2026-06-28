@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { logger } from "../lib/logger";
 
 let _resend: Resend | null = null;
 function getResend(): Resend | null {
@@ -63,14 +64,14 @@ export async function sendWelcomeEmail(
 
   const resend = getResend();
   if (!resend) {
-    console.warn(`[email] RESEND_API_KEY not set — skipping welcome email to ${to}`);
+    logger.warn({ to }, "[email] RESEND_API_KEY not set — skipping welcome email");
     return;
   }
   try {
     await resend.emails.send({ from: FROM, to, subject, html });
-    console.log(`[email] Welcome email sent to ${to}`);
+    logger.info({ to }, "[email] Welcome email sent");
   } catch (err) {
-    console.error(`[email] Failed to send welcome email to ${to}:`, err);
+    logger.error({ err, to }, "[email] Failed to send welcome email");
   }
 }
 
@@ -135,13 +136,13 @@ export async function sendPasswordResetEmail(
 
   const resend = getResend();
   if (!resend) {
-    console.warn(`[email] RESEND_API_KEY not set — skipping password reset email to ${to}`);
+    logger.warn({ to }, "[email] RESEND_API_KEY not set — skipping password reset email");
     return;
   }
   try {
     await resend.emails.send({ from: FROM, to, subject, html });
-    console.log(`[email] Password reset email sent to ${to}`);
+    logger.info({ to }, "[email] Password reset email sent");
   } catch (err) {
-    console.error(`[email] Failed to send password reset email to ${to}:`, err);
+    logger.error({ err, to }, "[email] Failed to send password reset email");
   }
 }

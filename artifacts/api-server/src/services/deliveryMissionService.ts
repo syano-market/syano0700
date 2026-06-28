@@ -1,4 +1,4 @@
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { db, deliveryMissionsTable, ordersTable, usersTable, sellerApplicationsTable, couriersTable } from "@workspace/db";
 import type { DeliveryMission, InsertDeliveryMission } from "@workspace/db";
 import { getAvailableCouriers, setCourierBusy } from "./courierAvailabilityService";

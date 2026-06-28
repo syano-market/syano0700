@@ -12,7 +12,7 @@
  * The provider is selected via AI_PROVIDER env var (default: "faq").
  */
 
-import { eq, desc, ilike, and, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, usersTable, productsTable } from "@workspace/db";
 import { pool } from "@workspace/db";
 import { logger } from "../lib/logger";

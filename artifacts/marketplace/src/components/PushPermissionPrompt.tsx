@@ -95,8 +95,7 @@ export function PushPermissionPrompt() {
           userAgent: navigator.userAgent,
         }),
       });
-    } catch (e) {
-      console.warn("[PushPermission] error:", e);
+    } catch {
     } finally {
       setVisible(false);
       setLoading(false);

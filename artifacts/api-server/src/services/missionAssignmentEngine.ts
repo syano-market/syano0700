@@ -6,7 +6,7 @@
  * Falls back to completedDeliveries DESC when location data is unavailable.
  */
 
-import { eq, and, notInArray, desc } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import {
   pool, db,
   couriersTable, deliveryMissionsTable, missionOffersTable, usersTable,

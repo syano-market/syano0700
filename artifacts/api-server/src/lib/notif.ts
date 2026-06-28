@@ -1,4 +1,5 @@
 import type { Response } from "express";
+import { logger } from "./logger";
 import webpush from "web-push";
 import { eq } from "drizzle-orm";
 import { db, notificationsTable, pushSubscriptionsTable } from "@workspace/db";
@@ -20,7 +21,7 @@ export function addSseClient(userId: number, res: Response): void {
   if (!clients.has(userId)) clients.set(userId, new Set());
   clients.get(userId)!.add(res);
   const tabs = clients.get(userId)!.size;
-  console.log(`[sse] connect  uid=${userId} tabs=${tabs} total_users=${clients.size}`);
+  logger.info({ userId, tabs, total_users: clients.size }, "[sse] connect");
 }
 
 export function removeSseClient(userId: number, res: Response): void {
@@ -29,7 +30,7 @@ export function removeSseClient(userId: number, res: Response): void {
   set.delete(res);
   const tabs = set.size;
   if (tabs === 0) clients.delete(userId);
-  console.log(`[sse] disconnect uid=${userId} tabs=${tabs} total_users=${clients.size}`);
+  logger.info({ userId, tabs, total_users: clients.size }, "[sse] disconnect");
 }
 
 /** Returns total active SSE connection count (all users combined). */
@@ -54,7 +55,7 @@ export function kickSseUser(userId: number): void {
     } catch {}
   }
   clients.delete(userId);
-  console.log(`[sse] kicked uid=${userId} (account suspended)`);
+  logger.info({ userId }, "[sse] kicked - account suspended");
 }
 
 /* ── Send via SSE ────────────────────────────────────────────── */
@@ -138,7 +139,7 @@ export function kickSseRole(userId: number): void {
   for (const res of set) {
     try { res.write(payload); } catch {}
   }
-  console.log(`[sse] role_changed uid=${userId}`);
+  logger.info({ userId }, "[sse] role_changed");
 }
 
 /* ── createNotification ──────────────────────────────────────── */
@@ -155,6 +156,6 @@ export async function createNotification(
     /* 2. Push to subscribed devices via Web Push (background) */
     pushWebPush(data.userId, data.title, data.body, data.link, data.priority).catch(() => {});
   } catch (err) {
-    console.error("[notif] createNotification error:", err);
+    logger.error({ err }, "[notif] createNotification error");
   }
 }

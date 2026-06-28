@@ -16,6 +16,7 @@ import {
   sendEmailOTP,
 } from "../services/verification";
 import { checkIpRateLimit, checkLoginRateLimit, checkRegisterRateLimit } from "../lib/rateLimiter";
+import { logger } from "../lib/logger";
 import { sendWelcomeEmail, sendPasswordResetEmail } from "../services/emailService";
 import { verifyTurnstileToken, TURNSTILE_ENABLED, TURNSTILE_SITE_KEY } from "../services/turnstileService";
 
@@ -272,7 +273,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     const result = await dispatchOtp(user, identifier, ip, "en");
     method = result.method;
   } catch (err) {
-    console.error("[OTP] Send failed on register:", err);
+    logger.error({ err }, "[OTP] Send failed on register");
   }
 
   res.status(201).json({
@@ -335,7 +336,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     const rateCheck = await checkUserRateLimit(user.id);
     if (rateCheck.allowed) {
       try { await dispatchOtp(user, identifier, ip, "en", "otp_sent_on_login"); }
-      catch (err) { console.error("[OTP] Auto-send on unverified login failed:", err); }
+      catch (err) { logger.error({ err }, "[OTP] Auto-send on unverified login failed"); }
     }
     res.status(403).json({
       verified: false,
@@ -384,7 +385,7 @@ router.post("/auth/send-otp", async (req, res): Promise<void> => {
     const { expiresAt } = await dispatchOtp(user, identifier, ip, locale ?? "en");
     res.json({ message: "Verification code sent.", expiresAt: expiresAt.toISOString(), expiresIn: 600 });
   } catch (err) {
-    console.error("[OTP] send-otp failed:", err);
+    logger.error({ err }, "[OTP] send-otp failed");
     res.status(500).json({ error: "Failed to send code. Please try again." });
   }
 });
@@ -422,7 +423,7 @@ router.post("/auth/resend-otp", async (req, res): Promise<void> => {
     const { expiresAt } = await dispatchOtp(user, identifier, ip, locale ?? "en", "otp_resent");
     res.json({ message: "Verification code resent.", expiresAt: expiresAt.toISOString(), expiresIn: 600 });
   } catch (err) {
-    console.error("[OTP] resend-otp failed:", err);
+    logger.error({ err }, "[OTP] resend-otp failed");
     res.status(500).json({ error: "Failed to resend code. Please try again." });
   }
 });
@@ -630,7 +631,7 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
   try {
     await sendEmailOTP(normalizedEmail, otp, locale ?? "en");
   } catch (err) {
-    console.error("[OTP] forgot-password email failed:", err);
+    logger.error({ err }, "[OTP] forgot-password email failed");
   }
 
   // Password reset email with link — fire-and-forget
@@ -807,7 +808,7 @@ router.post("/auth/google", async (req, res): Promise<void> => {
     if (!p) throw new Error("Empty payload");
     payload = p;
   } catch (err) {
-    console.error("[Google Auth] Token verification failed:", err);
+    logger.error({ err }, "[Google Auth] Token verification failed");
     res.status(401).json({ error: "Invalid Google token. Please try again." });
     return;
   }
@@ -947,7 +948,7 @@ router.post("/auth/facebook", async (req, res): Promise<void> => {
       error?: unknown;
     };
     if (!debugData.data?.is_valid || debugData.data?.app_id !== fbAppId) {
-      console.error("[Facebook Auth] Token debug failed:", JSON.stringify(debugData));
+      logger.error({ debugData }, "[Facebook Auth] Token debug failed");
       res.status(401).json({ error: "Invalid Facebook token. Please try again." });
       return;
     }
@@ -957,7 +958,7 @@ router.post("/auth/facebook", async (req, res): Promise<void> => {
       return;
     }
   } catch (err) {
-    console.error("[Facebook Auth] Token verification failed:", err);
+    logger.error({ err }, "[Facebook Auth] Token verification failed");
     res.status(401).json({ error: "Facebook token verification failed. Please try again." });
     return;
   }
@@ -982,7 +983,7 @@ router.post("/auth/facebook", async (req, res): Promise<void> => {
     fbName = profile.name ?? null;
     fbPicture = profile.picture?.data?.url ?? null;
   } catch (err) {
-    console.error("[Facebook Auth] Profile fetch failed:", err);
+    logger.error({ err }, "[Facebook Auth] Profile fetch failed");
     res.status(502).json({ error: "Could not fetch Facebook profile. Please try again." });
     return;
   }

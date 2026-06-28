@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { logger } from "../lib/logger";
 
 // ─── OTP helpers ────────────────────────────────────────────────────────────
 
@@ -22,15 +23,7 @@ export function otpExpiryDate(): Date {
 // ─── Dev-mode banner ─────────────────────────────────────────────────────────
 
 function logDevOTP(to: string, code: string, channel: "EMAIL" | "SMS"): void {
-  const line = "═".repeat(54);
-  console.log(`
-╔${line}╗
-║       🔑  SYANO VERIFICATION [DEV MODE]            ║
-║  Channel : ${channel.padEnd(44)}║
-║  To      : ${to.slice(0, 44).padEnd(44)}║
-║  Code    : ${code.padEnd(44)}║
-║  Expires : 10 minutes                              ║
-╚${line}╝`);
+  logger.debug({ channel, to: to.slice(0, 44), code }, "[OTP] dev mode verification code");
 }
 
 // ─── Email (Resend) ───────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { useTheme } from "next-themes";
+
 import {
   Bell, BellRing, CheckCheck,
   ShoppingBag, ShoppingCart, Zap, Truck, CheckCircle2, XCircle,
@@ -175,9 +175,6 @@ export function NotificationCenter({ btnClassName }: { btnClassName?: string }) 
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const { t, i18n } = useTranslation();
-  const lang = i18n.language;
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
 
   /* Identical token to navSettingsBtn in Navbar.tsx — overridable for mobile */
   const btnCls = btnClassName ?? "bg-white/[0.92] hover:bg-white text-[#111111] rounded-lg";

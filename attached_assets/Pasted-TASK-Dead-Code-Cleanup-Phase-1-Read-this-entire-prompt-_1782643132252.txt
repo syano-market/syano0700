@@ -1,0 +1,212 @@
+TASK: Dead Code Cleanup — Phase 1
+Read this entire prompt before touching any file.
+
+════════════════════════════════════════
+CONTEXT
+════════════════════════════════════════
+This is the SYANO marketplace monorepo.
+The project uses:
+- Pino logger (already imported in most API server files via ../../lib/logger or ../lib/logger)
+- Express 5 + Drizzle ORM + TypeScript strict mode
+- 0 TypeScript errors must be maintained across ALL packages at all times
+
+Before starting, run:
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Confirm 0 errors. Do NOT proceed if there are existing errors — report them first.
+
+════════════════════════════════════════
+RULES — READ BEFORE EVERY EDIT
+════════════════════════════════════════
+1. Open and read the actual file before editing it. Never edit from memory.
+2. Edit ONE file at a time. After each file, re-run its tsc check.
+3. Never delete a console.error/warn/log from artifacts/api-server/src/ — migrate it to the pino logger instead.
+4. Never remove the commented block in OrderStatusTimeline.tsx — it documents order flow diagrams and must stay.
+5. Never add new imports that are not needed.
+6. Never change logic, only remove dead code or migrate console calls.
+7. After ALL edits, run the full tsc check again and confirm 0 errors.
+
+════════════════════════════════════════
+TASK 1 — REMOVE UNUSED IMPORTS
+════════════════════════════════════════
+Make exactly these changes. Open each file, find the exact import line, remove only the listed identifier from the import statement. Leave all other identifiers untouched.
+
+1. FILE: artifacts/marketplace/src/components/MessagingPanel.tsx
+   LINE ~7: import { Package, Store, ShieldAlert, MoreHorizontal, Image as ImageIcon, ... } from 'lucide-react'
+   REMOVE: ShieldAlert
+
+2. FILE: artifacts/api-server/src/services/aiProvider.ts
+   LINE ~15: import { eq, desc, ilike, and, sql } from "drizzle-orm"
+   REMOVE: desc, ilike, and
+   RESULT: import { eq, sql } from "drizzle-orm"
+
+3. FILE: artifacts/api-server/src/services/deliveryMissionService.ts
+   LINE ~1: import { eq, desc, and, inArray } from "drizzle-orm"
+   REMOVE: desc, inArray
+   RESULT: import { eq, and } from "drizzle-orm"
+
+4. FILE: artifacts/api-server/src/services/missionAssignmentEngine.ts
+   LINE ~9: import { eq, and, notInArray, desc } from "drizzle-orm"
+   REMOVE: notInArray, desc
+   RESULT: import { eq, and } from "drizzle-orm"
+
+After each file edit run tsc and confirm 0 errors before moving on.
+
+════════════════════════════════════════
+TASK 2 — REMOVE DEAD VARIABLES
+════════════════════════════════════════
+
+1. FILE: artifacts/marketplace/src/components/NotificationCenter.tsx
+   Find and remove these 3 lines (they appear together around line 178–180):
+     const lang = i18n.language;
+     const { resolvedTheme } = useTheme();
+     const isDark = resolvedTheme === "dark";
+   VERIFY: After removal, confirm useTheme is no longer imported anywhere in this file.
+   If useTheme import becomes unused after removal, remove it from the import statement too.
+   Run tsc after this file.
+
+2. FILE: artifacts/mobile/app/tracking/[missionId].tsx
+   Find the StyleSheet.create() call.
+   Inside it, find and remove the eventLine entry:
+     eventLine: { width: 2, flex: 1, backgroundColor: colors.border, marginStart: 4, marginTop: 4 },
+   VERIFY: Search the file for "styles.eventLine" — it must not appear anywhere.
+   Run tsc after this file.
+
+════════════════════════════════════════
+TASK 3 — CONSOLE STATEMENT MIGRATION (API SERVER)
+════════════════════════════════════════
+CRITICAL RULE: In the API server, console.* calls are NEVER deleted — they are MIGRATED to pino.
+The pino logger is imported as: import { logger } from "../lib/logger" or "../../lib/logger"
+Check the exact relative path for each file before adding the import.
+
+SUB-TASK 3A — artifacts/api-server/src/routes/auth.ts
+This file has 9 console.error calls in catch blocks. Do NOT delete them.
+Check if logger is already imported. If not, add:
+  import { logger } from "../lib/logger";
+
+Replace each console.error with logger.error. Examples:
+  BEFORE: console.error("[OTP] Send failed on register:", err)
+  AFTER:  logger.error({ err }, "[OTP] Send failed on register")
+
+  BEFORE: console.error("[Google Auth] Token verification failed:", err)
+  AFTER:  logger.error({ err }, "[Google Auth] Token verification failed")
+
+  BEFORE: console.error("[Facebook Auth] Token debug failed:", JSON.stringify(debugData))
+  AFTER:  logger.error({ debugData }, "[Facebook Auth] Token debug failed")
+
+Apply this pattern to ALL 9 console.error calls at lines ~275, ~338, ~387, ~425, ~633, ~810, ~950, ~960, ~985.
+Pino structured logging format: logger.error({ err }, "message") — err goes in the object, message is second arg.
+Run tsc after this file.
+
+SUB-TASK 3B — artifacts/api-server/src/services/emailService.ts
+This file has 6 console calls (warn, log, error) and NO pino import.
+Add at the top: import { logger } from "../lib/logger";
+
+Migrate each call:
+  console.warn(...) → logger.warn(...)
+  console.log(...)  → logger.info(...)
+  console.error(...) → logger.error({ err }, "...")
+
+For calls with an error variable:
+  BEFORE: console.error("[email] Failed to send welcome email to ${to}:", err)
+  AFTER:  logger.error({ err, to }, "[email] Failed to send welcome email")
+
+Run tsc after this file.
+
+SUB-TASK 3C — artifacts/api-server/src/lib/notif.ts
+This file has 4 console.log calls and NO pino import.
+Add at the top: import { logger } from "./logger";  (same directory — verify path)
+
+Migrate each call:
+  console.log("[sse] connect ...") → logger.info({ userId, tabs }, "[sse] connect")
+  console.log("[sse] disconnect ...") → logger.info({ userId, tabs }, "[sse] disconnect")
+  console.log("[sse] kicked ...") → logger.info({ userId }, "[sse] kicked - account suspended")
+  console.log("[sse] role_changed ...") → logger.info({ userId }, "[sse] role_changed")
+
+Keep the template literal data — move dynamic values into the first object arg.
+Run tsc after this file.
+
+SUB-TASK 3D — artifacts/api-server/src/services/verification.ts
+LINE ~26: console.log(...OTP dev output...)
+Check if logger is already imported. If yes, migrate to logger.debug(...).
+If not, add the pino import and migrate.
+Run tsc after this file.
+
+════════════════════════════════════════
+TASK 4 — CONSOLE STATEMENTS (MARKETPLACE + SAFE REMOVALS)
+════════════════════════════════════════
+These are safe to DELETE outright (no migration needed — frontend code):
+
+1. FILE: artifacts/marketplace/src/main.tsx
+   LINE ~16: console.log(`[Web Vitals] ${metric.name}: ...`)
+   DELETE the entire console.log line.
+
+2. FILE: artifacts/marketplace/src/App.tsx
+   LINE ~242: console.warn("[SW] Registration failed:", err)
+   DELETE this line.
+
+3. FILE: artifacts/marketplace/src/components/PushPermissionPrompt.tsx
+   LINE ~99: console.warn("[PushPermission] error:", e)
+   DELETE this line.
+
+Run tsc --noEmit -p artifacts/marketplace/tsconfig.json after these 3 files.
+
+════════════════════════════════════════
+TASK 5 — searchProcessor.ts VERIFICATION SUITE
+════════════════════════════════════════
+FILE: artifacts/api-server/src/utils/searchProcessor.ts
+LINES: ~803–842 — these are all inside runVerificationSuite() function body.
+
+These console.log calls are the output of a CLI test runner and are intentional.
+DO NOT delete them blindly.
+
+Instead, gate the entire runVerificationSuite() function call behind an env check:
+Find where runVerificationSuite() is CALLED (not defined) and wrap it:
+
+  BEFORE:
+    runVerificationSuite();
+
+  AFTER:
+    if (process.env.NODE_ENV === "development") {
+      runVerificationSuite();
+    }
+
+If runVerificationSuite() is already conditionally called or only called via CLI args, leave it as-is and document that.
+Do NOT touch the console.log statements inside the function body — they are the test output.
+Run tsc after this file.
+
+════════════════════════════════════════
+TASK 6 — DO NOT TOUCH
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/components/OrderStatusTimeline.tsx
+LINES: ~25–29
+These commented lines document the order status flow diagram:
+  // ── V1 Delivery flow ──
+  // pending → confirmed → preparing → ...
+DO NOT remove them. They are reference documentation, not dead code.
+
+════════════════════════════════════════
+FINAL VERIFICATION
+════════════════════════════════════════
+After ALL tasks are complete, run:
+
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Expected result: 0 errors across all packages.
+
+Then provide a completion report in this format:
+  ✅ Task 1 — Unused Imports: removed [list]
+  ✅ Task 2 — Dead Variables: removed [list]
+  ✅ Task 3 — Console Migration: migrated [N] calls in [files]
+  ✅ Task 4 — Frontend Console: deleted [N] calls
+  ✅ Task 5 — searchProcessor: gated / left as-is [explain]
+  ✅ Task 6 — OrderStatusTimeline: untouched
+  ✅ TypeScript: 0 errors confirmed
+
+If any task could not be completed, explain why and what was left.
