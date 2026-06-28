@@ -804,15 +804,15 @@ export function LocationMapModal({ open, onClose }: Props) {
 
               {/* Address search input */}
               <div ref={searchRef} className="flex-1 relative">
-                <div className={`relative rounded-xl shadow-lg border transition-all bg-white ${
+                <div className={`relative rounded-xl shadow-lg border transition-all bg-card ${
                   searchOpen && searchResults.length > 0
                     ? "border-emerald-400 rounded-b-none"
-                    : "border-gray-200"
+                    : "border-border"
                 }`}>
                   {searchLoading ? (
                     <Loader2 className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500 animate-spin pointer-events-none" />
                   ) : (
-                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   )}
                   <input
                     type="text"
@@ -828,23 +828,23 @@ export function LocationMapModal({ open, onClose }: Props) {
                     placeholder={isRtl
                       ? "ابحث عن موقعك، الحي، أو المبنى..."
                       : "Search your area, district, or building..."}
-                    className="w-full h-11 ps-9 pe-3 bg-transparent text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none"
+                    className="w-full h-11 ps-9 pe-3 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                     style={{ fontFamily: "'Cairo', sans-serif" }}
                     dir={isRtl ? "rtl" : "ltr"}
                   />
                 </div>
 
                 {searchOpen && searchResults.length > 0 && (
-                  <div className="absolute top-full start-0 end-0 bg-white border border-t-0 border-emerald-400 rounded-b-xl shadow-xl max-h-52 overflow-y-auto z-[1001]">
+                  <div className="absolute top-full start-0 end-0 bg-popover border border-t-0 border-emerald-400 rounded-b-xl shadow-xl max-h-52 overflow-y-auto z-[1001]">
                     {searchResults.map(r => (
                       <button
                         key={r.place_id}
                         type="button"
                         onClick={() => handleSelectResult(r)}
-                        className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-emerald-50 transition-colors text-start border-b border-gray-50 last:border-0"
+                        className="w-full flex items-start gap-2.5 px-3 py-2.5 hover:bg-emerald-500/10 transition-colors text-start border-b border-border last:border-0"
                       >
                         <MapPin className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                        <span className="text-xs text-gray-700 leading-snug line-clamp-2">
+                        <span className="text-xs text-foreground leading-snug line-clamp-2">
                           {r.display_name}
                         </span>
                       </button>
@@ -911,11 +911,11 @@ export function LocationMapModal({ open, onClose }: Props) {
 
           {/* ── Part 3 — Sticky White Footer ───────────────────────────── */}
           <div className={`shrink-0 border-t px-5 py-4 flex items-center justify-between gap-4 transition-colors ${
-            isOutsideSyria ? "bg-red-50 border-red-100" : "bg-white border-gray-100"
+            isOutsideSyria ? "bg-red-500/10 border-red-500/20" : "bg-card border-border"
           }`}>
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                isOutsideSyria ? "bg-red-100" : "bg-emerald-50"
+                isOutsideSyria ? "bg-red-500/20" : "bg-emerald-500/20"
               }`}>
                 <MapPin className={`h-5 w-5 transition-colors ${
                   isOutsideSyria ? "text-red-500" : "text-emerald-600"
@@ -935,14 +935,14 @@ export function LocationMapModal({ open, onClose }: Props) {
                   </>
                 ) : (
                   <>
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide leading-none mb-0.5">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide leading-none mb-0.5">
                       {t("map.current_address_label")}
                     </p>
-                    <p className="text-sm font-medium text-gray-800 truncate leading-tight">
+                    <p className="text-sm font-medium text-foreground truncate leading-tight">
                       {footerAddressLine || t("map.locating_placeholder")}
                     </p>
                     {selectedZone && (
-                      <p className="text-[11px] text-gray-400 mt-0.5">
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         {isRtl ? selectedZone.nameAr : selectedZone.nameEn}
                         {" · "}
                         {selectedZone.fee} {isRtl ? "ل.س" : "SYP"}
@@ -959,7 +959,7 @@ export function LocationMapModal({ open, onClose }: Props) {
               disabled={saving || !selectedZoneId || isOutsideSyria}
               className={`shrink-0 h-11 px-6 flex items-center justify-center gap-2 rounded-xl font-bold text-[15px] transition-all cursor-pointer ${
                 isOutsideSyria
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                  ? "bg-muted text-muted-foreground cursor-not-allowed shadow-none"
                   : "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               }`}
               style={{ fontFamily: "'Cairo', sans-serif" }}

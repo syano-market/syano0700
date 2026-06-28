@@ -485,10 +485,10 @@ export function Navbar() {
                       aria-autocomplete="list"
                       aria-controls="nav-search-listbox"
                       aria-activedescendant={highlightedIndex >= 0 ? (flatItemsRef.current[highlightedIndex]?.id ?? undefined) : undefined}
-                      style={{ fontFamily: "'Cairo', sans-serif", fontSize: "0.9375rem", background: "transparent", outline: "none", border: "none", color: "#111827", flex: 1, minWidth: 0 }}
+                      style={{ fontFamily: "'Cairo', sans-serif", fontSize: "0.9375rem", background: "transparent", outline: "none", border: "none", color: isDark ? "white" : "#111827", flex: 1, minWidth: 0 }}
                     />
                     {searchQuery && (
-                      <button type="button" aria-label={t("a11y.close")} onClick={() => { setSearchQuery(""); setSearchOpen(false); }} className="text-gray-400 hover:text-gray-600 shrink-0 transition-colors">
+                      <button type="button" aria-label={t("a11y.close")} onClick={() => { setSearchQuery(""); setSearchOpen(false); }} className="text-muted-foreground hover:text-foreground shrink-0 transition-colors">
                         <X className="w-4 h-4" />
                       </button>
                     )}

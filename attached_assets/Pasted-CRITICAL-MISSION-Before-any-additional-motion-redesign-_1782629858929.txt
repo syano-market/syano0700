@@ -1,0 +1,262 @@
+CRITICAL MISSION
+
+Before any additional motion, redesign, animation, or visual experiments:
+
+Stabilize the SYANO foundation first.
+
+This task has absolute priority over every future improvement.
+
+Do not start motion work until this mission is completed successfully.
+
+---
+
+## PHASE 1 — RESPONSIVE AUDIT
+
+Perform a complete responsive audit of the entire marketplace.
+
+Target devices:
+
+* Small phones (320px)
+* Standard phones (375px)
+* Large phones (430px)
+* Tablets portrait
+* Tablets landscape
+* Small laptops
+* Standard desktops
+* Ultra-wide monitors
+
+Required breakpoints:
+
+320
+375
+430
+640
+768
+1024
+1280
+1440
+1536
+1920
+
+Audit every page and every role.
+
+Pages include but are not limited to:
+
+* Homepage
+* Product page
+* Category pages
+* Search results
+* Cart
+* Checkout
+* Wishlist
+* Login
+* Register
+* User profile
+* Orders
+* Seller dashboard
+* Courier dashboard
+* Admin dashboard
+* Settings
+* Store pages
+* Chat pages
+* Notifications
+* Help pages
+* Static pages
+
+---
+
+## RESPONSIVE REQUIREMENTS
+
+No horizontal scrolling.
+
+No overflow.
+
+No clipped elements.
+
+No overlapping content.
+
+No hidden buttons.
+
+No inaccessible actions.
+
+No broken grids.
+
+No oversized text.
+
+No tiny touch targets.
+
+Minimum touch target:
+
+44x44 px
+
+Every component must remain usable with one hand on mobile.
+
+---
+
+## MOBILE FIRST RULE
+
+Desktop must not be treated as the primary experience.
+
+Mobile experience must feel first-class.
+
+The homepage should feel intentionally designed for mobile rather than compressed from desktop.
+
+---
+
+## PHASE 2 — DARK MODE / LIGHT MODE
+
+Implement complete support for both appearance modes.
+
+Requirements:
+
+* Every page supports both modes.
+* Every component supports both modes.
+* Every modal supports both modes.
+* Every dropdown supports both modes.
+* Every tooltip supports both modes.
+* Every dashboard supports both modes.
+
+No hardcoded colors.
+
+No unreadable text.
+
+No low contrast combinations.
+
+No white flashes during page transitions.
+
+No mismatched components.
+
+---
+
+## THEME REQUIREMENTS
+
+Theme switching must be instant.
+
+No page reload.
+
+No flicker.
+
+No hydration mismatch.
+
+No visual jumps.
+
+Persist preference using:
+
+* localStorage
+* database sync if user is authenticated
+
+System mode support:
+
+* light
+* dark
+* system
+
+System mode must automatically follow OS preference.
+
+---
+
+## PHASE 3 — GLOBAL NAVBAR SYSTEM
+
+The current premium navbar becomes the single source of truth.
+
+Requirements:
+
+Use the exact same navbar everywhere.
+
+No duplicate navbars.
+
+No legacy navbars.
+
+No dashboard-specific navbars unless absolutely required.
+
+No visual inconsistencies.
+
+The navbar must be shared across:
+
+* customer pages
+* seller pages
+* courier pages
+* admin pages
+
+Role-specific actions may change.
+
+Navbar architecture must not change.
+
+---
+
+## NAVBAR REQUIREMENTS
+
+Navbar must remain:
+
+* responsive
+* accessible
+* RTL compatible
+* LTR compatible
+* dark mode compatible
+* light mode compatible
+
+Features:
+
+* logo
+* search
+* categories
+* wishlist
+* cart
+* notifications
+* profile
+* language switcher
+* theme switcher
+
+Desktop:
+
+full navigation visible.
+
+Mobile:
+
+premium drawer experience.
+
+---
+
+## PERFORMANCE REQUIREMENTS
+
+No layout shifts.
+
+No CLS issues.
+
+No hydration issues.
+
+No excessive re-renders.
+
+No unnecessary listeners.
+
+No duplicated components.
+
+Target:
+
+60 FPS desktop
+55 FPS mobile
+
+---
+
+## MANDATORY VERIFICATION
+
+Verify:
+
+* every page
+* every role
+* every breakpoint
+* both themes
+* RTL
+* LTR
+
+Provide evidence for every issue fixed.
+
+---
+
+## FINAL GOAL
+
+SYANO must feel like a production-grade marketplace platform on every device, every theme, every role, and every page before any future luxury motion work begins.
+
+Foundation first.
+
+Motion later.
