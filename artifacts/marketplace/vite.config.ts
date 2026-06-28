@@ -123,8 +123,9 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: true,
     // Same proxy rules for `vite preview` so staging/preview builds also get
-    // dynamic sitemaps when the API server is running alongside.
+    // dynamic sitemaps and API calls when the API server is running alongside.
     proxy: {
+      "/api": { target: "http://localhost:8080", changeOrigin: true },
       "/sitemap.xml":            { target: `http://localhost:${process.env.API_PORT ?? 8080}`, changeOrigin: true },
       "/sitemap-index.xml":      { target: `http://localhost:${process.env.API_PORT ?? 8080}`, changeOrigin: true },
       "/sitemap-pages.xml":      { target: `http://localhost:${process.env.API_PORT ?? 8080}`, changeOrigin: true },

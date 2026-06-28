@@ -1,0 +1,175 @@
+TASK: Architecture & Routes Cleanup — Phase 2
+Read this entire prompt before touching any file.
+
+════════════════════════════════════════
+CONTEXT
+════════════════════════════════════════
+SYANO monorepo. Stack: React 19 + Vite 7 + Wouter + Express 5.
+Navigation library: Wouter — NOT react-router-dom.
+0 TypeScript errors must be maintained at all times.
+
+Before starting, run:
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Confirm 0 errors. Do NOT proceed if there are existing errors — report them first.
+
+════════════════════════════════════════
+RULES
+════════════════════════════════════════
+1. Open and read the actual file before editing it. Never edit from memory.
+2. Edit ONE file at a time. Run tsc after each file.
+3. Never remove the Vite proxy for /api in the dev server block — only ADD to the preview block.
+4. Never remove isReplitOrigin() or any CORS logic in artifacts/api-server/src/app.ts.
+5. Never change any route protection logic in ProtectedRoute.tsx.
+6. Never delete any page file without first confirming zero references to it anywhere in the codebase.
+7. After ALL edits, run the full tsc check and confirm 0 errors.
+
+════════════════════════════════════════
+TASK 1 — FIX VITE PREVIEW PROXY (HIGH PRIORITY)
+════════════════════════════════════════
+FILE: artifacts/marketplace/vite.config.ts
+
+BACKGROUND:
+The dev server proxy block (under server:) correctly proxies /api/* to the API server.
+The preview block (under preview:) proxies sitemaps but is MISSING the /api proxy.
+This means pnpm vite preview (staging/QA builds) returns 404 on all API calls.
+
+STEP 1: Open artifacts/marketplace/vite.config.ts and read it fully.
+STEP 2: Find the preview: { ... } block.
+STEP 3: Inside the preview proxy object, add the /api entry matching the dev server pattern:
+  "/api": {
+    target: "http://localhost:8080",
+    changeOrigin: true
+  },
+Use hardcoded 8080 here (not process.env.API_PORT) because vite preview runs
+against a built bundle in a fixed environment, not a live dev workflow.
+
+STEP 4: Verify the server: proxy block is completely untouched.
+STEP 5: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → must be 0 errors.
+
+VERIFY after edit:
+  grep -n '"/api"' artifacts/marketplace/vite.config.ts
+  # Must appear in BOTH the server: block AND the preview: block.
+
+════════════════════════════════════════
+TASK 2 — RESOLVE ORPHANED PAGE: products/index.tsx
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/App.tsx
+FILE: artifacts/marketplace/src/pages/products/index.tsx
+
+BACKGROUND:
+App.tsx has this lazy import:
+  const Products = lazy(() => import("@/pages/products"))
+But Products is never placed inside any <Route> component.
+The routes /products, /shop, and /search all render SearchPage instead.
+This means products/index.tsx is completely unreachable from any URL.
+
+STEP 1: Open App.tsx and search for every reference to "Products" (the lazy component).
+  - Confirm it appears in the lazy import line
+  - Confirm it does NOT appear inside any <Route> or JSX
+STEP 2: Open artifacts/marketplace/src/pages/products/index.tsx and read it.
+  - Determine: is this page a duplicate of SearchPage, or does it contain unique logic/UI?
+STEP 3: Search the entire codebase for any import of this file:
+  grep -r "pages/products" artifacts/marketplace/src/ --include="*.tsx" --include="*.ts"
+  grep -r "pages/products" artifacts/mobile/ --include="*.tsx" --include="*.ts"
+  # Must return 0 results outside of App.tsx itself.
+
+STEP 4: Based on your findings, take ONE of these actions:
+
+  OPTION A — If products/index.tsx is a true duplicate of SearchPage with no unique logic:
+    - Remove the lazy import line from App.tsx:
+        const Products = lazy(() => import("@/pages/products"))
+    - Delete the file: artifacts/marketplace/src/pages/products/index.tsx
+    - Document what the file contained and why it was removed.
+
+  OPTION B — If products/index.tsx contains unique logic or UI not in SearchPage:
+    - Keep the file.
+    - Add a <Route> in App.tsx that renders it at an appropriate path.
+    - Suggested path: /products/list (to avoid conflict with /products/:id)
+    - Document what unique content the file has and why it was given a route.
+
+STEP 5: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → must be 0 errors.
+
+════════════════════════════════════════
+TASK 3 — REPLACE window.location.replace WITH WOUTER
+════════════════════════════════════════
+FILE: artifacts/marketplace/src/providers/NotificationProvider.tsx
+
+BACKGROUND:
+Line ~124 uses:
+  window.location.replace("/account-suspended");
+This causes a full page reload and destroys React state and TanStack Query cache.
+Wouter's setLocation is the correct pattern used everywhere else in the codebase.
+
+STEP 1: Open artifacts/marketplace/src/providers/NotificationProvider.tsx and read it fully.
+STEP 2: Check if useLocation from "wouter" is already imported.
+  - If YES: destructure setLocation from it if not already done.
+  - If NO: add the import — import { useLocation } from "wouter";
+STEP 3: Inside the component, ensure setLocation is available:
+  const [, setLocation] = useLocation();
+  (Use a different variable name if useLocation is already destructured for another purpose)
+STEP 4: Replace the offending line:
+  BEFORE: window.location.replace("/account-suspended");
+  AFTER:  setLocation("/account-suspended");
+STEP 5: Verify no other window.location.replace or window.location.href= assignments
+  exist in artifacts/marketplace/src/ (reads like window.location.href for canonical URL
+  in SEO.tsx are fine — only assignments/navigations need to be replaced):
+  grep -rn "window\.location\." artifacts/marketplace/src/ --include="*.tsx" --include="*.ts"
+STEP 6: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → must be 0 errors.
+
+════════════════════════════════════════
+TASK 4 — DO NOT TOUCH (confirm only)
+════════════════════════════════════════
+The following were audited and confirmed correct. Read them to verify they are unchanged,
+then explicitly state in your report that each is intact:
+
+1. artifacts/api-server/src/app.ts
+   - isReplitOrigin() function exists and allows *.replit.dev, *.replit.app,
+     *.janeway.replit.dev, *.expo.janeway.replit.dev
+   - CORS middleware calls isReplitOrigin() — must not be altered
+
+2. artifacts/marketplace/src/components/ProtectedRoute.tsx
+   - canAccess('seller', ['customer']) → true (sellers can shop)
+   - canAccess('courier', ['customer']) → false (couriers cannot checkout)
+   - Must not be altered
+
+3. lib/api-client-react/src/custom-fetch.ts
+   - getBaseUrl() / setBaseUrl() pattern — must not be altered
+
+Report each as: "✅ Confirmed intact — [brief description of what was verified]"
+
+════════════════════════════════════════
+TASK 5 — VERIFY MOBILE API BASE URL (confirm only)
+════════════════════════════════════════
+Run:
+  grep -rn "localhost" artifacts/mobile/app/ --include="*.tsx" --include="*.ts"
+  grep -rn "localhost" artifacts/mobile/src/ --include="*.tsx" --include="*.ts"
+
+Expected: 0 results (or only inside build scripts, not application code).
+Report result. If any hardcoded localhost found in application code, flag it immediately.
+
+════════════════════════════════════════
+FINAL VERIFICATION
+════════════════════════════════════════
+After ALL tasks are complete, run:
+
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Expected: 0 errors across all packages.
+
+Then provide a completion report in this exact format:
+
+  ✅ Task 1 — Vite Preview Proxy: /api added to preview block, dev block untouched
+  ✅ Task 2 — Orphaned Page: [OPTION A: deleted / OPTION B: routed] — [reason]
+  ✅ Task 3 — window.location.replace: replaced with setLocation() via Wouter
+  ✅ Task 4 — Confirmed intact: CORS / ProtectedRoute / getBaseUrl
+  ✅ Task 5 — Mobile localhost check: [result]
+  ✅ TypeScript: 0 errors confirmed across all 4 packages
+
+If any task could not be completed, explain exactly why and what was left.

@@ -265,6 +265,7 @@ function Router() {
             <Route path="/shop" component={SearchPage} />
             <Route path="/search" component={SearchPage} />
             <Route path="/products" component={SearchPage} />
+            <Route path="/products/list" component={Products} />
             <Route path="/categories" component={CategoriesPage} />
             <Route path="/products/:id" component={ProductDetail} />
 

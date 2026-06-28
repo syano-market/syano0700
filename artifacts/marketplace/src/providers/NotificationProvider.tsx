@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   getGetNotificationCountQueryKey,
@@ -49,6 +50,7 @@ function durationMs(priority: string): number {
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, logout, refreshAuth } = useAuth();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const esRef = useRef<EventSource | null>(null);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,7 +123,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         es.close();
         esRef.current = null;
         logout();
-        window.location.replace("/account-suspended");
+        setLocation("/account-suspended");
       });
 
       /* Server sends "connected" with the authenticated userId so the client
