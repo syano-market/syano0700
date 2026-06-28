@@ -1,0 +1,600 @@
+TASK: Security Fixes — Phase 4
+Read this entire prompt before touching any file.
+
+════════════════════════════════════════
+CONTEXT
+════════════════════════════════════════
+SYANO monorepo. Stack: Express 5 + Drizzle ORM + Zod + TypeScript strict mode.
+The existing pattern for input validation is Zod safeParse — used correctly in
+login and register routes. All new schemas must follow this same pattern.
+0 TypeScript errors must be maintained at all times across ALL packages.
+
+Before starting, run:
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Confirm 0 errors. Do NOT proceed if there are existing errors — report them first.
+
+════════════════════════════════════════
+RULES
+════════════════════════════════════════
+1. Open and read the actual file before editing it. Never edit from memory.
+2. Edit ONE file at a time. Run tsc after each file.
+3. Never remove any existing route handler or middleware.
+4. Never change the HTTP status code of a successful response.
+5. All Zod schemas go at the TOP of the file, before the router definition.
+6. Always use safeParse (not parse) — return 400 on failure, never throw.
+7. The safeParse error response format must match existing patterns in the file:
+   res.status(400).json({ error: "Validation failed", details: result.error.issues })
+8. Never add Zod schemas to lib/api-zod — these are route-local schemas only.
+9. After ALL edits, run the full tsc check and confirm 0 errors.
+
+════════════════════════════════════════
+TASK 1 — FIX XSS: store.website UNSAFE href (HIGH — MOST CRITICAL)
+════════════════════════════════════════
+This is a stored XSS vulnerability. Fix it in TWO places: render + write time.
+
+── PART A: Frontend render guard ──
+FILE: artifacts/marketplace/src/pages/store/[slug].tsx
+
+BACKGROUND:
+Line ~676 renders seller-supplied store.website directly in an href:
+  <a href={store.website} target="_blank" rel="noopener noreferrer">
+A seller can set website to "javascript:alert(document.cookie)".
+rel="noopener noreferrer" prevents tab-napping but does NOT block javascript: protocol.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Add this utility function at the TOP of the file,
+  before the component function, after all imports:
+
+  function isSafeUrl(url: string | null | undefined): boolean {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" || parsed.protocol === "http:";
+    } catch {
+      return false;
+    }
+  }
+
+STEP 3: Find the <a href={store.website}> element (line ~676).
+  Replace:
+    {store.website && (
+      <a href={store.website} target="_blank" rel="noopener noreferrer">
+        {store.website}
+      </a>
+    )}
+  With:
+    {isSafeUrl(store.website) && (
+      <a href={store.website!} target="_blank" rel="noopener noreferrer">
+        {store.website}
+      </a>
+    )}
+
+  NOTE: The non-null assertion (!) is safe here because isSafeUrl already
+  returns false for null/undefined — TypeScript needs the hint.
+
+STEP 4: Search for any other place in this file that renders store.website in an href:
+  grep -n "store\.website\|href.*website" artifacts/marketplace/src/pages/store/[slug].tsx
+  Apply isSafeUrl guard to every href that uses seller-supplied URL data.
+
+STEP 5: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+── PART B: API write-time validation ──
+FILE: artifacts/api-server/src/routes/sellers.ts
+
+BACKGROUND:
+The PATCH store-settings endpoint saves store.website to the database
+without validating the protocol. Fix at write time so javascript: URLs
+are rejected before they reach the database.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the Zod import at the top of the file. If not present, add:
+  import { z } from "zod";
+STEP 3: Find the Zod schema for the store branding/settings PATCH endpoint.
+  Locate the website field in that schema.
+  If website is typed as z.string().optional() or z.string().url().optional(),
+  replace it with a stricter validator:
+
+  website: z.string()
+    .url("Must be a valid URL")
+    .refine(
+      (url) => {
+        try {
+          const parsed = new URL(url);
+          return parsed.protocol === "https:" || parsed.protocol === "http:";
+        } catch {
+          return false;
+        }
+      },
+      { message: "URL must use http or https protocol" }
+    )
+    .optional()
+    .nullable(),
+
+  If there is NO Zod schema on this endpoint yet, read the entire handler,
+  identify all fields it accepts, and add a complete schema + safeParse call
+  following the pattern in login/register routes.
+
+STEP 4: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 2 — ADD ZOD TO couriers.ts APPLY ROUTE (HIGH)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/couriers.ts
+
+BACKGROUND:
+Line ~29 destructures req.body without validation:
+  const { phone, vehicleType, district } = req.body;
+vehicleType and district reach the database without type validation.
+A crafted request could inject objects or arrays that survive ?? defaults.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the Zod import — if not present, add: import { z } from "zod";
+STEP 3: At the TOP of the file (after imports, before router definition),
+  add this schema:
+
+  const CourierApplyBody = z.object({
+    phone: z.string()
+      .min(7, "Phone number too short")
+      .max(20, "Phone number too long")
+      .regex(/^[+\d\s\-()]+$/, "Invalid phone format"),
+    vehicleType: z.enum(["motorcycle", "car", "bicycle", "walking"], {
+      errorMap: () => ({ message: "Invalid vehicle type" })
+    }),
+    district: z.string()
+      .min(1, "District is required")
+      .max(100, "District name too long")
+      .trim(),
+  });
+
+  IMPORTANT: Check the actual vehicleType enum values used in the DB schema:
+    grep -n "vehicleType\|vehicle_type" lib/db/src/schema.ts
+  Use the exact same enum values — do not guess.
+
+STEP 4: In the POST /apply handler, replace the raw destructure with safeParse:
+  BEFORE:
+    const { phone, vehicleType, district } = req.body;
+    if (!phone) { res.status(400).json({ error: "Phone is required" }); return; }
+
+  AFTER:
+    const result = CourierApplyBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { phone, vehicleType, district } = result.data;
+
+STEP 5: Verify the rest of the handler uses the destructured variables from
+  result.data — not from req.body directly.
+STEP 6: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 3 — ADD ZOD TO support.ts MESSAGE SEND (HIGH)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/support.ts
+
+BACKGROUND:
+Lines ~196–201 use manual String()/Number() casting with no length limits.
+message body has no maximum length — could accept megabyte-sized payloads.
+source accepts any arbitrary string.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the Zod import — if not present, add: import { z } from "zod";
+STEP 3: At the TOP of the file, add:
+
+  const SupportMessageBody = z.object({
+    message: z.string()
+      .min(1, "Message cannot be empty")
+      .max(5000, "Message too long (max 5000 characters)")
+      .trim(),
+    conversationId: z.number().int().positive().optional().nullable(),
+    source: z.enum([
+      "page", "order", "product", "store", "general"
+    ]).default("page"),
+    orderId: z.number().int().positive().optional(),
+    productId: z.number().int().positive().optional(),
+    storeSlug: z.string().max(100).optional(),
+  });
+
+  IMPORTANT: Check the actual source values used in the codebase:
+    grep -rn "source.*support\|support.*source" artifacts/marketplace/src/ --include="*.tsx"
+  Add any source values found that are missing from the enum above.
+
+STEP 4: Replace the manual casting block (lines ~196–201) with safeParse:
+  BEFORE:
+    const body      = String(req.body.message ?? "").trim();
+    const convId    = req.body.conversationId ? Number(req.body.conversationId) : null;
+    const source    = String(req.body.source ?? "page");
+    const orderId   = req.body.orderId   ? Number(req.body.orderId)   : undefined;
+    const productId = req.body.productId ? Number(req.body.productId) : undefined;
+    const storeSlug = req.body.storeSlug ? String(req.body.storeSlug) : undefined;
+
+  AFTER:
+    const result = SupportMessageBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { message: body, conversationId: convId, source, orderId, productId, storeSlug } = result.data;
+
+STEP 5: Verify variable names match what the rest of the handler uses (body, convId, etc.).
+  Rename in the destructure if needed to avoid touching handler logic.
+STEP 6: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 4 — ADD ZOD TO admin.ts PRODUCT CREATE (HIGH)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/admin.ts
+
+BACKGROUND:
+Line ~554 destructures product fields without validation.
+price and stock could be strings or NaN. imageUrl not validated as URL.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Check if CreateProductBody or a similar schema already exists
+  in lib/api-zod or in artifacts/api-server/src/routes/products.ts:
+    grep -n "CreateProductBody\|createProduct" artifacts/api-server/src/routes/products.ts
+  If a matching Zod schema exists in products.ts, import and reuse it here
+  rather than defining a duplicate.
+
+STEP 3: If no reusable schema exists, add at the TOP of admin.ts:
+
+  const AdminCreateProductBody = z.object({
+    name: z.string().min(1).max(200).trim(),
+    description: z.string().max(5000).trim().optional(),
+    price: z.number().positive("Price must be positive"),
+    category: z.string().min(1).max(100).trim(),
+    stock: z.number().int().min(0, "Stock cannot be negative"),
+    discountPercent: z.number().min(0).max(100).optional().default(0),
+    imageUrl: z.string()
+      .url("Must be a valid URL")
+      .refine(
+        (url) => {
+          try {
+            const p = new URL(url);
+            return p.protocol === "https:" || p.protocol === "http:";
+          } catch { return false; }
+        },
+        { message: "URL must use http or https" }
+      )
+      .optional()
+      .nullable(),
+    featured: z.boolean().optional().default(false),
+  });
+
+STEP 4: In the admin product create handler (line ~554), replace raw destructure:
+  BEFORE:
+    const { name, description, price, category, stock,
+            discountPercent, imageUrl, featured } = req.body;
+
+  AFTER:
+    const result = AdminCreateProductBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { name, description, price, category, stock,
+            discountPercent, imageUrl, featured } = result.data;
+
+STEP 5: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 5 — ADD ZOD TO admin.ts PLATFORM SETTINGS (HIGH)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/admin.ts
+(Same file as Task 4 — do in the same edit session)
+
+BACKGROUND:
+Line ~867 — exchangeRate and commissionRate reach the DB without numeric validation.
+A compromised admin account could set exchangeRate to a non-numeric string,
+breaking currency display site-wide.
+
+STEP 1: Already have the file open from Task 4.
+STEP 2: Add at the TOP of admin.ts (alongside AdminCreateProductBody):
+
+  const AdminPlatformSettingsBody = z.object({
+    exchangeRate: z.number()
+      .positive("Exchange rate must be positive")
+      .max(10000, "Exchange rate seems unreasonably high")
+      .optional(),
+    commissionRate: z.number()
+      .min(0, "Commission rate cannot be negative")
+      .max(100, "Commission rate cannot exceed 100%")
+      .optional(),
+    announcement: z.string()
+      .max(500, "Announcement too long")
+      .trim()
+      .optional()
+      .nullable(),
+    flashSaleEnd: z.string()
+      .datetime({ message: "flashSaleEnd must be a valid ISO 8601 datetime" })
+      .optional()
+      .nullable(),
+  }).refine(
+    (data) => Object.values(data).some((v) => v !== undefined),
+    { message: "At least one field must be provided" }
+  );
+
+STEP 3: In the platform settings handler (line ~867), replace raw destructure:
+  BEFORE:
+    const { exchangeRate, commissionRate, announcement, flashSaleEnd } = req.body;
+
+  AFTER:
+    const result = AdminPlatformSettingsBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { exchangeRate, commissionRate, announcement, flashSaleEnd } = result.data;
+
+STEP 4: Verify downstream code handles undefined values correctly
+  (since all fields are optional, Drizzle update should use conditional field inclusion).
+STEP 5: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 6 — ADD ZOD TO messaging.ts (HIGH)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/messaging.ts
+
+BACKGROUND:
+Lines 115, 457, 661, 745, 860 use raw req.body access.
+Attachment size is user-supplied with no server-side maximum (line 661).
+
+STEP 1: Open the file and read it fully — it is large, read ALL of it.
+STEP 2: Find the Zod import — if not present, add: import { z } from "zod";
+STEP 3: At the TOP of the file, add ALL of these schemas:
+
+  // Create conversation
+  const CreateConversationBody = z.object({
+    recipientId: z.number().int().positive(),
+    subject: z.string().max(200).trim().optional(),
+    message: z.string().min(1).max(5000).trim(),
+  });
+
+  // Send message
+  const SendMessageBody = z.object({
+    content: z.string().min(1).max(5000).trim(),
+    attachmentIds: z.array(z.number().int().positive()).max(10).optional(),
+  });
+
+  // Attachment metadata (line 661 — user-supplied size)
+  const AttachmentMetaBody = z.object({
+    filename: z.string().min(1).max(255).trim(),
+    mimeType: z.string().max(100),
+    size: z.number()
+      .int()
+      .min(1)
+      .max(5 * 1024 * 1024, "Attachment exceeds 5 MB limit"),
+  });
+
+  // Report conversation
+  const ReportConversationBody = z.object({
+    reason: z.enum(["spam", "harassment", "inappropriate", "scam", "other"]),
+    details: z.string().max(1000).trim().optional(),
+  });
+
+  // Typing indicator
+  const TypingBody = z.object({
+    isTyping: z.boolean(),
+  });
+
+STEP 4: For EACH endpoint handler (lines 115, 457, 661, 745, 860),
+  replace raw req.body access with the corresponding schema's safeParse.
+  Follow the same pattern as Tasks 2–5:
+    const result = SchemaName.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { field1, field2 } = result.data;
+
+STEP 5: The size field at line 661 is the most critical fix —
+  verify that after safeParse, the size value flowing into the DB
+  comes from result.data.size (not req.body.size directly).
+
+STEP 6: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 7 — MIGRATE AUTH SECONDARY ROUTES FROM as CAST TO ZOD (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/auth.ts
+
+BACKGROUND:
+Login and register use Zod correctly (LoginBody.safeParse, RegisterBody.safeParse).
+Secondary auth flows use TypeScript as casts at runtime — these are compile-time only
+and provide zero runtime protection.
+Affected lines: ~356, ~395, ~433, ~511, ~647, ~707, ~750, ~793, ~932
+
+STEP 1: Open the file and read it fully.
+STEP 2: Identify which Zod schemas already exist in this file or in lib/api-zod.
+  List all existing schemas before adding new ones to avoid duplicates.
+
+STEP 3: Add these schemas at the TOP of the file
+  (after existing schemas, before the router):
+
+  const SendOtpBody = z.object({
+    identifier: z.string().min(1).max(200).trim(),
+    locale: z.enum(["ar", "en"]).optional().default("ar"),
+  });
+
+  const VerifyOtpBody = z.object({
+    identifier: z.string().min(1).max(200).trim(),
+    otp: z.string().length(6, "OTP must be 6 digits").regex(/^\d{6}$/, "OTP must be numeric"),
+    type: z.enum(["register", "login", "reset"]).optional(),
+  });
+
+  const ForgotPasswordBody = z.object({
+    identifier: z.string().min(1).max(200).trim(),
+    locale: z.enum(["ar", "en"]).optional().default("ar"),
+  });
+
+  const ResetPasswordBody = z.object({
+    identifier: z.string().min(1).max(200).trim(),
+    otp: z.string().length(6).regex(/^\d{6}$/),
+    newPassword: z.string()
+      .min(8, "Password must be at least 8 characters")
+      .max(128, "Password too long"),
+  });
+
+  const GoogleAuthBody = z.object({
+    credential: z.string().min(1, "Google credential token required"),
+    role: z.enum(["customer", "seller", "courier"]).optional(),
+  });
+
+  const ProfileUpdateBody = z.object({
+    name: z.string().min(1).max(100).trim().optional(),
+    phone: z.string().max(20).trim().optional().nullable(),
+    avatar: z.string().url().optional().nullable(),
+    locale: z.enum(["ar", "en"]).optional(),
+  });
+
+  IMPORTANT: Check the actual field names used in each handler before defining schemas.
+  The names above are inferred from context — verify against actual req.body access patterns.
+
+STEP 4: For each affected line (~356, ~395, ~433, ~511, ~647, ~707, ~750, ~793, ~932):
+  Find the as cast pattern:
+    const { identifier, locale } = req.body as { identifier?: string; locale?: string };
+  Replace with safeParse using the matching schema:
+    const result = SendOtpBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { identifier, locale } = result.data;
+
+STEP 5: Facebook auth (line ~932) — FACEBOOK_LOGIN_ENABLED=false so this route
+  is never reached in production. Still fix the as cast for consistency,
+  but mark it with a comment: // Facebook login disabled (FACEBOOK_LOGIN_ENABLED=false)
+
+STEP 6: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 8 — ADD ZOD TO delivery-zones.ts (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/api-server/src/routes/delivery-zones.ts
+
+BACKGROUND:
+Lines ~37 and ~51 — fee is cast to String(fee ?? "0") without numeric validation.
+active is not validated as boolean. Admin-only route but still needs schema.
+
+STEP 1: Open the file and read it fully.
+STEP 2: Find the Zod import — if not present, add: import { z } from "zod";
+STEP 3: Check the delivery_zones table schema:
+  grep -n "delivery_zones\|deliveryZones" lib/db/src/schema.ts
+  Note the actual column types for fee, active, nameEn, nameAr.
+
+STEP 4: Add at the TOP of the file:
+
+  const DeliveryZoneBody = z.object({
+    nameEn: z.string().min(1, "English name required").max(100).trim(),
+    nameAr: z.string().min(1, "Arabic name required").max(100).trim(),
+    fee: z.number()
+      .min(0, "Fee cannot be negative")
+      .max(100000, "Fee seems unreasonably high"),
+    active: z.boolean().optional().default(true),
+  });
+
+  const DeliveryZonePatchBody = DeliveryZoneBody.partial().refine(
+    (data) => Object.values(data).some((v) => v !== undefined),
+    { message: "At least one field must be provided" }
+  );
+
+STEP 5: Replace raw destructure in POST handler (line ~37):
+  BEFORE:
+    const { nameEn, nameAr, fee, active } = req.body;
+    if (!nameEn || !nameAr) { ... }
+
+  AFTER:
+    const result = DeliveryZoneBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { nameEn, nameAr, fee, active } = result.data;
+
+STEP 6: Replace raw destructure in PATCH handler (line ~51) using DeliveryZonePatchBody.
+STEP 7: Run tsc --noEmit -p artifacts/api-server/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 9 — FIX process.env.PORT IN VITE CONFIGS (MEDIUM)
+════════════════════════════════════════
+FILES:
+  - artifacts/marketplace/vite.config.ts (line ~7)
+  - tools/mockup-sandbox/vite.config.ts (line ~8) — if it exists
+  - artifacts/mobile/server/serve.js (line ~132) — if it exists
+
+BACKGROUND:
+SYANO's permanent rule: PORT must NEVER be set in shared env because its presence
+causes the API server to bind on 5000 instead of 8080.
+These files reference process.env.PORT as a fallback, creating a latent conflict risk.
+
+STEP 1: Open artifacts/marketplace/vite.config.ts and read it fully.
+STEP 2: Find: const rawPort = process.env.PORT ?? "5000";
+STEP 3: Replace with a Vite-specific variable:
+  BEFORE: const rawPort = process.env.PORT ?? "5000";
+  AFTER:  const rawPort = process.env.MARKETPLACE_PORT ?? "5173";
+
+  Add a comment above it:
+  // SYANO RULE: Never use process.env.PORT here — it conflicts with API_PORT=8080.
+  // Use MARKETPLACE_PORT for dev server port override, or let Replit assign it.
+
+STEP 4: Check tools/mockup-sandbox/vite.config.ts if it exists:
+  ls tools/mockup-sandbox/vite.config.ts 2>/dev/null && echo "EXISTS" || echo "NOT FOUND"
+  If it exists, apply the same PORT → MOCKUP_PORT rename with a similar comment.
+
+STEP 5: Check artifacts/mobile/server/serve.js if it exists:
+  ls artifacts/mobile/server/serve.js 2>/dev/null && echo "EXISTS" || echo "NOT FOUND"
+  If it exists, find the process.env.PORT reference (line ~132).
+  This is a build tool, not application code.
+  Add a comment warning:
+  // WARNING: Do not set PORT in the shared Replit env — it breaks the API server.
+  // This server uses PORT only in isolated build/serve contexts.
+  Do NOT rename the variable here — mobile serve scripts may need PORT specifically.
+
+STEP 6: Run tsc --noEmit -p artifacts/marketplace/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+EXECUTION ORDER
+════════════════════════════════════════
+Execute in this order — highest risk first:
+
+1. Task 1A — store/[slug].tsx XSS frontend guard (highest impact)
+2. Task 1B — sellers.ts website URL validation at write time
+3. Task 4 + Task 5 together — admin.ts (same file, one edit session)
+4. Task 2 — couriers.ts apply route
+5. Task 3 — support.ts message send
+6. Task 6 — messaging.ts (largest, most schemas)
+7. Task 7 — auth.ts secondary routes
+8. Task 8 — delivery-zones.ts
+9. Task 9 — vite.config.ts PORT rename
+
+════════════════════════════════════════
+FINAL VERIFICATION
+════════════════════════════════════════
+After ALL tasks are complete, run:
+
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Expected: 0 errors across all packages.
+
+Then provide a completion report in this exact format:
+
+  ✅ Task 1A — XSS frontend guard: isSafeUrl() added, [N] href usages protected
+  ✅ Task 1B — website write-time validation: protocol check added to sellers.ts schema
+  ✅ Task 2  — couriers.ts Zod: CourierApplyBody added, vehicleType enum values: [list]
+  ✅ Task 3  — support.ts Zod: SupportMessageBody added, source enum values: [list]
+  ✅ Task 4  — admin.ts product create Zod: [reused existing schema / new schema added]
+  ✅ Task 5  — admin.ts platform settings Zod: AdminPlatformSettingsBody added
+  ✅ Task 6  — messaging.ts Zod: [N] schemas added, attachment max = 5MB enforced
+  ✅ Task 7  — auth.ts as casts replaced: [N] routes migrated to Zod safeParse
+  ✅ Task 8  — delivery-zones.ts Zod: fee validated as non-negative number
+  ✅ Task 9  — PORT rename: [files updated], comments added
+  ✅ TypeScript: 0 errors confirmed across all 4 packages
+
+If any task could not be completed, explain exactly why and what was left.

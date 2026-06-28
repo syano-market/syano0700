@@ -13,10 +13,51 @@ import {
   sellerReviewsTable,
 } from "@workspace/db";
 import { requireAuth, requireRole, requireActiveAccount } from "../middlewares/auth";
+import { z } from "zod";
 import { createNotification, bi } from "../lib/notif";
 import { sellersCache } from "../services/cacheService";
 
 const router: IRouter = Router();
+
+const StoreBrandingBody = z.object({
+  storeLogo: z.string().url().optional().nullable(),
+  logoUrl: z.string().url().optional().nullable(),
+  storeBanner: z.string().url().optional().nullable(),
+  storeName: z.string().min(1).max(100).trim().optional(),
+  storeNameAr: z.string().min(1).max(100).trim().optional(),
+  storeDescription: z.string().max(5000).trim().optional().nullable(),
+  descriptionAr: z.string().max(5000).trim().optional().nullable(),
+  storeSlug: z.string().min(1).max(100).trim().optional(),
+  storeCity: z.string().max(100).trim().optional().nullable(),
+  website: z.string()
+    .url("Must be a valid URL")
+    .refine(
+      (url) => {
+        try {
+          const parsed = new URL(url);
+          return parsed.protocol === "https:" || parsed.protocol === "http:";
+        } catch { return false; }
+      },
+      { message: "URL must use http or https protocol" }
+    )
+    .optional()
+    .nullable(),
+  socialLinks: z.record(z.unknown()).optional().nullable(),
+  accentColor: z.string().max(20).optional().nullable(),
+  contactPhone: z.string().max(20).optional().nullable(),
+  contactEmail: z.string().email().max(200).optional().nullable(),
+  whatsapp: z.string().max(50).optional().nullable(),
+  telegram: z.string().max(100).optional().nullable(),
+  facebook: z.string().max(200).optional().nullable(),
+  instagram: z.string().max(100).optional().nullable(),
+  shippingPolicy: z.string().max(5000).optional().nullable(),
+  returnPolicy: z.string().max(5000).optional().nullable(),
+  warrantyPolicy: z.string().max(5000).optional().nullable(),
+  privacyPolicy: z.string().max(5000).optional().nullable(),
+  metaTitle: z.string().max(200).optional().nullable(),
+  metaDescription: z.string().max(500).optional().nullable(),
+  seoImageUrl: z.string().url().optional().nullable(),
+});
 
 /* ── Shared: compute store stats ────────────────────────────── */
 async function getStoreStats(sellerId: number) {
@@ -718,6 +759,11 @@ router.post("/sellers/:id/reviews", requireAuth, requireRole("customer"), requir
 /* ── PATCH /sellers/store/branding ──────────────────────────── */
 router.patch("/sellers/store/branding", requireAuth, requireRole("seller"), requireActiveAccount, async (req, res): Promise<void> => {
   const userId = req.user!.userId;
+  const sbResult = StoreBrandingBody.safeParse(req.body);
+  if (!sbResult.success) {
+    res.status(400).json({ error: "Validation failed", details: sbResult.error.issues });
+    return;
+  }
   const {
     storeLogo, logoUrl, storeBanner,
     storeName, storeNameAr,
@@ -725,13 +771,10 @@ router.patch("/sellers/store/branding", requireAuth, requireRole("seller"), requ
     storeSlug, storeCity,
     website, socialLinks,
     accentColor, contactPhone, contactEmail,
-    // new: structured social
     whatsapp, telegram, facebook, instagram,
-    // new: policies
     shippingPolicy, returnPolicy, warrantyPolicy, privacyPolicy,
-    // new: seo
     metaTitle, metaDescription, seoImageUrl,
-  } = req.body;
+  } = sbResult.data;
 
   const [app] = await db
     .select({ id: sellerApplicationsTable.id })

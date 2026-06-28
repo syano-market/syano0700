@@ -5,7 +5,9 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
-const rawPort = process.env.PORT ?? "3000";
+// SYANO RULE: Never use process.env.PORT here — it conflicts with API_PORT=8080.
+// Use MOCKUP_PORT for dev server port override, or let Replit assign it.
+const rawPort = process.env.MOCKUP_PORT ?? "3000";
 const port = Number(rawPort);
 const basePath = process.env.BASE_PATH ?? "/__mockup/";
 

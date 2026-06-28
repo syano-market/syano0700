@@ -19,6 +19,51 @@ import { checkIpRateLimit, checkLoginRateLimit, checkRegisterRateLimit } from ".
 import { logger } from "../lib/logger";
 import { sendWelcomeEmail, sendPasswordResetEmail } from "../services/emailService";
 import { verifyTurnstileToken, TURNSTILE_ENABLED, TURNSTILE_SITE_KEY } from "../services/turnstileService";
+import { z } from "zod";
+
+const SendOtpBody = z.object({
+  identifier: z.string().min(1, "identifier is required").max(200).trim(),
+  locale: z.enum(["ar", "en"]).optional().default("ar"),
+});
+
+const VerifyOtpBody = z.object({
+  identifier: z.string().min(1).max(200).trim(),
+  code: z.string().length(6, "Code must be 6 digits").regex(/^\d{6}$/, "Code must be numeric"),
+});
+
+const AuthMeBody = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100).trim().optional(),
+  phone: z.string().max(20).trim().optional().nullable(),
+  deliveryLat: z.number().min(-90).max(90).optional().nullable(),
+  deliveryLng: z.number().min(-180).max(180).optional().nullable(),
+  deliveryZoneId: z.number().int().positive().optional().nullable(),
+});
+
+const VerifyResetOtpBody = z.object({
+  email: z.string().email("Must be a valid email").max(200).trim(),
+  code: z.string().length(6, "Code must be 6 digits").regex(/^\d{6}$/, "Code must be numeric"),
+});
+
+const ResetPasswordBody = z.object({
+  resetToken: z.string().min(1, "resetToken is required"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128, "Password too long"),
+});
+
+const UserSettingsBody = z.object({
+  theme: z.enum(["light", "dark", "system"]).optional(),
+  language: z.enum(["ar", "en"]).optional(),
+  currency: z.enum(["SYP", "USD"]).optional(),
+});
+
+const GoogleAuthBody = z.object({
+  idToken: z.string().min(1, "Google ID token required"),
+  rememberMe: z.boolean().optional(),
+});
+
+const FacebookAuthBody = z.object({
+  accessToken: z.string().min(1, "accessToken is required"),
+  rememberMe: z.boolean().optional(),
+});
 
 const router: IRouter = Router();
 
@@ -354,10 +399,11 @@ router.post("/auth/login", async (req, res): Promise<void> => {
 // ─── POST /auth/send-otp ──────────────────────────────────────────────────────
 
 router.post("/auth/send-otp", async (req, res): Promise<void> => {
-  const { identifier, locale } = req.body as { identifier?: string; locale?: string };
-  if (!identifier || typeof identifier !== "string") {
+  const soResult = SendOtpBody.safeParse(req.body);
+  if (!soResult.success) {
     res.status(400).json({ error: "identifier is required" }); return;
   }
+  const { identifier, locale } = soResult.data;
 
   const ip = getIp(req);
   const ipCheck = checkIpRateLimit(ip);
@@ -393,10 +439,11 @@ router.post("/auth/send-otp", async (req, res): Promise<void> => {
 // ─── POST /auth/resend-otp ────────────────────────────────────────────────────
 
 router.post("/auth/resend-otp", async (req, res): Promise<void> => {
-  const { identifier, locale } = req.body as { identifier?: string; locale?: string };
-  if (!identifier || typeof identifier !== "string") {
+  const soResult = SendOtpBody.safeParse(req.body);
+  if (!soResult.success) {
     res.status(400).json({ error: "identifier is required" }); return;
   }
+  const { identifier, locale } = soResult.data;
 
   const ip = getIp(req);
   const ipCheck = checkIpRateLimit(ip);
@@ -431,13 +478,11 @@ router.post("/auth/resend-otp", async (req, res): Promise<void> => {
 // ─── POST /auth/verify-otp ────────────────────────────────────────────────────
 
 router.post("/auth/verify-otp", async (req, res): Promise<void> => {
-  const { identifier, code } = req.body as { identifier?: string; code?: string };
-  if (!identifier || !code) {
+  const voResult = VerifyOtpBody.safeParse(req.body);
+  if (!voResult.success) {
     res.status(400).json({ error: "identifier and code are required" }); return;
   }
-  if (!/^\d{6}$/.test(code)) {
-    res.status(400).json({ error: "Code must be 6 digits" }); return;
-  }
+  const { identifier, code } = voResult.data;
 
   const ip = getIp(req);
   const isEmail = identifier.includes("@");
@@ -509,7 +554,12 @@ router.post("/auth/logout", (_req, res): void => {
 // ─── PATCH /auth/me ───────────────────────────────────────────────────────────
 
 router.patch("/auth/me", requireAuth, async (req, res): Promise<void> => {
-  const { name, phone, deliveryLat, deliveryLng, deliveryZoneId } = req.body;
+  const meResult = AuthMeBody.safeParse(req.body);
+  if (!meResult.success) {
+    res.status(400).json({ error: "Validation failed", details: meResult.error.issues });
+    return;
+  }
+  const { name, phone, deliveryLat, deliveryLng, deliveryZoneId } = meResult.data;
   const patch: Record<string, unknown> = {};
   if (name !== undefined) {
     if (typeof name !== "string" || name.trim().length < 2) {
@@ -645,13 +695,11 @@ router.post("/auth/forgot-password", async (req, res): Promise<void> => {
 // ─── POST /auth/verify-reset-otp ─────────────────────────────────────────────
 
 router.post("/auth/verify-reset-otp", async (req, res): Promise<void> => {
-  const { email, code } = req.body as { email?: string; code?: string };
-  if (!email || !code) {
+  const vroResult = VerifyResetOtpBody.safeParse(req.body);
+  if (!vroResult.success) {
     res.status(400).json({ error: "email and code are required" }); return;
   }
-  if (!/^\d{6}$/.test(code)) {
-    res.status(400).json({ error: "Code must be 6 digits" }); return;
-  }
+  const { email, code } = vroResult.data;
 
   const ip = getIp(req);
   const normalizedEmail = email.toLowerCase().trim();
@@ -705,14 +753,11 @@ router.post("/auth/verify-reset-otp", async (req, res): Promise<void> => {
 // ─── POST /auth/reset-password ────────────────────────────────────────────────
 
 router.post("/auth/reset-password", async (req, res): Promise<void> => {
-  const { resetToken, password } = req.body as { resetToken?: string; password?: string };
-
-  if (!resetToken || !password) {
+  const rpResult = ResetPasswordBody.safeParse(req.body);
+  if (!rpResult.success) {
     res.status(400).json({ error: "resetToken and password are required" }); return;
   }
-  if (typeof password !== "string" || password.length < 8) {
-    res.status(400).json({ error: "Password must be at least 8 characters" }); return;
-  }
+  const { resetToken, password } = rpResult.data;
 
   const userId = verifyResetToken(resetToken);
   if (!userId) {
@@ -748,9 +793,12 @@ router.get("/user/settings", requireAuth, async (req, res): Promise<void> => {
 // ─── PATCH /user/settings ─────────────────────────────────────────────────────
 
 router.patch("/user/settings", requireAuth, async (req, res): Promise<void> => {
-  const { theme, language, currency } = req.body as {
-    theme?: unknown; language?: unknown; currency?: unknown;
-  };
+  const usResult = UserSettingsBody.safeParse(req.body);
+  if (!usResult.success) {
+    res.status(400).json({ error: "Invalid settings value", details: usResult.error.issues });
+    return;
+  }
+  const { theme, language, currency } = usResult.data;
   let updated = false;
   if (typeof theme === "string" && ["light", "dark", "system"].includes(theme)) {
     await db.execute(sql`UPDATE users SET preferred_theme = ${theme} WHERE id = ${req.user!.userId}`);
@@ -791,11 +839,12 @@ router.post("/auth/google", async (req, res): Promise<void> => {
     return;
   }
 
-  const { idToken, rememberMe } = req.body as { idToken?: string; rememberMe?: boolean };
-  if (!idToken || typeof idToken !== "string") {
+  const gaResult = GoogleAuthBody.safeParse(req.body);
+  if (!gaResult.success) {
     res.status(400).json({ error: "idToken is required" });
     return;
   }
+  const { idToken, rememberMe } = gaResult.data;
 
   // 1. Verify the ID token with Google's servers
   let payload: import("google-auth-library").TokenPayload;
@@ -930,11 +979,12 @@ router.post("/auth/facebook", async (req, res): Promise<void> => {
     return;
   }
 
-  const { accessToken, rememberMe } = req.body as { accessToken?: string; rememberMe?: boolean };
-  if (!accessToken || typeof accessToken !== "string") {
+  const fbResult = FacebookAuthBody.safeParse(req.body);
+  if (!fbResult.success) {
     res.status(400).json({ error: "accessToken is required" });
     return;
   }
+  const { accessToken, rememberMe } = fbResult.data;
 
   // 1. Verify the access token with Facebook — ensures it belongs to our app and is valid
   let facebookId: string;

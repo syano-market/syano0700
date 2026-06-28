@@ -9,8 +9,25 @@ import {
 import { requireAuth, requireActiveAccount } from "../middlewares/auth";
 import { createNotification, bi } from "../lib/notif";
 import { setCourierBusy, setCourierOnlineAfterMission } from "../services/courierAvailabilityService";
+import { z } from "zod";
 
 const router: IRouter = Router();
+
+const CourierApplyBody = z.object({
+  phone: z.string()
+    .min(7, "Phone number too short")
+    .max(20, "Phone number too long")
+    .regex(/^[+\d\s\-()]+$/, "Invalid phone format"),
+  vehicleType: z.enum(["motorcycle", "car", "bicycle", "walking"], {
+    errorMap: () => ({ message: "Invalid vehicle type" }),
+  }).optional().default("motorcycle"),
+  district: z.string()
+    .min(1, "District is required")
+    .max(100, "District name too long")
+    .trim()
+    .optional()
+    .nullable(),
+});
 
 // ─── Helper: insert status history ────────────────────────────────────────────
 async function insertStatusHistory(
@@ -26,8 +43,12 @@ router.post("/couriers/apply", requireAuth, requireActiveAccount, async (req, re
   const userId = req.user!.userId;
   const existing = await db.select().from(couriersTable).where(eq(couriersTable.userId, userId));
   if (existing.length > 0) { res.status(409).json({ error: "Courier application already exists" }); return; }
-  const { phone, vehicleType, district } = req.body;
-  if (!phone) { res.status(400).json({ error: "Phone is required" }); return; }
+  const result = CourierApplyBody.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({ error: "Validation failed", details: result.error.issues });
+    return;
+  }
+  const { phone, vehicleType, district } = result.data;
   const [courier] = await db.insert(couriersTable).values({
     userId, phone,
     vehicleType: vehicleType ?? "motorcycle",

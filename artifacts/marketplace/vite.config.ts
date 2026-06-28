@@ -4,7 +4,9 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT ?? "5000";
+// SYANO RULE: Never use process.env.PORT here — it conflicts with API_PORT=8080.
+// Use MARKETPLACE_PORT for dev server port override, or let Replit assign it.
+const rawPort = process.env.MARKETPLACE_PORT ?? "5173";
 const port = Number(rawPort);
 
 const basePath = process.env.BASE_PATH ?? "/";

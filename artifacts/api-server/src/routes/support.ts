@@ -25,8 +25,18 @@ import { requireAuth, requireActiveAccount } from "../middlewares/auth";
 import { getAIProvider, detectLanguage } from "../services/aiProvider";
 import { logger } from "../lib/logger";
 import { createNotification } from "../lib/notif";
+import { z } from "zod";
 
 const router: IRouter = Router();
+
+const SupportMessageBody = z.object({
+  message: z.string().min(1, "Message cannot be empty").max(5000, "Message too long (max 5000 characters)").trim(),
+  conversationId: z.number().int().positive().optional().nullable(),
+  source: z.enum(["page", "order", "product", "store", "general", "widget"]).default("page"),
+  orderId: z.number().int().positive().optional(),
+  productId: z.number().int().positive().optional(),
+  storeSlug: z.string().max(100).optional(),
+});
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -193,12 +203,12 @@ router.post(
   requireActiveAccount,
   async (req, res): Promise<void> => {
     const userId = req.user!.userId;
-    const body      = String(req.body.message ?? "").trim();
-    const convId    = req.body.conversationId ? Number(req.body.conversationId) : null;
-    const source    = String(req.body.source ?? "page");
-    const orderId   = req.body.orderId   ? Number(req.body.orderId)   : undefined;
-    const productId = req.body.productId ? Number(req.body.productId) : undefined;
-    const storeSlug = req.body.storeSlug ? String(req.body.storeSlug) : undefined;
+    const result = SupportMessageBody.safeParse(req.body);
+    if (!result.success) {
+      res.status(400).json({ error: "Validation failed", details: result.error.issues });
+      return;
+    }
+    const { message: body, conversationId: convId, source, orderId, productId, storeSlug } = result.data;
 
     if (!body) {
       res.status(400).json({ error: "message is required" });

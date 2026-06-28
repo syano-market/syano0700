@@ -46,6 +46,16 @@ type Tab = "products" | "featured" | "reviews" | "about" | "contact" | "policies
 type SortKey = "newest" | "price_asc" | "price_desc" | "name";
 
 /* ── Helpers ─────────────────────────────────────────────────── */
+function isSafeUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 function RatingStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" | "lg" }) {
   const full = Math.floor(rating);
   const half = rating - full >= 0.5;
@@ -669,11 +679,11 @@ function AboutTab({ store }: { store: StoreProfile & Record<string, any> }) {
             <span>{store.city}</span>
           </div>
         )}
-        {store.website && (
+        {isSafeUrl(store.website) && (
           <div className="flex items-center gap-2 text-sm">
             <Globe className="h-4 w-4 shrink-0 text-muted-foreground" />
             <a
-              href={store.website}
+              href={store.website!}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline truncate"
@@ -744,7 +754,7 @@ function ContactTab({ store }: { store: StoreProfile & Record<string, any> }) {
     { key: "contactEmail", label: t("store.contact_email"), icon: Mail,
       href: store.contactEmail ? `mailto:${store.contactEmail}` : null },
     { key: "website", label: t("store.contact_website"), icon: Globe,
-      href: store.website },
+      href: isSafeUrl(store.website) ? store.website! : null },
     { key: "whatsapp", label: t("store.contact_whatsapp"), icon: Phone,
       href: store.whatsapp ? `https://wa.me/${(store.whatsapp as string).replace(/\D/g, "")}` : null },
     { key: "telegram", label: t("store.contact_telegram"), icon: ExternalLink,

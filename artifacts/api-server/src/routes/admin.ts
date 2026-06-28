@@ -3,6 +3,46 @@ import { eq, count, sum, desc, asc, inArray, gte, lte, lt, and, sql } from "driz
 import { db, pool, usersTable, productsTable, ordersTable, orderItemsTable, cartItemsTable, platformSettingsTable, adminAuditLogTable, sellerApplicationsTable, orderStatusHistoryTable, reviewsTable, deliveryZonesTable, couriersTable, courierAssignmentsTable } from "@workspace/db";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { createNotification, kickSseUser, bi } from "../lib/notif";
+import { z } from "zod";
+
+const AdminCreateProductBody = z.object({
+  name: z.string().min(1).max(200).trim().optional(),
+  description: z.string().max(5000).trim().optional().nullable(),
+  price: z.coerce.number().positive("Price must be positive").optional(),
+  category: z.string().min(1).max(100).trim().optional(),
+  stock: z.coerce.number().int().min(0, "Stock cannot be negative").optional(),
+  discountPercent: z.coerce.number().min(0).max(100).optional().nullable(),
+  imageUrl: z.string()
+    .url("Must be a valid URL")
+    .refine(
+      (url) => {
+        try { const p = new URL(url); return p.protocol === "https:" || p.protocol === "http:"; }
+        catch { return false; }
+      },
+      { message: "URL must use http or https" }
+    )
+    .optional()
+    .nullable(),
+  featured: z.boolean().optional(),
+});
+
+const AdminPlatformSettingsBody = z.object({
+  exchangeRate: z.number()
+    .positive("Exchange rate must be positive")
+    .max(10000, "Exchange rate seems unreasonably high")
+    .optional(),
+  commissionRate: z.number()
+    .min(0, "Commission rate cannot be negative")
+    .max(100, "Commission rate cannot exceed 100%")
+    .optional(),
+  announcement: z.string().max(500, "Announcement too long").trim().optional(),
+  flashSaleEnd: z.string()
+    .datetime({ message: "flashSaleEnd must be a valid ISO 8601 datetime" })
+    .optional(),
+}).refine(
+  (data) => Object.values(data).some((v) => v !== undefined),
+  { message: "At least one field must be provided" }
+);
 
 const router: IRouter = Router();
 
@@ -551,13 +591,18 @@ router.patch("/admin/products/:id", async (req, res): Promise<void> => {
   const [existing] = await db.select({ id: productsTable.id, name: productsTable.name }).from(productsTable).where(eq(productsTable.id, id));
   if (!existing) { res.status(404).json({ error: "Product not found" }); return; }
 
-  const { name, description, price, category, stock, discountPercent, imageUrl, featured } = req.body;
+  const pResult = AdminCreateProductBody.safeParse(req.body);
+  if (!pResult.success) {
+    res.status(400).json({ error: "Validation failed", details: pResult.error.issues });
+    return;
+  }
+  const { name, description, price, category, stock, discountPercent, imageUrl, featured } = pResult.data;
   const update: Record<string, unknown> = {};
   if (name !== undefined) update.name = name;
   if (description !== undefined) update.description = description;
   if (price !== undefined) update.price = String(price);
   if (category !== undefined) update.category = category;
-  if (stock !== undefined) update.stock = parseInt(stock, 10);
+  if (stock !== undefined) update.stock = stock;
   if (discountPercent !== undefined) update.discountPercent = discountPercent === null ? null : String(discountPercent);
   if (imageUrl !== undefined) update.imageUrl = imageUrl;
   if (featured !== undefined) update.featured = Boolean(featured);
@@ -864,11 +909,15 @@ router.get("/admin/settings", async (_req, res): Promise<void> => {
 });
 
 router.patch("/admin/settings", async (req, res): Promise<void> => {
-  const { exchangeRate, commissionRate, announcement, flashSaleEnd } = req.body;
+  const sResult = AdminPlatformSettingsBody.safeParse(req.body);
+  if (!sResult.success) {
+    res.status(400).json({ error: "Validation failed", details: sResult.error.issues });
+    return;
+  }
+  const { exchangeRate, commissionRate, announcement, flashSaleEnd } = sResult.data;
 
   if (exchangeRate !== undefined) {
-    const rate = parseFloat(exchangeRate);
-    if (isNaN(rate) || rate <= 0) { res.status(400).json({ error: "Exchange rate must be a positive number" }); return; }
+    const rate = exchangeRate;
     await db
       .insert(platformSettingsTable)
       .values({ key: "exchange_rate", value: String(rate) })
@@ -877,8 +926,7 @@ router.patch("/admin/settings", async (req, res): Promise<void> => {
   }
 
   if (commissionRate !== undefined) {
-    const rate = parseFloat(commissionRate);
-    if (isNaN(rate) || rate < 0 || rate > 100) { res.status(400).json({ error: "Commission rate must be between 0 and 100" }); return; }
+    const rate = commissionRate;
     await db
       .insert(platformSettingsTable)
       .values({ key: "commission_rate", value: String(rate) })

@@ -11,8 +11,37 @@ import {
 } from "@workspace/db";
 import { requireAuth, requireActiveAccount } from "../middlewares/auth";
 import { createNotification, bi } from "../lib/notif";
+import { z } from "zod";
 
 const router: IRouter = Router();
+
+const CreateConversationBody = z.object({
+  sellerId: z.number().int().positive(),
+  productId: z.number().int().positive().optional(),
+  orderId: z.number().int().positive().optional(),
+  type: z.string().max(50).optional(),
+});
+
+const SendMessageBody = z.object({
+  body: z.string().min(1).max(5000).trim().optional(),
+  attachmentId: z.number().int().positive().optional(),
+});
+
+const AttachmentMetaBody = z.object({
+  filename: z.string().min(1).max(255).trim(),
+  mimeType: z.string().max(100),
+  size: z.number().int().min(1).max(5 * 1024 * 1024, "Attachment exceeds 5 MB limit"),
+  data: z.string().min(1),
+});
+
+const ReportConversationBody = z.object({
+  messageId: z.number().int().positive().optional(),
+});
+
+const AdminConversationBody = z.object({
+  userId: z.number().int().positive(),
+  type: z.string().max(50).optional(),
+});
 
 /* ── In-memory typing indicator store ───────────────────────── */
 interface TypingUser { name: string; expiresAt: number }
@@ -112,12 +141,12 @@ router.get("/conversations/search", requireAuth, async (req, res): Promise<void>
 router.post("/conversations", requireAuth, requireActiveAccount, async (req, res): Promise<void> => {
   const userId = req.user!.userId;
   const role = req.user!.role;
-  const { sellerId, productId, orderId, type: convType } = req.body;
-
-  if (!sellerId || typeof sellerId !== "number") {
-    res.status(400).json({ error: "sellerId is required" });
+  const ccResult = CreateConversationBody.safeParse(req.body);
+  if (!ccResult.success) {
+    res.status(400).json({ error: "Validation failed", details: ccResult.error.issues });
     return;
   }
+  const { sellerId, productId, orderId, type: convType } = ccResult.data;
 
   let customerId: number;
   if (role === "customer" || role === "admin") {
@@ -454,14 +483,15 @@ router.post("/conversations/:id/messages", requireAuth, requireActiveAccount, as
 
   const userId = req.user!.userId;
   const role = req.user!.role;
-  const { body, attachmentId } = req.body;
+  const smResult = SendMessageBody.safeParse(req.body);
+  if (!smResult.success) {
+    res.status(400).json({ error: "Validation failed", details: smResult.error.issues });
+    return;
+  }
+  const { body, attachmentId } = smResult.data;
 
   if (!body && !attachmentId) {
     res.status(400).json({ error: "Message body or attachment is required" });
-    return;
-  }
-  if (body && typeof body === "string" && body.length > 2000) {
-    res.status(400).json({ error: "Message too long (max 2000 characters)" });
     return;
   }
 
@@ -658,11 +688,12 @@ router.post("/conversations/:id/attachments", requireAuth, requireActiveAccount,
   const conv = await getConvWithAccess(convId, userId, role);
   if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
 
-  const { filename, mimeType, size, data } = req.body;
-  if (!filename || !mimeType || !data) {
-    res.status(400).json({ error: "filename, mimeType, and data are required" });
+  const amResult = AttachmentMetaBody.safeParse(req.body);
+  if (!amResult.success) {
+    res.status(400).json({ error: "Validation failed", details: amResult.error.issues });
     return;
   }
+  const { filename, mimeType, size, data } = amResult.data;
 
   const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf", "text/plain"];
   if (!ALLOWED_TYPES.includes(mimeType)) {
@@ -742,7 +773,12 @@ router.post("/conversations/:id/report", requireAuth, async (req, res): Promise<
 
   const userId = req.user!.userId;
   const role = req.user!.role;
-  const { messageId } = req.body;
+  const rcResult = ReportConversationBody.safeParse(req.body);
+  if (!rcResult.success) {
+    res.status(400).json({ error: "Validation failed", details: rcResult.error.issues });
+    return;
+  }
+  const { messageId } = rcResult.data;
 
   const conv = await getConvWithAccess(convId, userId, role);
   if (!conv) { res.status(404).json({ error: "Conversation not found" }); return; }
@@ -857,12 +893,12 @@ router.post("/admin/conversations", requireAuth, async (req, res): Promise<void>
   if (req.user!.role !== "admin") { res.status(403).json({ error: "Forbidden" }); return; }
 
   const adminId = req.user!.userId;
-  const { userId: targetUserId, type: convType } = req.body;
-
-  if (!targetUserId || typeof targetUserId !== "number") {
-    res.status(400).json({ error: "userId is required" });
+  const acResult = AdminConversationBody.safeParse(req.body);
+  if (!acResult.success) {
+    res.status(400).json({ error: "Validation failed", details: acResult.error.issues });
     return;
   }
+  const { userId: targetUserId, type: convType } = acResult.data;
 
   const resolvedType = convType || "customer_admin";
   const [targetUser] = await db.select({ id: usersTable.id, name: usersTable.name }).from(usersTable).where(eq(usersTable.id, targetUserId));
