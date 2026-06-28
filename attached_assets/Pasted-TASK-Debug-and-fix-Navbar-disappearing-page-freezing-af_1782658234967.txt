@@ -1,0 +1,130 @@
+TASK: Debug and fix Navbar disappearing + page freezing after scroll on the homepage.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SYMPTOM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Open the homepage (/)
+2. Scroll down any amount
+3. Try clicking any Navbar button (cart, login, search, etc.)
+4. Result: buttons are unclickable OR the navbar visually disappears
+5. Result: the page freezes / scroll stops working
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ROOT CAUSE — CHECK THESE IN ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CAUSE 1 — z-index collision (most likely)
+  The Navbar <header> is currently: z-50 = z-index: 50
+  Any hero/banner element in the homepage animation with z-index > 50
+  will paint OVER the navbar, making it visually present but unclickable.
+
+  SEARCH IN: artifacts/marketplace/src/pages/Home.tsx (or HomePage.tsx)
+  and any component it imports (HeroBanner, HeroSection, ScrollAnimation, etc.)
+
+  Look for any of these patterns:
+    className="... z-[51]" or higher
+    className="... z-60" or higher  
+    style={{ zIndex: 51 }} or higher
+    style={{ zIndex: 100 }} or higher
+    style={{ zIndex: 999 }} or higher
+    position: 'fixed' or position: 'sticky' with no z-index set
+      (defaults can still overlap depending on stacking context)
+
+CAUSE 2 — body overflow: hidden not being cleaned up
+  Scroll animations often set document.body.style.overflow = 'hidden'
+  to lock scroll during a phase, then FAIL to restore it.
+
+  SEARCH IN: Home.tsx and all hero/animation components it uses
+  Look for:
+    document.body.style.overflow = 'hidden'
+    document.body.style.overflowY = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    document.documentElement.style.overflowY = 'hidden'
+
+  Every single one of these MUST have a cleanup:
+    return () => { document.body.style.overflow = '' }
+  inside a useEffect. If any is missing its cleanup → this is the bug.
+
+CAUSE 3 — pointer-events blocking
+  An overlay or animation container with pointer-events not set to none
+  will silently intercept ALL clicks above it, including navbar clicks.
+
+  Look for any full-screen div in the hero/animation that lacks:
+    pointer-events: none   (for pure overlays)
+  or has accidentally:
+    pointer-events: all / auto  on a covering element
+
+CAUSE 4 — scroll event listener not cleaned up
+  A scroll listener using requestAnimationFrame that keeps running after
+  the component unmounts, continuously modifying DOM elements including
+  ones that overlap the navbar.
+
+  Look for:
+    window.addEventListener('scroll', ...)
+    window.addEventListener('scroll', handler, { passive: true })
+  Every one MUST have a corresponding:
+    return () => window.removeEventListener('scroll', handler)
+  inside its useEffect cleanup.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FILES TO INSPECT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Primary:
+  artifacts/marketplace/src/pages/Home.tsx
+
+Then every component imported by Home.tsx that relates to animation:
+  (HeroBanner, HeroSection, HeroAnimation, ScrollHero, etc.)
+
+Also check:
+  artifacts/marketplace/src/components/Navbar.tsx  (already has z-50)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FIX 1 — Raise Navbar z-index above everything:
+  In artifacts/marketplace/src/components/Navbar.tsx
+  Find the <header> opening tag and change:
+    className="fixed top-0 inset-x-0 z-50 w-full"
+  To:
+    className="fixed top-0 inset-x-0 z-[1000] w-full"
+
+FIX 2 — Cap all hero/animation z-indexes below 1000:
+  Every element inside Home.tsx hero animation must have z-index ≤ 999.
+  Overlays that should not receive clicks must have pointer-events: none.
+
+FIX 3 — Fix all body overflow leaks:
+  Every useEffect that sets document.body.style.overflow = 'hidden'
+  must have this exact cleanup:
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+
+FIX 4 — Fix all scroll listener leaks:
+  Every useEffect that adds a scroll listener must remove it on cleanup:
+    useEffect(() => {
+      const handler = () => { ... }
+      window.addEventListener('scroll', handler, { passive: true })
+      return () => window.removeEventListener('scroll', handler)
+    }, [])
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VERIFICATION AFTER FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Open homepage (/)
+2. Scroll down 300px
+3. Click the cart icon in the navbar → must open cart
+4. Click the login button → must open login modal
+5. Scroll all the way down and back up → navbar must remain clickable
+6. Open DevTools → Console → confirm zero errors
+7. Open DevTools → Elements → select <header> → Computed tab →
+   z-index must show 1000
+
+DO NOT modify:
+  - Any API routes
+  - Database schema
+  - The Navbar component logic (only the z-index class on <header>)
+  - Any non-homepage page
+  - The 4 workflows
+  - PORT or API_PORT environment variables

@@ -1,0 +1,159 @@
+# SYANO CRITICAL BUG INVESTIGATION
+
+# Navbar Disappears + Scroll Freeze + UI Lock
+
+# RULES
+
+* DO NOT redesign anything.
+* DO NOT refactor unrelated code.
+* DO NOT modify visual appearance.
+* ONLY identify and fix the freeze bug.
+
+# SYMPTOMS
+
+User reproduces the following sequence:
+
+1. Homepage loads normally.
+2. User scrolls.
+3. User clicks an element inside navbar
+   (settings icon, dropdown, location selector, profile menu, etc).
+4. Navbar disappears.
+5. Scrolling stops completely.
+6. Entire page becomes frozen.
+7. User cannot interact with the page anymore.
+
+This is a CRITICAL usability bug.
+
+# TASK 1 — Inspect body mutations
+
+Search entire project for:
+
+document.body.style.overflow
+document.body.classList.add("overflow-hidden")
+document.body.classList.remove("overflow-hidden")
+
+document.documentElement.style.overflow
+
+overflow-hidden on:
+
+* body
+* html
+
+Identify components that modify page scroll state.
+
+Common suspects:
+
+* Dialog
+* Sheet
+* Drawer
+* Popover
+* DropdownMenu
+* Command
+* MobileMenu
+* Search overlay
+* Settings menu
+* Location selector
+* Auth modal
+
+Verify cleanup runs correctly on close and unmount.
+
+# TASK 2 — Find orphan overlays
+
+Search for:
+
+fixed inset-0
+fixed top-0 left-0 right-0 bottom-0
+pointer-events-auto
+pointer-events-none
+
+Verify overlays are removed when component closes.
+
+Look for overlays that remain mounted after:
+
+open === false
+
+Check:
+
+z-index
+pointer-events
+visibility
+opacity
+
+An invisible overlay that still captures clicks is a likely cause.
+
+# TASK 3 — Inspect navbar scroll logic
+
+Search for:
+
+window.scrollY
+useScroll
+hideOnScroll
+isNavbarVisible
+setNavbarVisible
+lastScrollY
+scrollDirection
+
+Verify:
+
+* navbar hide/show state always recovers
+* no state gets stuck after opening menus
+* event listeners are cleaned correctly
+
+Check for duplicate scroll listeners.
+
+# TASK 4 — Inspect Radix/Shadcn components
+
+Audit:
+
+Dialog
+Sheet
+Popover
+DropdownMenu
+Command
+HoverCard
+
+Verify:
+
+* open state closes correctly
+* onOpenChange works correctly
+* focus trap releases correctly
+* body scroll lock cleanup executes
+
+# TASK 5 — Reproduce and identify exact root cause
+
+Do NOT guess.
+
+Identify:
+
+FILE:
+LINE:
+COMPONENT:
+
+ROOT CAUSE:
+
+Examples:
+
+* body overflow hidden not removed
+* invisible overlay intercepting clicks
+* stale state in navbar visibility hook
+* Radix focus trap lock
+* event listener leak
+
+# OUTPUT
+
+Provide:
+
+1. Exact root cause.
+2. Exact file and line.
+3. Minimal fix.
+4. Confirmation that:
+
+   * navbar remains visible
+   * scrolling works
+   * page never freezes
+   * mobile behavior remains unchanged.
+
+This is a bug-fix task only.
+No redesign.
+No refactor.
+No UI changes.

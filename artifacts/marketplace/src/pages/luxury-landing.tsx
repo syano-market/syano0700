@@ -1241,7 +1241,7 @@ export default function LuxuryLandingPage() {
         }}
       >
         {/* ── Sticky navbar ──────────────────────────────────────────────── */}
-        <div style={{ position: "sticky", top: 0, zIndex: 50, background: C.bg }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 1000, background: C.bg }}>
           <LuxuryNavbar />
         </div>
 
