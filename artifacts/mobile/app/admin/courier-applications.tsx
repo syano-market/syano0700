@@ -229,6 +229,15 @@ export default function AdminCourierApplicationsScreen() {
                   )}
                 </View>
 
+                {/* View Detail */}
+                <Pressable
+                  style={[styles.viewDetailBtn, { borderTopColor: colors.border, borderColor: colors.border }]}
+                  onPress={() => router.push(`/admin/courier-application-detail/${item.id}` as never)}
+                >
+                  <Ionicons name="eye-outline" size={15} color={colors.primary} />
+                  <Text style={[styles.viewDetailText, { color: colors.primary }]}>{t("admin.view_detail")}</Text>
+                </Pressable>
+
                 {/* Actions */}
                 <View style={[styles.actions, { borderTopColor: colors.border }]}>
                   {item.status === "pending" && (
@@ -340,4 +349,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   actionText: { fontSize: 13, fontWeight: "700" },
+  viewDetailBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  viewDetailText: { fontSize: 13, fontWeight: "600" },
 });

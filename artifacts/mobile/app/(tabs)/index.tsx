@@ -135,6 +135,21 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
   const isAr = locale === "ar";
   const [slideIdx, setSlideIdx] = useState(0);
   const [activeCard, setActiveCard] = useState(0);
+  const [bannerImages, setBannerImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`${getBaseUrl()}/api/banners`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Array<{ imageUrl: string; active: boolean }> | null) => {
+        if (data && Array.isArray(data)) {
+          const imgs = data.filter((b) => b.active && b.imageUrl).map((b) => b.imageUrl);
+          if (imgs.length > 0) setBannerImages(imgs);
+        }
+      })
+      .catch(() => { /* fallback to static */ });
+  }, []);
+
+  const carouselImages = bannerImages.length > 0 ? bannerImages : HERO_IMAGES;
 
   const floatCards = useMemo(() => {
     if (products && products.length >= 3) {
@@ -148,9 +163,9 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
   }, [products]);
 
   useEffect(() => {
-    const id = setInterval(() => setSlideIdx((i) => (i + 1) % HERO_IMAGES.length), 5000);
+    const id = setInterval(() => setSlideIdx((i) => (i + 1) % carouselImages.length), 5000);
     return () => clearInterval(id);
-  }, []);
+  }, [carouselImages.length]);
 
   useEffect(() => {
     const id = setInterval(() => setActiveCard((c) => (c + 1) % floatCards.length), 3200);
@@ -185,13 +200,13 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
         <View style={[heroV2.ctaRow, { flexDirection: isAr ? "row-reverse" : "row" }]}>
           <Pressable
             style={({ pressed }) => [heroV2.ctaPrimary, { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 }]}
-            onPress={() => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+            onPress={() => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/categories"); }}
           >
             <Text style={heroV2.ctaPrimaryText}>{t("home.shop_now")}</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [heroV2.ctaGhost, { opacity: pressed ? 0.7 : 1 }]}
-            onPress={() => router.push("/store-directory" as any)}
+            onPress={() => router.push("/stores")}
           >
             <Text style={[heroV2.ctaGhostText, { color: colors.mutedForeground }]}>{t("home.explore_stores")}</Text>
           </Pressable>
@@ -218,12 +233,12 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
       {/* ── IMAGE CAROUSEL CARD (bottom — web flex-col order: image second at 390px) ── */}
       <View style={heroV2.imageCardWrap}>
         <View style={[heroV2.imageCard, { borderColor: colors.border }]}>
-          <Image source={{ uri: HERO_IMAGES[slideIdx] }} style={heroV2.fillImg} contentFit="cover" />
+          <Image source={{ uri: carouselImages[slideIdx % carouselImages.length] }} style={heroV2.fillImg} contentFit="cover" />
           <View style={[heroV2.overlay]} />
 
           {/* Discount badge — top start */}
           <View style={[heroV2.discBadge, isAr ? { top: 24, right: 24 } : { top: 24, left: 24 }, { backgroundColor: colors.primary }]}>
-            <Text style={heroV2.discBadgeText}>{isAr ? "خصم لغاية 50%" : "Up to 50% Off"}</Text>
+            <Text style={heroV2.discBadgeText}>{t("home.hero_discount")}</Text>
           </View>
 
           {/* Floating product card — top end */}
@@ -248,7 +263,7 @@ function HeroBannerSection({ colors, products }: { colors: ReturnType<typeof use
 
           {/* Carousel progress dots — bottom center */}
           <View style={heroV2.carouselDots}>
-            {HERO_IMAGES.map((_, i) => (
+            {carouselImages.map((_, i) => (
               <Pressable
                 key={i}
                 onPress={() => setSlideIdx(i)}
@@ -530,7 +545,7 @@ function FeaturedStoresSection({ colors }: { colors: ReturnType<typeof useColors
       <RichSectionHeader
         eyebrow={t("home.stores_eyebrow")}
         title={t("home.stores_title")}
-        onSeeAll={() => router.push("/store-directory" as any)}
+        onSeeAll={() => router.push("/stores")}
         seeAllLabel={t("home.stores_see_all")}
         colors={colors}
       />
@@ -539,7 +554,7 @@ function FeaturedStoresSection({ colors }: { colors: ReturnType<typeof useColors
           <Pressable
             key={store.id}
             style={({ pressed }) => [storeStyles.card, { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.9 : 1 }]}
-            onPress={() => router.push("/store-directory" as any)}
+            onPress={() => router.push("/stores")}
           >
             <View style={storeStyles.coverWrap}>
               <Image source={{ uri: store.coverImg }} style={storeStyles.cover} contentFit="cover" />
@@ -577,7 +592,7 @@ function FeaturedStoresSection({ colors }: { colors: ReturnType<typeof useColors
               </View>
               <Pressable
                 style={[storeStyles.visitBtn, { backgroundColor: colors.primary + "15", borderColor: colors.primary + "40" }]}
-                onPress={() => router.push("/store-directory" as any)}
+                onPress={() => router.push("/stores")}
               >
                 <Text style={[storeStyles.visitBtnText, { color: colors.primary }]}>{t("home.stores_visit")}</Text>
                 <Ionicons name={isAr ? "arrow-back-outline" : "arrow-forward-outline"} size={T.icon.sm} color={colors.primary} />
@@ -1005,7 +1020,7 @@ function NavDrawer({ visible, onClose, colors }: {
     { icon: "home-outline" as const,       labelEn: "Home",         labelAr: "الرئيسية",    href: "/(tabs)/index" as const },
     { icon: "bag-handle-outline" as const, labelEn: "Shop",         labelAr: "تسوق",       href: "/(tabs)/index" as const },
     { icon: "grid-outline" as const,       labelEn: "Categories",   labelAr: "الفئات",     href: "/categories" as const },
-    { icon: "storefront-outline" as const, labelEn: "Stores",       labelAr: "المتاجر",    href: "/store-directory" as const },
+    { icon: "storefront-outline" as const, labelEn: "Stores",       labelAr: "المتاجر",    href: "/stores" as const },
   ];
 
   const roleLinks: { icon: keyof typeof Ionicons.glyphMap; labelEn: string; labelAr: string; href: string }[] = isAdmin
@@ -1018,6 +1033,7 @@ function NavDrawer({ visible, onClose, colors }: {
     ? [
         { icon: "bar-chart-outline",  labelEn: "Dashboard",  labelAr: "لوحة التحكم", href: "/(tabs)/index" },
         { icon: "cube-outline",       labelEn: "Products",   labelAr: "المنتجات",    href: "/seller/products" },
+        { icon: "layers-outline",     labelEn: "Inventory",  labelAr: "المخزون",     href: "/seller/inventory" },
         { icon: "receipt-outline",    labelEn: "Orders",     labelAr: "الطلبات",     href: "/seller/orders" },
         { icon: "analytics-outline",  labelEn: "Analytics",  labelAr: "التحليلات",   href: "/seller/analytics" },
       ]

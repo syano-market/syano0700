@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { I18nManager } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -18,6 +19,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { getLocale } from "../src/i18n";
 
 setBaseUrl(`https://${process.env.EXPO_PUBLIC_DOMAIN}`);
 
@@ -91,11 +93,13 @@ function RootLayoutNav() {
       <Stack.Screen name="returns" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="cookies" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="admin/courier-applications" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="admin/courier-application-detail/[id]" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="admin/verification" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="admin/support" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="admin/delivery-missions" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="admin/hero-banners" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="seller/trust" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="seller/inventory" options={{ animation: "slide_from_right" }} />
       <Stack.Screen name="tracking/[missionId]" options={{ animation: "slide_from_bottom", headerShown: false }} />
     </Stack>
   );
@@ -114,6 +118,13 @@ export default function RootLayout() {
       void SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    const shouldBeRTL = getLocale() === "ar";
+    if (I18nManager.isRTL !== shouldBeRTL) {
+      I18nManager.forceRTL(shouldBeRTL);
+    }
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 

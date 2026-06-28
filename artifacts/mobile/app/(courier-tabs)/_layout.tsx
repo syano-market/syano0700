@@ -56,9 +56,36 @@ export default function CourierTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="earnings"
+        options={{
+          title: t("courier.nav_earnings"),
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="cash-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="performance"
+        options={{
+          title: t("courier.performance"),
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="bar-chart-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="wallet"
+        options={{
+          title: t("courier.wallet"),
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="wallet-outline" size={22} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: t("nav.profile"),
+          title: t("courier.nav_profile"),
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-outline" size={22} color={color} />
           ),

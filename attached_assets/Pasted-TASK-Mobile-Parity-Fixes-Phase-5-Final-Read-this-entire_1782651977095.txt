@@ -1,0 +1,561 @@
+TASK: Mobile Parity Fixes — Phase 5 (Final)
+Read this entire prompt before touching any file.
+
+════════════════════════════════════════
+CONTEXT
+════════════════════════════════════════
+SYANO monorepo. Mobile stack: Expo 54 + expo-router + React Native 0.81.
+Web stack: React 19 + Vite 7 + Wouter.
+Shared API hooks: @workspace/api-client-react (used by both web and mobile).
+i18n: artifacts/mobile/src/i18n/index.ts (Arabic + English, ~2006 lines).
+Navigation: expo-router with file-based routing under artifacts/mobile/app/.
+0 TypeScript errors must be maintained at all times across ALL packages.
+
+Before starting, run:
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Confirm 0 errors. Do NOT proceed if errors exist — report them first.
+
+════════════════════════════════════════
+RULES
+════════════════════════════════════════
+1. Open and read the actual file before editing it. Never edit from memory.
+2. Edit ONE file at a time. Run tsc after each file.
+3. Never hardcode Arabic or English strings in JSX — always use t() from i18n.
+4. Never hardcode API URLs — always use getBaseUrl() from @workspace/api-client-react.
+5. Never use ml-/pl-/left- Tailwind classes — use logical classes (ms-, ps-, start-).
+6. All new screens must follow the existing screen pattern in artifacts/mobile/app/.
+7. Touch targets must be minimum 44pt (height/width ≥ 44 in StyleSheet).
+8. All new FlatList components must have keyExtractor and scrollEnabled where nested.
+9. After ALL edits, run the full tsc check and confirm 0 errors.
+
+════════════════════════════════════════
+TASK 1 — FIX "Shop Now" BROKEN NAVIGATION (HIGH)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/(tabs)/index.tsx
+
+BACKGROUND:
+The primary hero CTA "Shop Now" only triggers haptic feedback.
+It does not navigate anywhere. Users tap it and nothing visible happens.
+
+STEP 1: Open the file and read it fully — it is large.
+STEP 2: Find the "Shop Now" Pressable (around line 186–191):
+  <Pressable
+    onPress={() => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+  >
+    <Text>{t("home.shop_now")}</Text>
+  </Pressable>
+
+STEP 3: Check if router from expo-router is already imported:
+  grep -n "useRouter\|router" artifacts/mobile/app/(tabs)/index.tsx | head -20
+  If not imported, add: import { useRouter } from "expo-router";
+  And inside the component: const router = useRouter();
+
+STEP 4: Replace the onPress handler:
+  BEFORE:
+    onPress={() => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+  AFTER:
+    onPress={() => {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push("/categories");
+    }}
+
+  WHY /categories: It shows all product categories — best landing for "shop now" intent.
+  Do NOT use router.replace — the user should be able to go back to the hero.
+
+STEP 5: Verify the Haptics call is still present — keep the haptic, just add navigation after it.
+STEP 6: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 2 — FIX "Explore Stores" BROKEN ROUTE (HIGH)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/(tabs)/index.tsx
+(Same file as Task 1 — do in same edit session)
+
+BACKGROUND:
+Line ~194: router.push("/store-directory" as any)
+/store-directory does not exist. Users get a 404 screen.
+The correct route is /stores (maps to stores/index.tsx).
+
+STEP 1: Find the "Explore Stores" Pressable (around line 193–196):
+  onPress={() => router.push("/store-directory" as any)}
+
+STEP 2: Replace:
+  BEFORE: onPress={() => router.push("/store-directory" as any)}
+  AFTER:  onPress={() => router.push("/stores")}
+
+STEP 3: Remove the "as any" cast — /stores is a valid typed route in expo-router.
+  If TypeScript complains about the route type, check the correct type:
+    grep -rn '"/stores"' artifacts/mobile/app/ --include="*.tsx" | head -5
+  Use the same pattern used elsewhere for /stores navigation.
+
+STEP 4: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 3 — FIX HARDCODED DISCOUNT STRING (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/(tabs)/index.tsx
+(Same file — do in same edit session as Tasks 1 + 2)
+
+BACKGROUND:
+Line ~226: <Text>{isAr ? "خصم لغاية 50%" : "Up to 50% Off"}</Text>
+This bypasses the i18n system entirely.
+
+STEP 1: Open artifacts/mobile/src/i18n/index.ts and read the home section.
+  Find where home.* keys are defined.
+
+STEP 2: Add the new key to BOTH locale objects in i18n/index.ts:
+  In the Arabic (ar) home object, add:
+    hero_discount: "خصم لغاية 50%",
+  In the English (en) home object, add:
+    hero_discount: "Up to 50% Off",
+
+  IMPORTANT: Place the key near other home.hero_* keys for organization.
+  Check existing key naming pattern and match it exactly.
+
+STEP 3: Back in (tabs)/index.tsx, replace:
+  BEFORE: <Text>{isAr ? "خصم لغاية 50%" : "Up to 50% Off"}</Text>
+  AFTER:  <Text>{t("home.hero_discount")}</Text>
+
+STEP 4: Search for any other hardcoded bilingual strings using the isAr ternary pattern:
+  grep -n "isAr ?" artifacts/mobile/app/(tabs)/index.tsx
+  For each result, check if it should also be moved to i18n.
+  Report findings but only fix the hero_discount one unless others are clearly UI strings.
+
+STEP 5: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 4 — FIX HERO BANNERS: FETCH FROM API (HIGH)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/(tabs)/index.tsx
+FILE: lib/api-client-react/src/ (check for existing banners hook)
+
+BACKGROUND:
+The mobile home screen shows 5 hardcoded Pexels photos (HERO_IMAGES array).
+The web fetches admin-managed banners from GET /api/banners.
+Admin-created promotions and featured content never reach mobile users.
+
+STEP 1: Check if a banners hook already exists in the shared library:
+  grep -rn "banner\|Banner" lib/api-client-react/src/ --include="*.ts" --include="*.tsx"
+  If useListBanners or similar exists, use it. Skip to STEP 4.
+
+STEP 2: If NO banners hook exists, check the web implementation:
+  grep -rn "api/banners\|useBanners\|useListBanners" artifacts/marketplace/src/ --include="*.tsx" --include="*.ts"
+  Read the web hook pattern and replicate it for mobile.
+
+STEP 3: If you need to add a hook to lib/api-client-react:
+  Open lib/api-client-react/src/ and find the correct file to add to
+  (likely hooks.ts or a banners-specific file).
+  Add a hook following the EXACT same pattern as existing hooks:
+    export function useListBanners() {
+      return useQuery({
+        queryKey: ["banners"],
+        queryFn: () => customFetch<Banner[]>("/api/banners"),
+        staleTime: 5 * 60 * 1000,
+      });
+    }
+  Check the Banner type — it likely exists in lib/api-zod. If not, define it locally.
+  Run tsc --build lib/api-client-react after adding the hook.
+
+STEP 4: In (tabs)/index.tsx:
+  a) Import the banners hook (from @workspace/api-client-react or locally).
+  b) Call it at the top of the component:
+       const { data: banners, isLoading: bannersLoading } = useListBanners();
+  c) Find the HERO_IMAGES static array (around line 119–125) — do NOT delete it yet.
+     Use it as the FALLBACK when the API returns no banners:
+       const heroItems = banners && banners.length > 0 ? banners : HERO_IMAGES;
+  d) Find where HERO_IMAGES is mapped to render the hero carousel/slider.
+     Replace HERO_IMAGES with heroItems in the render.
+  e) For each hero item, check the data shape:
+     - API banner: likely has { id, imageUrl, title, linkUrl, ... }
+     - Static HERO_IMAGE: likely has { uri, title, ... }
+     Create a unified render function that handles both shapes:
+       function getHeroImageUri(item: Banner | typeof HERO_IMAGES[0]): string {
+         return "imageUrl" in item ? item.imageUrl : item.uri;
+       }
+
+STEP 5: Handle banner impression tracking:
+  The web calls POST /api/banners/:id/impression when a banner is shown.
+  Check if the web does this — grep for "impression" in marketplace/src/.
+  If yes, add the same call on banner view in mobile (fire-and-forget fetch, no await needed).
+
+STEP 6: During bannersLoading, show the existing shimmer/skeleton if present,
+  or keep showing HERO_IMAGES as placeholder until API data arrives.
+
+STEP 7: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+  Run tsc --build lib/api-client-react if you added a hook there.
+
+════════════════════════════════════════
+TASK 5 — ADD MISSING SCREEN: /courier/earnings (HIGH)
+════════════════════════════════════════
+FILE TO CREATE: artifacts/mobile/app/(courier-tabs)/earnings.tsx
+REFERENCE WEB FILE: artifacts/marketplace/src/pages/courier/earnings.tsx
+
+BACKGROUND:
+Couriers cannot see their earnings breakdown on mobile.
+The web screen fetches from GET /api/couriers/earnings.
+Check the shared hooks for useGetCourierEarnings or similar.
+
+STEP 1: Read the web earnings page fully:
+  cat artifacts/marketplace/src/pages/courier/earnings.tsx
+STEP 2: Check for existing earnings hook:
+  grep -rn "courier.*earning\|earning.*courier" lib/api-client-react/src/ --include="*.ts"
+STEP 3: Check the courier-tabs layout to understand tab structure:
+  cat artifacts/mobile/app/(courier-tabs)/_layout.tsx
+  Note how existing tabs are registered (workspace, history, profile).
+
+STEP 4: Create artifacts/mobile/app/(courier-tabs)/earnings.tsx
+  following this structure:
+
+  import React from "react";
+  import { View, Text, ScrollView, StyleSheet } from "react-native";
+  import { useTranslation } from "... existing i18n pattern ...";
+  import { useGetCourierEarnings } from "@workspace/api-client-react";
+  // Mirror the data displayed on web:
+  // - Total earnings (lifetime)
+  // - This month earnings
+  // - Last month earnings
+  // - Earnings per completed mission
+  // - Pending payout amount
+
+  Match the visual style of existing courier tab screens (history.tsx, profile.tsx).
+  Use the same color tokens, spacing, and card patterns.
+  Add a loading skeleton and an error state (isError banner).
+  All text must use t() keys — add missing keys to i18n/index.ts.
+
+STEP 5: Add the earnings tab to (courier-tabs)/_layout.tsx:
+  Read the layout file to understand how tabs are added.
+  Add earnings tab with:
+  - Icon matching web (likely a wallet or chart icon from lucide or @expo/vector-icons)
+  - i18n label: t("courier.earnings") — add key if missing
+  - href: "/(courier-tabs)/earnings"
+
+STEP 6: Add required i18n keys to artifacts/mobile/src/i18n/index.ts:
+  Under the courier section, add any missing keys used in the new screen.
+  At minimum: courier.earnings, courier.total_earnings, courier.this_month,
+  courier.last_month, courier.per_mission, courier.pending_payout
+
+STEP 7: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 6 — ADD MISSING SCREEN: /courier/performance (HIGH)
+════════════════════════════════════════
+FILE TO CREATE: artifacts/mobile/app/(courier-tabs)/performance.tsx
+REFERENCE WEB FILE: artifacts/marketplace/src/pages/courier/performance.tsx
+
+BACKGROUND:
+Couriers cannot review their performance stats on mobile.
+Fetches from GET /api/courier/performance.
+
+STEP 1: Read the web performance page fully.
+STEP 2: Check for existing performance hook:
+  grep -rn "courier.*performance\|performance.*courier" lib/api-client-react/src/ --include="*.ts"
+
+STEP 3: Create artifacts/mobile/app/(courier-tabs)/performance.tsx
+  Mirror the web data:
+  - Delivery success rate (%)
+  - Average delivery time
+  - Total completed missions
+  - Customer ratings average
+  - Recent ratings list (FlatList)
+
+  Use FlatList for the ratings list (not ScrollView+map).
+  Add loading skeleton and error state.
+  All strings via t().
+
+STEP 4: Add performance tab to (courier-tabs)/_layout.tsx
+  following the same pattern as Task 5 Step 5.
+  i18n label: t("courier.performance")
+
+STEP 5: Add required i18n keys to i18n/index.ts:
+  courier.performance, courier.success_rate, courier.avg_delivery_time,
+  courier.completed_missions, courier.avg_rating, courier.recent_ratings
+
+STEP 6: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 7 — ADD MISSING SCREEN: /courier/wallet (HIGH)
+════════════════════════════════════════
+FILE TO CREATE: artifacts/mobile/app/(courier-tabs)/wallet.tsx
+REFERENCE WEB FILE: artifacts/marketplace/src/pages/courier/wallet.tsx
+
+BACKGROUND:
+Couriers cannot request payouts on mobile — this directly affects their income.
+Fetches from GET /api/courier/wallet and GET /api/courier/payouts.
+Payout request: POST /api/courier/payouts.
+
+STEP 1: Read the web wallet page fully.
+STEP 2: Check for existing wallet/payout hooks:
+  grep -rn "courier.*wallet\|courier.*payout" lib/api-client-react/src/ --include="*.ts"
+
+STEP 3: Create artifacts/mobile/app/(courier-tabs)/wallet.tsx
+  Must include:
+  - Current wallet balance (prominent display)
+  - Available for payout amount
+  - Payout request button (POST /api/courier/payouts)
+  - Payout history list (FlatList)
+  - Transaction history list (FlatList from GET /api/courier/wallet/transactions)
+
+  The payout request button:
+  - Must be disabled if available balance is 0
+  - Must show a confirmation before submitting
+  - Must show success/error toast after submission
+  - Must invalidate wallet + payouts queries on success
+
+  Add loading skeleton, error state, and empty state for each list.
+  All strings via t().
+
+STEP 4: Add wallet tab to (courier-tabs)/_layout.tsx.
+  i18n label: t("courier.wallet")
+
+STEP 5: Add required i18n keys to i18n/index.ts:
+  courier.wallet, courier.wallet_balance, courier.available_payout,
+  courier.request_payout, courier.payout_history, courier.transaction_history,
+  courier.payout_confirm, courier.payout_success, courier.payout_error,
+  courier.no_transactions, courier.no_payouts
+
+STEP 6: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 8 — ADD MISSING SCREEN: /seller/inventory (HIGH)
+════════════════════════════════════════
+FILE TO CREATE: artifacts/mobile/app/seller/inventory.tsx
+REFERENCE WEB FILE: artifacts/marketplace/src/pages/seller/inventory.tsx
+
+BACKGROUND:
+Sellers cannot manage stock levels on mobile.
+This means a seller who runs out of stock cannot update it without opening a browser.
+
+STEP 1: Read the web inventory page fully.
+STEP 2: Check for existing inventory hooks:
+  grep -rn "inventory\|stock" lib/api-client-react/src/ --include="*.ts"
+  Check which API endpoint inventory uses (likely GET /api/products with seller filter
+  + PATCH /api/products/:id for stock updates).
+
+STEP 3: Create artifacts/mobile/app/seller/inventory.tsx
+  Must include:
+  - List of seller's products with current stock level (FlatList)
+  - Each item shows: product name, image, current stock, low-stock warning
+  - Inline stock edit: tapping a product opens a modal or inline input to update stock
+  - Stock update: PATCH /api/products/:id with { stock: newValue }
+  - Low stock threshold: highlight products with stock < 5 in amber/red
+  - Empty state if no products
+
+  Stock edit input:
+  - Numeric keyboard (keyboardType="numeric")
+  - Minimum value: 0
+  - Must show loading state while saving
+  - Must invalidate products query on success
+  - Must show success/error feedback
+
+  All strings via t().
+  Add loading skeleton and error state.
+
+STEP 4: Add a navigation link to inventory from the seller tab or seller dashboard:
+  Check artifacts/mobile/app/(tabs)/index.tsx seller branch and
+  artifacts/mobile/app/seller/products.tsx for existing navigation patterns.
+  Add an "Inventory" button/link in the seller navigation section that
+  calls router.push("/seller/inventory").
+
+STEP 5: Add required i18n keys to i18n/index.ts:
+  seller.inventory, seller.stock_level, seller.low_stock_warning,
+  seller.update_stock, seller.stock_updated, seller.stock_update_error,
+  seller.no_products_inventory, seller.items_in_stock, seller.out_of_stock
+
+STEP 6: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 9 — ADD MISSING SCREEN: /admin/courier-applications/:id (MEDIUM)
+════════════════════════════════════════
+FILE TO CREATE: artifacts/mobile/app/admin/courier-application-detail.tsx
+REFERENCE WEB FILE: artifacts/marketplace/src/pages/admin/courier-application-detail.tsx
+
+BACKGROUND:
+The admin can see the list of courier applications on mobile
+but cannot open the detail/review screen.
+The detail screen is needed to approve or reject an application.
+
+STEP 1: Read the web detail page fully.
+STEP 2: Check the existing mobile list screen:
+  cat artifacts/mobile/app/admin/courier-applications.tsx
+  Understand how items link to detail (or don't currently).
+
+STEP 3: Check API hooks for courier application detail:
+  grep -rn "courier.*application\|application.*courier" lib/api-client-react/src/ --include="*.ts"
+  Find GET /api/admin/courier-applications/:id and approve/reject endpoints.
+
+STEP 4: Create artifacts/mobile/app/admin/courier-application-detail.tsx
+  Use expo-router's useLocalSearchParams to get the application id:
+    import { useLocalSearchParams } from "expo-router";
+    const { id } = useLocalSearchParams<{ id: string }>();
+
+  Must display:
+  - Applicant name, phone, email
+  - Vehicle type, district
+  - Application date
+  - Current status badge
+  - Approve button (POST /api/admin/courier-applications/:id/status with status:"approved")
+  - Reject button (POST with status:"rejected")
+  - Rejection reason input (shown when reject is tapped)
+
+  Both buttons:
+  - Must show confirmation before submitting
+  - Must be disabled if application is already approved/rejected
+  - Must show loading state during submission
+  - Must navigate back to list on success
+  - Must invalidate the applications list query on success
+
+  Add loading skeleton and error state.
+  All strings via t().
+
+STEP 5: In artifacts/mobile/app/admin/courier-applications.tsx,
+  update each list item to navigate to the detail screen on press:
+    router.push(`/admin/courier-application-detail?id=${item.id}`)
+  Or use expo-router dynamic route if the file is named [id].tsx — check existing patterns.
+
+STEP 6: Add required i18n keys to i18n/index.ts:
+  admin.application_detail, admin.approve_application, admin.reject_application,
+  admin.rejection_reason, admin.application_approved, admin.application_rejected,
+  admin.confirm_approve, admin.confirm_reject
+
+STEP 7: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 10 — FIX RTL: ADD I18nManager.forceRTL() (MEDIUM)
+════════════════════════════════════════
+FILE: artifacts/mobile/app/_layout.tsx (root layout)
+FILE: artifacts/mobile/src/i18n/index.ts
+
+BACKGROUND:
+RTL is currently handled manually with inline isAr ternaries.
+Without I18nManager.forceRTL(true), the React Native layout engine
+stays LTR — native components (ScrollView momentum, gesture directions,
+OS-level text rendering) all behave LTR even when UI text is Arabic.
+
+STEP 1: Open artifacts/mobile/app/_layout.tsx and read it fully.
+STEP 2: Open artifacts/mobile/src/i18n/index.ts and find:
+  - How getLocale() or the current language is determined
+  - Where the locale is initialized on app start
+
+STEP 3: Check if expo-updates is available:
+  grep -n "expo-updates" artifacts/mobile/package.json
+  If present, it can be used for reloadAsync after forceRTL.
+
+STEP 4: In the root _layout.tsx, add RTL enforcement on startup.
+  Add BEFORE the root layout component renders:
+
+  import { I18nManager } from "react-native";
+  // Import your locale getter — check existing import pattern
+  import { getLocale } from "../src/i18n";  // adjust path if needed
+
+  // Add inside the root layout component, in a useEffect that runs once:
+  useEffect(() => {
+    const isArabic = getLocale() === "ar";
+    if (I18nManager.isRTL !== isArabic) {
+      I18nManager.forceRTL(isArabic);
+      // Reload is required for forceRTL to take effect
+      // Only reload if expo-updates is available
+      // If not available, the change takes effect on next cold start
+      try {
+        const { reloadAsync } = require("expo-updates");
+        reloadAsync();
+      } catch {
+        // expo-updates not available — RTL takes effect on next restart
+      }
+    }
+  }, []);
+
+STEP 5: IMPORTANT — verify the useEffect dependency array:
+  This must run only ONCE on mount (empty deps []).
+  The isRTL check prevents unnecessary reloads if RTL is already correct.
+
+STEP 6: Check if locale can change at runtime (user switches language in settings):
+  grep -rn "setLocale\|changeLanguage\|switchLanguage" artifacts/mobile/src/ --include="*.ts" --include="*.tsx"
+  If locale can change at runtime, also call I18nManager.forceRTL() there
+  and trigger a reload when it changes.
+
+STEP 7: Run tsc --noEmit -p artifacts/mobile/tsconfig.json → 0 errors.
+
+════════════════════════════════════════
+TASK 11 — VERIFY AND CONFIRM PASSING SCREENS (confirm only)
+════════════════════════════════════════
+Run these grep checks and report results. Do NOT edit anything for this task.
+
+CHECK 1 — Confirm /stores route exists (for Explore Stores fix):
+  ls artifacts/mobile/app/stores/index.tsx 2>/dev/null && echo "EXISTS" || echo "MISSING"
+
+CHECK 2 — Confirm courier tab layout registers all tabs:
+  cat artifacts/mobile/app/(courier-tabs)/_layout.tsx
+  Report which tabs are currently registered.
+
+CHECK 3 — Confirm seller navigation links exist:
+  grep -rn "seller/products\|seller/orders\|seller/analytics" \
+    artifacts/mobile/app/ --include="*.tsx" | head -20
+  Report all existing seller navigation links.
+
+CHECK 4 — Confirm getBaseUrl() is used (not localhost) in new files:
+  grep -rn "localhost\|127\.0\.0\.1" artifacts/mobile/app/ --include="*.tsx"
+  Must return 0 results in application code.
+
+CHECK 5 — Confirm all new i18n keys were added:
+  grep -n "hero_discount\|courier.earnings\|courier.wallet\|courier.performance\|seller.inventory\|admin.application_detail" \
+    artifacts/mobile/src/i18n/index.ts
+  All 6 key groups must appear.
+
+Report each check result clearly.
+
+════════════════════════════════════════
+EXECUTION ORDER
+════════════════════════════════════════
+Execute in this order:
+
+1. Tasks 1 + 2 + 3 together — same file (index.tsx), quick wins
+2. Task 3 i18n part — i18n/index.ts update
+3. Task 4 — Hero banners API fetch (most complex web→mobile port)
+4. Task 10 — I18nManager RTL fix (root layout — do before new screens)
+5. Task 5 — courier/earnings screen + i18n keys
+6. Task 6 — courier/performance screen + i18n keys
+7. Task 7 — courier/wallet screen + i18n keys (most complex new screen)
+8. Task 8 — seller/inventory screen + i18n keys + navigation link
+9. Task 9 — admin/courier-application-detail screen + list linking
+10. Task 11 — verification checks (last, after all edits)
+
+════════════════════════════════════════
+FINAL VERIFICATION
+════════════════════════════════════════
+After ALL tasks are complete, run:
+
+  npx tsc --build lib/db lib/api-zod lib/api-client-react
+  npx tsc --noEmit -p artifacts/api-server/tsconfig.json
+  npx tsc --noEmit -p artifacts/marketplace/tsconfig.json
+  npx tsc --noEmit -p artifacts/mobile/tsconfig.json
+
+Expected: 0 errors across all packages.
+
+Then provide a completion report in this exact format:
+
+  ✅ Task 1  — "Shop Now" navigation: routes to /categories, haptic preserved
+  ✅ Task 2  — "Explore Stores" route: /store-directory → /stores, as any removed
+  ✅ Task 3  — hero_discount i18n: key added to ar+en, t() used in JSX
+  ✅ Task 4  — Hero banners API: [hook used/created], fallback to HERO_IMAGES intact,
+               impression tracking: [yes/no]
+  ✅ Task 5  — courier/earnings screen: created, [N] i18n keys added,
+               tab registered in _layout.tsx
+  ✅ Task 6  — courier/performance screen: created, [N] i18n keys added,
+               tab registered in _layout.tsx
+  ✅ Task 7  — courier/wallet screen: created, payout flow complete,
+               [N] i18n keys added, tab registered in _layout.tsx
+  ✅ Task 8  — seller/inventory screen: created, stock edit working,
+               navigation link added from [location], [N] i18n keys added
+  ✅ Task 9  — admin/courier-application-detail: created, list linking updated,
+               approve/reject flow complete, [N] i18n keys added
+  ✅ Task 10 — I18nManager.forceRTL(): added to root layout, reload guard present,
+               runtime locale change: [handled/not applicable]
+  ✅ Task 11 — Verification checks: [paste results of all 5 checks]
+  ✅ TypeScript: 0 errors confirmed across all 4 packages
+
+If any task could not be completed, explain exactly why and what was left.
+Do NOT suggest new features or extensions — report completion only.
