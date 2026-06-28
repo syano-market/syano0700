@@ -347,6 +347,11 @@ export function LuxuryNavbar() {
   const sBtnHovFg = isDark ? WHITE : "#111827";
   const sPanelDim = isDark ? DIMMED : "#3D4554";                  /* section label */
   const sPanelSep = isDark ? BORDER : "hsl(220, 13%, 84%)";       /* divider */
+  /* Auth user dropdown tokens */
+  const aDropFg   = isDark ? WHITE                   : "#111827";  /* name/primary text */
+  const aDropSub  = isDark ? MUTED                   : "#3D4554";  /* email/secondary text */
+  const aDropItem = isDark ? "rgba(255,255,255,0.80)": "#374151";  /* nav link text */
+  const aDropDang = isDark ? "#f87171"               : "#dc2626";  /* logout (danger red) */       /* divider */
 
   return (
     <>
@@ -898,55 +903,55 @@ export function LuxuryNavbar() {
                       <ChevronDown style={{ height: 13, width: 13, color: MUTED }} />
                     </motion.button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" sideOffset={8} className="w-52 p-0 overflow-hidden rounded-2xl shadow-2xl" style={dropStyle}>
-                    <div style={{ padding: "0.75rem 0.875rem", borderBottom: `1px solid ${BORDER}` }}>
-                      <p style={{ fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 700, color: WHITE }}>{user?.name}</p>
-                      <p style={{ fontFamily: F_SANS, fontSize: "11px", color: MUTED, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} translate="no">{user?.email}</p>
+                  <DropdownMenuContent align="end" sideOffset={8} className="w-52 p-0 overflow-hidden rounded-2xl shadow-2xl" style={settingsDropStyle}>
+                    <div style={{ padding: "0.75rem 0.875rem", borderBottom: `1px solid ${sPanelSep}` }}>
+                      <p style={{ fontFamily: F_SANS, fontSize: "0.8125rem", fontWeight: 700, color: aDropFg }}>{user?.name}</p>
+                      <p style={{ fontFamily: F_SANS, fontSize: "11px", color: aDropSub, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} translate="no">{user?.email}</p>
                     </div>
                     <div style={{ padding: "0.25rem 0" }}>
                       <DropdownMenuItem asChild>
                         <Link href={isAdmin ? "/admin" : isSeller ? "/seller/dashboard" : isCourier ? "/courier" : "/customer/dashboard"}
-                          className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "rgba(255,255,255,0.8)", padding: "0.5rem 0.875rem" }}>
+                          className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropItem, padding: "0.5rem 0.875rem" }}>
                           <LayoutDashboard style={{ height: 14, width: 14 }} /> {t("nav.dashboard")}
                         </Link>
                       </DropdownMenuItem>
                       {isCustomer && (
                         <DropdownMenuItem asChild>
-                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "rgba(255,255,255,0.8)", padding: "0.5rem 0.875rem" }}>
+                          <Link href="/orders" className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropItem, padding: "0.5rem 0.875rem" }}>
                             <ClipboardList style={{ height: 14, width: 14 }} /> {t("nav.orders")}
                           </Link>
                         </DropdownMenuItem>
                       )}
                       {isCustomer && (
                         <DropdownMenuItem asChild>
-                          <Link href="/account" className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "rgba(255,255,255,0.8)", padding: "0.5rem 0.875rem" }}>
+                          <Link href="/account" className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropItem, padding: "0.5rem 0.875rem" }}>
                             <User style={{ height: 14, width: 14 }} /> {t("account.title")}
                           </Link>
                         </DropdownMenuItem>
                       )}
                       {isSeller && sellerLinks.map(l => (
                         <DropdownMenuItem key={l.href} asChild>
-                          <Link href={l.href} className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "rgba(255,255,255,0.8)", padding: "0.5rem 0.875rem" }}>
+                          <Link href={l.href} className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropItem, padding: "0.5rem 0.875rem" }}>
                             <l.icon style={{ height: 14, width: 14 }} /> {l.label}
                           </Link>
                         </DropdownMenuItem>
                       ))}
                       {isAdmin && adminLinks.slice(0, 4).map(l => (
                         <DropdownMenuItem key={l.href} asChild>
-                          <Link href={l.href} className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "rgba(255,255,255,0.8)", padding: "0.5rem 0.875rem" }}>
+                          <Link href={l.href} className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropItem, padding: "0.5rem 0.875rem" }}>
                             <l.icon style={{ height: 14, width: 14 }} /> {l.label}
                           </Link>
                         </DropdownMenuItem>
                       ))}
                       {isCourier && (
                         <DropdownMenuItem asChild>
-                          <Link href="/courier" className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "rgba(255,255,255,0.8)", padding: "0.5rem 0.875rem" }}>
+                          <Link href="/courier" className="flex items-center gap-2 cursor-pointer" style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropItem, padding: "0.5rem 0.875rem" }}>
                             <Bike style={{ height: 14, width: 14 }} /> {isRtl ? "مساحة العمل" : "Workspace"}
                           </Link>
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSeparator style={{ background: BORDER, margin: "0.25rem 0.875rem" }} />
-                      <DropdownMenuItem onClick={logout} style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: "#f87171", padding: "0.5rem 0.875rem", cursor: "pointer" }}
+                      <DropdownMenuSeparator style={{ background: sPanelSep, margin: "0.25rem 0.875rem" }} />
+                      <DropdownMenuItem onClick={logout} style={{ fontFamily: F_SANS, fontSize: "0.8125rem", color: aDropDang, padding: "0.5rem 0.875rem", cursor: "pointer" }}
                         className="focus:bg-red-500/10">
                         <LogOut style={{ height: 14, width: 14, marginInlineEnd: "0.5rem" }} /> {t("nav.logout")}
                       </DropdownMenuItem>
